@@ -237,40 +237,46 @@ async function loadEvents() {
     
     // Display events
     data.forEach(event => {
-      const isArchived = event.active === false;
-      
-      const eventCard = document.createElement('div');
-      eventCard.className = `event-card ${isArchived ? 'archived' : ''}`;
-      eventCard.innerHTML = `
+    const isArchived = event.active === false;
+    
+    const eventCard = document.createElement('div');
+    eventCard.className = `event-card ${isArchived ? 'archived' : ''}`;
+    eventCard.innerHTML = `
         <div class="event-info">
-          <h3>${event.name} ${isArchived ? '<span class="archived-badge">Archived</span>' : ''}</h3>
-          <p>Created: ${formatDate(new Date(event.created_at))}</p>
+        <h3>${event.name} ${isArchived ? '<span class="archived-badge">Archived</span>' : ''}</h3>
+        <p>Created: ${formatDate(new Date(event.created_at))}</p>
         </div>
         <div class="event-actions">
-          <button class="qr-button" data-id="${event.id}" data-name="${event.name}">QR Code</button>
-          <button class="dashboard-button" data-id="${event.id}">Dashboard</button>
-          <button class="archive-button" data-id="${event.id}" data-active="${event.active}">
+        <button class="display-button" data-id="${event.id}" data-name="${event.name}">QR Display</button>
+        <button class="guest-button" data-id="${event.id}">Guest Form</button>
+        <button class="dashboard-button" data-id="${event.id}">DJ Dashboard</button>
+        <button class="archive-button" data-id="${event.id}" data-active="${event.active}">
             ${isArchived ? 'Unarchive' : 'Archive'}
-          </button>
+        </button>
         </div>
-      `;
-      
-      // Add event listeners
-      eventCard.querySelector('.qr-button').addEventListener('click', () => {
-        generateQR(event);
-        shareQrUrl(event.id, event.name); // Open share dialog automatically
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-      
-      eventCard.querySelector('.dashboard-button').addEventListener('click', () => {
-        window.open(`${djUrl}?event=${event.id}`, '_blank');
-      });
-      
-      eventCard.querySelector('.archive-button').addEventListener('click', () => {
+    `;
+    
+    // Direct access to QR Display page
+    eventCard.querySelector('.display-button').addEventListener('click', () => {
+        const displayUrl = `${window.location.origin}/display.html?event=${event.id}&message=Request%20Your%20Song`;
+        window.open(displayUrl, '_blank');
+    });
+    
+    // Direct access to Guest Form
+    eventCard.querySelector('.guest-button').addEventListener('click', () => {
+        window.open(`${window.location.origin}/guest/?event=${event.id}`, '_blank');
+    });
+    
+    // Direct access to DJ Dashboard
+    eventCard.querySelector('.dashboard-button').addEventListener('click', () => {
+        window.open(`${window.location.origin}/dj/?event=${event.id}`, '_blank');
+    });
+    
+    eventCard.querySelector('.archive-button').addEventListener('click', () => {
         toggleArchiveEvent(event.id, event.active);
-      });
-      
-      eventsList.appendChild(eventCard);
+    });
+    
+    eventsList.appendChild(eventCard);
     });
     
   } catch (error) {

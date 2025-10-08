@@ -250,3 +250,33 @@ button:active {
   font-weight: normal;
   margin-left: 10px;
 }
+
+/* Enhanced button styling */
+.event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.display-button {
+  background-color: #8a2be2; /* Purple */
+}
+
+.guest-button {
+  background-color: #2e8b57; /* Sea Green */
+}
+
+.dashboard-button {
+  background-color: #4169e1; /* Royal Blue */
+}
+
+.archive-button {
+  background-color: #708090; /* Slate Gray */
+}
+
+@media (max-width: 768px) {
+  .event-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+}

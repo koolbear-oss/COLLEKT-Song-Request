@@ -59,8 +59,8 @@
         
         // Generate QR code
         if (eventId) {
-            const baseUrl = window.location.origin + window.location.pathname.replace('display.html', '');
-            const requestUrl = `${baseUrl}guest/?event=${eventId}`;
+            // Simplify the URL generation to avoid errors
+            const requestUrl = window.location.origin + "/guest/?event=" + eventId;
             
             QRCode.toCanvas(document.getElementById('qrcode'), requestUrl, {
                 width: 300,
