@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>DJ Song Requests</h1>
+            <div class="event-info">
+                <span id="eventName">Loading event...</span>
+                <div class="refresh-controls">
+                    <label for="refreshSlider">Auto-refresh: <span id="refreshInterval">30</span>s</label>
+                    <input type="range" id="refreshSlider" min="2" max="120" value="30" class="slider">
+                    <button id="refreshButton">Refresh Now</button>
+                </div>
+                <button id="exportButton">Export</button>
+            </div>
+        </header>
+        
+        <div class="dashboard-content">
+            <!-- Active requests section -->
+            <div class="section requests-section">
+                <h2>Current Requests <span id="requestCount" class="count-badge">0</span></h2>
+                <div id="requestsList" class="requests-container">
+                    <!-- Requests will be added here dynamically -->
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+            
+            <!-- Played tracks section -->
+            <div class="section played-section">
+                <h2>Played Tracks <span id="playedCount" class="count-badge">0</span></h2>
+                <div id="playedList" class="requests-container">
+                    <!-- Played tracks will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request template (hidden) -->
+    <template id="requestTemplate">
+        <div class="request-card" data-id="">
+            <div class="request-info">
+                <h3 class="song-title"></h3>
+                <p class="artist-name"></p>
+                <p class="message"></p>
+                <div class="timestamp"></div>
+            </div>
+            <div class="request-actions">
+                <button class="play-button">Mark as Played</button>
+                <button class="delete-button">Delete</button>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

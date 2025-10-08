@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Request QR Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Song Request QR Generator</h1>
+        
+        <div class="form-container">
+            <h2>Create New Event</h2>
+            <div class="form-group">
+                <label for="eventName">Event Name</label>
+                <input type="text" id="eventName" placeholder="Enter event name">
+            </div>
+            <button id="createButton">Create Event & Generate QR</button>
+        </div>
+        
+        <div class="qr-container hidden" id="qrResult">
+            <h2>QR Code Generated</h2>
+            <canvas id="qrcode"></canvas>
+            <div class="qr-details">
+                <p>Event: <span id="displayEventName"></span></p>
+                <p>Event ID: <span id="eventId"></span></p>
+                <div class="link-container">
+                    <p>Request URL:</p>
+                    <input type="text" id="requestUrl" readonly>
+                    <button id="copyButton">Copy</button>
+                </div>
+                <div class="button-group">
+                    <button id="printButton">Print QR Code</button>
+                    <button id="dashboardButton">Open DJ Dashboard</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="events-container">
+            <h2>Your Events</h2>
+            <div class="archive-toggle">
+                <label>
+                    <input type="checkbox" id="showArchived"> Show archived events
+                </label>
+            </div>
+            <div id="eventsList">
+                <p class="loading">Loading events...</p>
+            </div>
+        </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

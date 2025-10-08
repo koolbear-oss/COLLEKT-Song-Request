@@ -1,0 +1,297 @@
+// Initialize Supabase client
+const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// Get event ID from URL parameter
+const urlParams = new URLSearchParams(window.location.search);
+const eventId = urlParams.get('event');
+
+// DOM elements
+const eventNameElement = document.getElementById('eventName');
+const requestsListElement = document.getElementById('requestsList');
+const playedListElement = document.getElementById('playedList');
+const requestCountElement = document.getElementById('requestCount');
+const playedCountElement = document.getElementById('playedCount');
+const refreshButton = document.getElementById('refreshButton');
+const exportButton = document.getElementById('exportButton');
+
+// Auto-refresh timer
+let refreshTimer;
+let refreshInterval = 30; // Default refresh time in seconds
+
+// Additional DOM elements for refresh timer
+const refreshSlider = document.getElementById('refreshSlider');
+const refreshIntervalDisplay = document.getElementById('refreshInterval');
+
+// Function to start/restart the refresh timer
+function startRefreshTimer() {
+  // Clear any existing timer
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+  }
+  
+  // Start a new timer with the current interval
+  refreshTimer = setInterval(fetchRequests, refreshInterval * 1000);
+  console.log(`Auto-refresh set to ${refreshInterval} seconds`);
+}
+
+// Check if event ID is provided
+if (!eventId) {
+  alert('No event ID provided. Please add ?event=YOUR_EVENT_ID to the URL.');
+}
+
+// Initialize the dashboard
+async function initializeDashboard() {
+  // Fetch event details
+  if (eventId) {
+    const { data: event, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', eventId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching event:', error);
+      eventNameElement.textContent = 'Event not found';
+    } else {
+      eventNameElement.textContent = event.name;
+    }
+  }
+  
+  // Fetch and display requests
+  await fetchRequests();
+  
+  // Set up automatic refresh timer
+  startRefreshTimer();
+  
+  // Initialize drag-and-drop for active requests
+  initializeSortable();
+}
+
+// Fetch requests from Supabase
+async function fetchRequests() {
+  if (!eventId) return;
+  
+  try {
+    // Fetch active requests
+    const { data: activeRequests, error: activeError } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('played', false)
+      .order('position', { ascending: true });
+    
+    // Fetch played requests
+    const { data: playedRequests, error: playedError } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('played', true)
+      .order('played_at', { ascending: false });
+    
+    if (activeError) throw activeError;
+    if (playedError) throw playedError;
+    
+    // Display requests
+    displayRequests(requestsListElement, activeRequests || []);
+    displayRequests(playedListElement, playedRequests || [], true);
+    
+    // Update counters
+    requestCountElement.textContent = activeRequests ? activeRequests.length : 0;
+    playedCountElement.textContent = playedRequests ? playedRequests.length : 0;
+    
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+  }
+}
+
+// Display requests in the specified container
+function displayRequests(container, requests, isPlayed = false) {
+  // Clear existing content (except loading spinner)
+  container.innerHTML = '';
+  
+  // If no requests, show a message
+  if (requests.length === 0) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.textContent = isPlayed 
+      ? 'No tracks have been played yet.' 
+      : 'No song requests yet.';
+    emptyMessage.style.textAlign = 'center';
+    emptyMessage.style.opacity = '0.7';
+    container.appendChild(emptyMessage);
+    return;
+  }
+  
+  // Create request cards
+  requests.forEach(request => {
+    const template = document.getElementById('requestTemplate');
+    const requestCard = document.importNode(template.content, true).querySelector('.request-card');
+    
+    // Set data attribute for identification
+    requestCard.dataset.id = request.id;
+    requestCard.dataset.position = request.position;
+    
+    // Fill in request details
+    requestCard.querySelector('.song-title').textContent = request.title;
+    requestCard.querySelector('.artist-name').textContent = request.artist;
+    requestCard.querySelector('.message').textContent = request.message || '';
+    
+    // Format timestamp
+    const timestamp = new Date(isPlayed ? request.played_at : request.created_at);
+    requestCard.querySelector('.timestamp').textContent = formatDate(timestamp);
+    
+    // Set up button actions
+    if (!isPlayed) {
+      requestCard.querySelector('.play-button').addEventListener('click', () => markAsPlayed(request.id));
+    }
+    requestCard.querySelector('.delete-button').addEventListener('click', () => deleteRequest(request.id));
+    
+    // Add to container
+    container.appendChild(requestCard);
+  });
+}
+
+// Initialize SortableJS for drag-and-drop
+function initializeSortable() {
+  new Sortable(requestsListElement, {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    onEnd: async function(evt) {
+      const requestId = evt.item.dataset.id;
+      const newPosition = evt.newIndex;
+      
+      try {
+        // Update position in database
+        const { error } = await supabase
+          .from('requests')
+          .update({ position: newPosition })
+          .eq('id', requestId);
+        
+        if (error) throw error;
+        
+        // Re-fetch requests to ensure correct ordering
+        fetchRequests();
+      } catch (error) {
+        console.error('Error updating position:', error);
+      }
+    }
+  });
+}
+
+// Mark request as played
+async function markAsPlayed(requestId) {
+  try {
+    const { error } = await supabase
+      .from('requests')
+      .update({ 
+        played: true,
+        played_at: new Date().toISOString()
+      })
+      .eq('id', requestId);
+    
+    if (error) throw error;
+    
+    // Re-fetch requests
+    fetchRequests();
+  } catch (error) {
+    console.error('Error marking as played:', error);
+  }
+}
+
+// Delete request
+async function deleteRequest(requestId) {
+  if (!confirm('Are you sure you want to delete this request?')) return;
+  
+  try {
+    const { error } = await supabase
+      .from('requests')
+      .delete()
+      .eq('id', requestId);
+    
+    if (error) throw error;
+    
+    // Re-fetch requests
+    fetchRequests();
+  } catch (error) {
+    console.error('Error deleting request:', error);
+  }
+}
+
+// Helper function to format dates
+function formatDate(date) {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+// Export playlist to text file
+exportButton.addEventListener('click', async function() {
+  try {
+    // Fetch all requests
+    const { data: allRequests, error } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('event_id', eventId)
+      .order('played', { ascending: false })
+      .order('position', { ascending: true });
+    
+    if (error) throw error;
+    
+    // Create text content
+    let exportText = "DJ PLAYLIST\n\n";
+    
+    // Active requests
+    exportText += "PENDING REQUESTS:\n";
+    const activeRequests = allRequests.filter(req => !req.played);
+    if (activeRequests.length === 0) {
+      exportText += "- None\n";
+    } else {
+      activeRequests.forEach((req, index) => {
+        exportText += `${index + 1}. "${req.title}" by ${req.artist}\n`;
+      });
+    }
+    
+    exportText += "\nPLAYED SONGS:\n";
+    const playedRequests = allRequests.filter(req => req.played);
+    if (playedRequests.length === 0) {
+      exportText += "- None\n";
+    } else {
+      playedRequests.forEach((req, index) => {
+        exportText += `${index + 1}. "${req.title}" by ${req.artist}\n`;
+      });
+    }
+    
+    // Create and download file
+    const blob = new Blob([exportText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dj-playlist-${new Date().toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+  } catch (error) {
+    console.error('Error exporting playlist:', error);
+    alert('Failed to export playlist');
+  }
+});
+
+// Refresh button handler
+refreshButton.addEventListener('click', fetchRequests);
+
+// Update interval when slider changes
+refreshSlider.addEventListener('input', function() {
+  refreshInterval = parseInt(this.value);
+  refreshIntervalDisplay.textContent = refreshInterval;
+});
+
+refreshSlider.addEventListener('change', function() {
+  startRefreshTimer();
+});
+
+// Initialize the dashboard when the page loads
+document.addEventListener('DOMContentLoaded', initializeDashboard);

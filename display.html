@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Request QR Code</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #8a2be2;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+        #qrcode {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 0 auto 30px;
+            display: inline-block;
+        }
+        p {
+            font-size: 18px;
+            margin-top: 15px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="qr-container">
+        <h1 id="customMessage">Request Your Song</h1>
+        <div id="qrcode"></div>
+        <p>Scan this QR code to request a song</p>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+        const message = urlParams.get('message') || 'Request Your Song';
+        
+        // Set custom message
+        document.getElementById('customMessage').textContent = message;
+        document.title = message;
+        
+        // Generate QR code
+        if (eventId) {
+            const baseUrl = window.location.origin + window.location.pathname.replace('display.html', '');
+            const requestUrl = `${baseUrl}guest/?event=${eventId}`;
+            
+            QRCode.toCanvas(document.getElementById('qrcode'), requestUrl, {
+                width: 300,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            }, function(error) {
+                if (error) {
+                    console.error(error);
+                    document.body.innerHTML = '<div class="qr-container"><h1>Error Loading QR Code</h1></div>';
+                }
+            });
+        } else {
+            document.body.innerHTML = '<div class="qr-container"><h1>No Event ID Provided</h1></div>';
+        }
+    </script>
+</body>
+</html>
