@@ -42,7 +42,7 @@
 <body>
     <div class="qr-container">
         <h1 id="customMessage">Request Your Song</h1>
-        <div id="qrcode"></div>
+        <canvas id="qrcode"></canvas>
         <p>Scan this QR code to request a song</p>
     </div>
     
@@ -59,22 +59,26 @@
         
         // Generate QR code
         if (eventId) {
-            // Simplify the URL generation to avoid errors
             const requestUrl = window.location.origin + "/guest/?event=" + eventId;
             
-            QRCode.toCanvas(document.getElementById('qrcode'), requestUrl, {
-                width: 300,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#ffffff'
+            QRCode.toCanvas(
+                document.getElementById('qrcode'), 
+                requestUrl, 
+                {
+                    width: 300,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    }
+                }, 
+                function(error) {
+                    if (error) {
+                        console.error(error);
+                        document.body.innerHTML = '<div class="qr-container"><h1>Error Loading QR Code</h1></div>';
+                    }
                 }
-            }, function(error) {
-                if (error) {
-                    console.error(error);
-                    document.body.innerHTML = '<div class="qr-container"><h1>Error Loading QR Code</h1></div>';
-                }
-            });
+            );
         } else {
             document.body.innerHTML = '<div class="qr-container"><h1>No Event ID Provided</h1></div>';
         }
