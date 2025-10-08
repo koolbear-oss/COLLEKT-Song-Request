@@ -7,7 +7,7 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 const baseUrl = window.location.origin + window.location.pathname.replace('/admin/', '/').replace('/admin/index.html', '/').replace('index.html', '');
 const guestUrl = baseUrl + 'guest/';
 const djUrl = baseUrl + 'dj/';
-const displayUrl = window.location.origin + window.location.pathname.replace('/admin/index.html', '/display.html').replace('/admin/', '/');
+const displayUrl = window.location.origin + '/display.html';
 
 // DOM Elements
 const createButton = document.getElementById('createButton');
