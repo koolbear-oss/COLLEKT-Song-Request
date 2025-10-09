@@ -108,7 +108,12 @@
                 localStorage.setItem('userName', user.name);
                 localStorage.setItem('userRole', roleName);
                 localStorage.setItem('userRoleId', roleId);
-                localStorage.setItem('isAdmin', 'false'); // Explicitly set non-admin
+                // Set isAdmin based on role name
+                if (roleName === 'Admin') {
+                    localStorage.setItem('isAdmin', 'true');
+                } else {
+                    localStorage.setItem('isAdmin', 'false');
+                }
 
                 // Set default permissions based on role name
                 let defaultPermissions = ['create_events']; // Basic DJ

@@ -76,14 +76,14 @@
     </script>    
 
     <script>
-    // Show Super Admin button only for the admin account
+    // Show Super Admin button only for admin users
     document.addEventListener('DOMContentLoaded', function() {
-        // Check if the admin is logged in
+        // Check if the user is logged in
         if (localStorage.getItem('isLoggedIn')) {
-        // Check if it's the main admin account (replace with your email)
-        const userEmail = localStorage.getItem('userEmail') || 'collekt.radioshow@gmail.com';
+        // Check if it's an admin user
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
         
-        if (userEmail === 'collekt.radioshow@gmail.com') {
+        if (isAdmin) {
             document.getElementById('superAdminButton').style.display = 'block';
         }
         }
