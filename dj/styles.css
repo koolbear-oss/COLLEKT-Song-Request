@@ -344,26 +344,37 @@ button:active {
   }
 }
 
-/* Add at the end of your styles.css file */
-
-/* Collapsible sidebar */
+/* Overlay sidebar */
 .dashboard-content {
   position: relative;
-  display: flex;
-  flex: 1;
   overflow: hidden;
+  display: block; /* Changed from flex to block */
+  height: 100%;
 }
 
 .requests-section {
-  flex: 1;
-  transition: flex 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
 }
 
 .played-section {
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 300px;
-  transition: width 0.3s ease, opacity 0.2s ease;
-  border-left: 1px solid var(--card-border);
-  position: relative;
+  height: 100%;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  background-color: var(--section-bg);
 }
 
 /* Sidebar toggle button */
@@ -380,7 +391,7 @@ button:active {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 101;
   transition: right 0.3s ease;
 }
 
@@ -392,9 +403,7 @@ button:active {
 
 /* Collapsed state */
 .sidebar-collapsed .played-section {
-  width: 0;
-  opacity: 0;
-  overflow: hidden;
+  transform: translateX(300px); /* Slide off screen */
 }
 
 .sidebar-collapsed .sidebar-toggle {
@@ -403,8 +412,4 @@ button:active {
 
 .sidebar-collapsed .toggle-arrow {
   transform: rotate(180deg);
-}
-
-.sidebar-collapsed .requests-section {
-  flex: 1;
 }
