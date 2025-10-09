@@ -41,17 +41,24 @@
         </div>
     </div>
 
+    <div class="filter-container">
+        <input type="text" id="requestFilter" placeholder="Search requests..." class="filter-input">
+        <button id="clearFilter" class="clear-filter-button">&times;</button>
+    </div>
+    
     <!-- Request template (hidden) -->
     <template id="requestTemplate">
         <div class="request-card" data-id="">
             <div class="request-info">
                 <h3 class="song-title"></h3>
                 <p class="artist-name"></p>
-                <p class="message"></p>
                 <div class="timestamp"></div>
             </div>
+            <div class="request-middle">
+                <p class="message"></p>
+            </div>
             <div class="request-actions">
-                <button class="play-button">Mark as Played</button>
+                <button class="play-button">Play</button>
                 <button class="delete-button">Delete</button>
             </div>
         </div>

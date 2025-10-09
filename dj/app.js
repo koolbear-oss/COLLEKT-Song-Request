@@ -221,6 +221,21 @@ async function deleteRequest(requestId) {
 
 // Helper function to format dates
 function formatDate(date) {
+  // Check if date is valid
+  if (!(date instanceof Date) || isNaN(date)) {
+    // If date is invalid, try to parse it as string
+    try {
+      date = new Date(date);
+    } catch (e) {
+      return ""; // Return empty if can't parse
+    }
+  }
+  
+  // If date is still invalid, return a placeholder
+  if (isNaN(date.getTime())) {
+    return "";
+  }
+  
   const hours = date.getHours().toString().padStart(2, '0');
   const minutes = date.getMinutes().toString().padStart(2, '0');
   return `${hours}:${minutes}`;
@@ -295,3 +310,44 @@ refreshSlider.addEventListener('change', function() {
 
 // Initialize the dashboard when the page loads
 document.addEventListener('DOMContentLoaded', initializeDashboard);
+
+// Add these variables with other DOM elements
+const filterInput = document.getElementById('requestFilter');
+const clearFilterButton = document.getElementById('clearFilter');
+
+// Add filter functionality
+filterInput.addEventListener('input', filterRequests);
+clearFilterButton.addEventListener('click', clearFilter);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.activeElement === filterInput) {
+    clearFilter();
+  }
+});
+
+function filterRequests() {
+  const filterText = filterInput.value.toLowerCase();
+  const cards = requestsListElement.querySelectorAll('.request-card');
+  
+  if (!filterText) {
+    cards.forEach(card => card.style.display = '');
+    return;
+  }
+  
+  cards.forEach(card => {
+    const title = card.querySelector('.song-title').textContent.toLowerCase();
+    const artist = card.querySelector('.artist-name').textContent.toLowerCase();
+    const message = card.querySelector('.message').textContent.toLowerCase();
+    
+    if (title.includes(filterText) || artist.includes(filterText) || message.includes(filterText)) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+function clearFilter() {
+  filterInput.value = '';
+  filterRequests();
+  filterInput.blur();
+}
