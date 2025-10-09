@@ -1,1 +1,5 @@
-/* /index.html 200
+# Redirect root to admin page
+/  /admin  302
+   
+# Handle SPA routing
+/*  /index.html  200
