@@ -1,3 +1,9 @@
+// Check if user has permission
+function hasPermission(permissionName) {
+  const permissions = JSON.parse(localStorage.getItem('userPermissions') || '[]');
+  return permissions.includes(permissionName);
+}
+
 // Initialize Supabase client
 const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
@@ -31,10 +37,17 @@ async function createEvent() {
   }
   
   try {
+    // Get current user's email
+    const userEmail = localStorage.getItem('userEmail');
+    
     // Insert new event
     const { data, error } = await supabase
       .from('events')
-      .insert([{ name: eventName, active: true }]) // Set active to true for new events
+      .insert([{ 
+        name: eventName, 
+        active: true,
+        created_by: userEmail  // Add this line to store creator's email
+      }])
       .select()
       .single();
     
@@ -224,6 +237,15 @@ async function loadEvents() {
       .from('events')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    // Filter events by user if not admin
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    if (!isAdmin) {
+      // Get the current user's email
+      const userEmail = localStorage.getItem('userEmail');
+      // Add filter to only show events created by this user
+      query = query.eq('created_by', userEmail);
+    }
     
     // Filter active/archived events
     if (!showArchived) {
