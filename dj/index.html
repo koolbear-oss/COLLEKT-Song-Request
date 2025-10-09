@@ -56,19 +56,21 @@
     <!-- Request template (hidden) -->
     <template id="requestTemplate">
         <div class="request-card" data-id="">
-            <div class="request-info">
+            <div class="card-header">
                 <h3 class="song-title"></h3>
                 <p class="artist-name"></p>
-                <div class="timestamp"></div>
             </div>
-            <div class="request-middle">
+            <div class="card-content">
                 <p class="message"></p>
             </div>
-            <div class="request-actions">
-                <button class="star-button" title="Star this request">★</button>
-                <button class="play-button" title="Mark as played">▶</button>
-                <button class="restore-button" title="Restore to queue">↩</button>
-                <button class="delete-button" title="Delete">🗑️</button>
+            <div class="card-footer">
+                <div class="timestamp"></div>
+                <div class="request-actions">
+                    <button class="star-button" title="Star this request">★</button>
+                    <button class="play-button" title="Mark as played">▶</button>
+                    <button class="restore-button" title="Restore to queue">↩</button>
+                    <button class="delete-button" title="Delete">🗑️</button>
+                </div>
             </div>
         </div>
     </template>

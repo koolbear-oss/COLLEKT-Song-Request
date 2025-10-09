@@ -135,7 +135,10 @@ function displayRequests(container, requests, isPlayed = false) {
     // Fill in request details
     requestCard.querySelector('.song-title').textContent = request.title;
     requestCard.querySelector('.artist-name').textContent = request.artist;
-    requestCard.querySelector('.message').textContent = request.message || '';
+    
+    // Handle message - truncate if needed
+    const message = request.message || '';
+    requestCard.querySelector('.message').textContent = message;
     
     // Format timestamp
     const timestamp = new Date(isPlayed ? request.played_at : request.created_at);
@@ -376,7 +379,6 @@ async function starRequest(requestId) {
     if (fetchError) throw fetchError;
     
     // Calculate a position value that will put this at the top
-    // (one less than the current minimum)
     let topPosition = 0;
     if (requests && requests.length > 0) {
       const minPosition = Math.min(...requests.map(r => r.position || 0));
