@@ -1,4 +1,4 @@
-/* Dark theme for DJ environment */
+/* Dark theme variables */
 :root {
   --primary-color: #8a2be2; /* Purple */
   --bg-color: #121212;
@@ -7,10 +7,13 @@
   --card-border: #333333;
   --success-color: #4caf50;
   --danger-color: #f44336;
+  --star-color: #ffeb3b;
+  --restore-color: #2196f3;
   --header-bg: #0a0a0a;
   --section-bg: #181818;
 }
 
+/* Base styles */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -34,6 +37,7 @@ body {
   overflow: hidden;
 }
 
+/* Header styles */
 header {
   background-color: var(--header-bg);
   padding: 15px 20px;
@@ -57,25 +61,24 @@ header h1 {
   flex-grow: 1;
 }
 
-button {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+/* Refresh controls */
+.refresh-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider {
+  width: 100px;
   cursor: pointer;
-  transition: all 0.2s;
+  accent-color: var(--primary-color);
 }
 
-button:hover {
-  opacity: 0.9;
+label {
+  white-space: nowrap;
 }
 
-button:active {
-  transform: scale(0.98);
-}
-
-/* Dashboard content */
+/* Main content area */
 .dashboard-content {
   display: flex;
   flex: 1;
@@ -83,14 +86,18 @@ button:active {
 }
 
 .section {
-  flex: 1;
   padding: 20px;
   overflow-y: auto;
   background-color: var(--section-bg);
 }
 
 .requests-section {
+  flex: 2; /* Make current requests section larger */
   border-right: 1px solid var(--card-border);
+}
+
+.played-section {
+  flex: 1; /* Make played section smaller */
 }
 
 .section h2 {
@@ -114,215 +121,7 @@ button:active {
   gap: 15px;
 }
 
-/* Request cards */
-.request-card {
-  background-color: var(--card-bg);
-  border-radius: 6px;
-  padding: 15px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  display: flex;
-  justify-content: space-between;
-  transition: transform 0.2s;
-  cursor: grab;
-}
-
-.request-card:active {
-  cursor: grabbing;
-}
-
-.request-card.sortable-ghost {
-  opacity: 0.4;
-}
-
-.request-card.sortable-chosen {
-  transform: scale(1.02);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.played-section .request-card {
-  opacity: 0.7;
-  cursor: default;
-}
-
-.request-info {
-  flex-grow: 1;
-}
-
-.song-title {
-  margin-bottom: 5px;
-  color: var(--primary-color);
-}
-
-.artist-name {
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.message {
-  font-style: italic;
-  margin-bottom: 10px;
-  font-size: 0.9em;
-  opacity: 0.9;
-}
-
-.timestamp {
-  font-size: 0.8em;
-  opacity: 0.7;
-}
-
-.request-actions {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 10px;
-  margin-left: 15px;
-}
-
-.play-button, .delete-button {
-  white-space: nowrap;
-}
-
-.play-button {
-  background-color: var(--success-color);
-}
-
-.delete-button {
-  background-color: var(--danger-color);
-}
-
-.played-section .play-button {
-  display: none;
-}
-
-/* Loading spinner */
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  border-top-color: var(--primary-color);
-  animation: spin 1s linear infinite;
-  margin: 30px auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .dashboard-content {
-    flex-direction: column;
-  }
-  
-  .requests-section {
-    border-right: none;
-    border-bottom: 1px solid var(--card-border);
-  }
-}
-
-/* Refresh controls */
-.refresh-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.slider {
-  width: 100px;
-  cursor: pointer;
-  accent-color: var(--primary-color);
-}
-
-label {
-  white-space: nowrap;
-}
-
-/* Add to styles.css */
-.dashboard-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-.section {
-  overflow-y: auto;
-  background-color: var(--section-bg);
-  padding: 20px;
-}
-
-.requests-section {
-  flex: 2; /* Make current requests section larger */
-  border-right: 1px solid var(--card-border);
-}
-
-.played-section {
-  flex: 1; /* Make played section smaller */
-}
-
-/* Updated request card layout */
-.request-card {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  gap: 10px;
-  align-items: center;
-  padding: 12px;
-}
-
-.request-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.song-title {
-  margin-bottom: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.artist-name {
-  margin-bottom: 3px;
-  font-size: 0.9em;
-}
-
-.request-middle .message {
-  font-style: italic;
-  margin: 0;
-  max-height: 3em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.9em;
-  opacity: 0.8;
-}
-
-.timestamp {
-  font-size: 0.8em;
-  opacity: 0.7;
-}
-
-.request-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.play-button, .delete-button {
-  padding: 6px 10px;
-  font-size: 0.9em;
-}
-
-/* Hide comments in played section */
-.played-section .request-middle .message {
-  display: none;
-}
-
-.played-section .request-card {
-  grid-template-columns: 2fr 1fr;
-}
-
-/* Filter input styling */
+/* Filter styles */
 .filter-container {
   display: flex;
   align-items: center;
@@ -355,68 +154,115 @@ label {
   opacity: 1;
 }
 
-/* Better card layout */
+/* Request cards */
 .request-card {
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr;
+  grid-template-columns: 2fr 3fr 1fr;
   gap: 10px;
   align-items: center;
-  padding: 12px;
+  padding: 10px;
+  background-color: var(--card-bg);
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
   cursor: grab;
+  height: auto;
+  min-height: 70px;
 }
 
-.played-section .request-card {
-  /* Keep the same height as current requests */
-  grid-template-columns: 2fr 1fr;
-  cursor: default;
+.request-card:active {
+  cursor: grabbing;
 }
 
+.request-card.sortable-ghost {
+  opacity: 0.4;
+}
+
+.request-card.sortable-chosen {
+  transform: scale(1.02);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Card components */
 .request-info {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+}
+
+.song-title {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1em;
+  color: var(--primary-color);
+}
+
+.artist-name {
+  margin: 2px 0;
+  font-size: 0.9em;
+  font-weight: bold;
 }
 
 .timestamp {
-  font-size: 0.8em;
+  font-size: 0.7em;
   opacity: 0.7;
-  margin-top: 5px;
-  display: block; /* Ensure visibility */
+  margin: 0;
 }
 
+.request-middle {
+  max-height: 60px;
+  overflow-y: auto;
+}
+
+.request-middle .message {
+  margin: 0;
+  font-size: 0.85em;
+  line-height: 1.2;
+  font-style: italic;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+  opacity: 0.9;
+}
+
+/* Action buttons */
 .request-actions {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.play-button, .delete-button {
-  padding: 6px 12px;
-}
-
-/* Make delete button more discreet in played section */
-.played-section .delete-button {
-  padding: 4px 8px;
-  font-size: 0.8em;
-  background-color: rgba(244, 67, 54, 0.7);
-}
-
-/* Icon button styling */
-.request-actions {
-  display: flex;
-  gap: 8px;
+  flex-direction: row;
   justify-content: flex-end;
   align-items: center;
+  gap: 5px;
+}
+
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:active {
+  transform: scale(0.98);
 }
 
 .request-actions button {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  font-size: 16px;
+  font-size: 14px;
   opacity: 0.7;
   transition: all 0.2s;
   background-color: transparent;
@@ -429,19 +275,19 @@ label {
 }
 
 .star-button {
-  color: #ffeb3b; /* Yellow */
+  color: var(--star-color);
 }
 
 .play-button {
-  color: #4caf50; /* Green */
+  color: var(--success-color);
 }
 
 .restore-button {
-  color: #2196f3; /* Blue */
+  color: var(--restore-color);
 }
 
 .delete-button {
-  color: #f44336; /* Red */
+  color: var(--danger-color);
 }
 
 /* Show/hide buttons based on context */
@@ -452,4 +298,48 @@ label {
 .played-section .play-button, 
 .played-section .star-button {
   display: none;
+}
+
+/* Played section specific styles */
+.played-section .request-card {
+  grid-template-columns: 3fr 1fr;
+  opacity: 0.7;
+  cursor: default;
+}
+
+.played-section .request-middle {
+  display: none;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+  margin: 30px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-content {
+    flex-direction: column;
+  }
+  
+  .requests-section {
+    border-right: none;
+    border-bottom: 1px solid var(--card-border);
+  }
+  
+  .event-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
