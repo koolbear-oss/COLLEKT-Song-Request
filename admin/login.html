@@ -94,7 +94,7 @@
                     
                 console.log("Direct role lookup:", roleData, roleError);
                 }
-                
+
                 if (userError) {
                     throw new Error('User data not found. Please contact support.');
                 }
@@ -110,6 +110,13 @@
                 // If roles join worked properly, use that data
                 if (user.roles) {
                     roleName = user.roles.name;
+                } else if (user.role_id) {
+                    // If roles join failed, use the direct role lookup we already did
+                    console.log("Using direct role lookup data");
+                    if (roleData && !roleError) {
+                        roleName = roleData.name;
+                        console.log("Setting role name from direct lookup:", roleName);
+                    }
                 }
 
                 // Store user info
