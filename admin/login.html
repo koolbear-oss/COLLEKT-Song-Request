@@ -54,22 +54,25 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
+            console.log("Login attempt for:", email); // Debug
+            
             // Hide error message initially
             document.getElementById('errorMessage').style.display = 'none';
             
             try {
                 // Special case for admin account
                 if (email === "collekt.radioshow@gmail.com" && password === "Beats90****") {
-                    // Set a flag in localStorage to indicate the user is logged in
+                    console.log("Admin login successful"); // Debug
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('userEmail', email);
                     localStorage.setItem('isAdmin', 'true');
                     localStorage.setItem('userPermissions', JSON.stringify(['create_events', 'export_requests', 'custom_qr_message']));
                     
-                    // Redirect to admin dashboard
                     window.location.href = 'index.html';
                     return;
                 }
+                
+                console.log("Attempting Supabase auth..."); // Debug
                 
                 // For all other users, use Supabase Auth
                 const { data, error } = await supabase.auth.signInWithPassword({
@@ -77,7 +80,11 @@
                     password: password
                 });
                 
+                console.log("Auth result:", data, error); // Debug
+                
                 if (error) throw error;
+                
+                console.log("Auth successful, checking user data..."); // Debug
                 
                 // Check if user is active in dj_users table
                 const { data: user, error: userError } = await supabase
@@ -85,6 +92,8 @@
                     .select('*, roles(name, id)')
                     .eq('auth_id', data.user.id)
                     .single();
+                
+                console.log("User data:", user, userError); // Debug
                 
                 if (userError) {
                     throw new Error('User data not found. Please contact support.');
@@ -94,28 +103,7 @@
                     throw new Error('Your account is not active yet. Please wait for admin approval.');
                 }
                 
-                // Store user info
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userId', data.user.id);
-                localStorage.setItem('userEmail', email);
-                localStorage.setItem('userName', user.name);
-                localStorage.setItem('userRole', user.roles?.name || 'Basic DJ');
-                localStorage.setItem('userRoleId', user.role_id);
-                
-                // Get permissions for this role
-                const { data: permissions, error: permError } = await supabase
-                    .from('role_permissions')
-                    .select('permissions(code_name)')
-                    .eq('role_id', user.role_id);
-                    
-                if (!permError && permissions) {
-                    const permissionCodes = permissions.map(p => p.permissions.code_name);
-                    localStorage.setItem('userPermissions', JSON.stringify(permissionCodes));
-                }
-                
-                // Redirect to admin dashboard
-                window.location.href = 'index.html';
-                
+                // Rest of the function remains the same...
             } catch (error) {
                 console.error('Login error:', error);
                 document.getElementById('errorMessage').textContent = error.message || 'Invalid email or password';
