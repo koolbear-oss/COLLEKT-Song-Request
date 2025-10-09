@@ -249,6 +249,11 @@ async function loadEvents() {
       isAdmin: isAdmin,
       email: userEmail,
     });
+
+    console.log("User role details:", {
+      roleName: localStorage.getItem('userRole'),
+      roleId: localStorage.getItem('userRoleId')
+    });
     
     if (!isAdmin) {
       console.log("Filtering events for non-admin user:", userEmail);

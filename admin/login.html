@@ -84,6 +84,17 @@
 
                 console.log("User data:", user, userError);
 
+                // Add this debug code to check role data directly
+                if (user && user.role_id) {
+                const { data: roleData, error: roleError } = await supabase
+                    .from('roles')
+                    .select('*')
+                    .eq('id', user.role_id)
+                    .single();
+                    
+                console.log("Direct role lookup:", roleData, roleError);
+                }
+                
                 if (userError) {
                     throw new Error('User data not found. Please contact support.');
                 }
