@@ -132,6 +132,17 @@ function displayRequests(container, requests, isPlayed = false) {
     requestCard.dataset.id = request.id;
     requestCard.dataset.position = request.position;
     
+    // Add this code to mark starred items (assuming lowest position is starred)
+    if (!isPlayed && requests.length > 1) {
+      // Find the minimum position value
+      const minPosition = Math.min(...requests.map(r => r.position || 0));
+      
+      // Mark as starred if this is the top item
+      if (request.position === minPosition) {
+        requestCard.classList.add('starred');
+      }
+    }
+    
     // Fill in request details
     requestCard.querySelector('.song-title').textContent = request.title;
     requestCard.querySelector('.artist-name').textContent = request.artist;
@@ -368,6 +379,18 @@ function clearFilter() {
 // Mark request as starred (move to top)
 async function starRequest(requestId) {
   try {
+    // Add visual feedback immediately
+    const requestCard = document.querySelector(`.request-card[data-id="${requestId}"]`);
+    requestCard.classList.add('starred');
+    
+    const starButton = requestCard.querySelector('.star-button');
+    starButton.classList.add('animate');
+    
+    // Remove animation class after it completes
+    setTimeout(() => {
+      starButton.classList.remove('animate');
+    }, 300);
+    
     // Get all requests to find the lowest position
     const { data: requests, error: fetchError } = await supabase
       .from('requests')
