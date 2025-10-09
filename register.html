@@ -110,8 +110,7 @@
                         active: false, // Admin needs to activate
                         role_id: basicRole.id,
                         subscription_ends: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
-                    }])
-                    .select();
+                    }]);
                 
                 if (userError) throw userError;
                 
