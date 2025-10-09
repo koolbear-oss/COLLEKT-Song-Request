@@ -177,7 +177,7 @@
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         
         // Check if admin is logged in
-        if (!localStorage.getItem('isLoggedIn') || localStorage.getItem('userEmail') !== 'collekt.radioshow@gmail.com') {
+        if (!localStorage.getItem('isLoggedIn') || localStorage.getItem('isAdmin') !== 'true') {
             window.location.href = 'admin/login.html';
         }
         
