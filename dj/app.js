@@ -417,3 +417,20 @@ async function restoreRequest(requestId) {
     console.error('Error restoring request:', error);
   }
 }
+
+// Sidebar toggle functionality
+const sidebarToggle = document.getElementById('sidebarToggle');
+const dashboardContent = document.querySelector('.dashboard-content');
+
+sidebarToggle.addEventListener('click', function() {
+  dashboardContent.classList.toggle('sidebar-collapsed');
+  
+  // Re-fetch requests when sidebar is toggled to ensure proper layout
+  setTimeout(() => {
+    fetchRequests();
+  }, 300); // Wait for transition to complete
+});
+
+// Start with sidebar expanded by default
+// To start collapsed, uncomment the next line:
+dashboardContent.classList.add('sidebar-collapsed');

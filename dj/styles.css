@@ -343,3 +343,68 @@ button:active {
     align-items: flex-start;
   }
 }
+
+/* Add at the end of your styles.css file */
+
+/* Collapsible sidebar */
+.dashboard-content {
+  position: relative;
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.requests-section {
+  flex: 1;
+  transition: flex 0.3s ease;
+}
+
+.played-section {
+  width: 300px;
+  transition: width 0.3s ease, opacity 0.2s ease;
+  border-left: 1px solid var(--card-border);
+  position: relative;
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle {
+  position: absolute;
+  right: 300px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 60px;
+  background-color: var(--primary-color);
+  border-radius: 4px 0 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: right 0.3s ease;
+}
+
+.toggle-arrow {
+  color: white;
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+/* Collapsed state */
+.sidebar-collapsed .played-section {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.sidebar-collapsed .sidebar-toggle {
+  right: 0;
+}
+
+.sidebar-collapsed .toggle-arrow {
+  transform: rotate(180deg);
+}
+
+.sidebar-collapsed .requests-section {
+  flex: 1;
+}

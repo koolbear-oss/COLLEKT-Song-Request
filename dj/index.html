@@ -21,22 +21,30 @@
             </div>
         </header>
         
+        <!-- MODIFY: Find the dashboard-content div and replace it with this -->
         <div class="dashboard-content">
-            <!-- Active requests section -->
+            <!-- Current requests section (expanded) -->
             <div class="section requests-section">
                 <h2>Current Requests <span id="requestCount" class="count-badge">0</span></h2>
-                    <div class="filter-container">
-                        <input type="text" id="requestFilter" placeholder="Search requests..." class="filter-input">
-                        <button id="clearFilter" class="clear-filter-button">&times;</button>
-                    </div>
+                
+                <div class="filter-container">
+                    <input type="text" id="requestFilter" placeholder="Search requests..." class="filter-input">
+                    <button id="clearFilter" class="clear-filter-button">&times;</button>
+                </div>
+                
                 <div id="requestsList" class="requests-container">
                     <!-- Requests will be added here dynamically -->
                     <div class="loading-spinner"></div>
                 </div>
             </div>
             
-            <!-- Played tracks section -->
-            <div class="section played-section">
+            <!-- Toggle button for sidebar -->
+            <div class="sidebar-toggle" id="sidebarToggle">
+                <div class="toggle-arrow">›</div>
+            </div>
+            
+            <!-- Played tracks section (collapsible) -->
+            <div class="section played-section" id="playedSection">
                 <h2>Played Tracks <span id="playedCount" class="count-badge">0</span></h2>
                 <div id="playedList" class="requests-container">
                     <!-- Played tracks will be added here dynamically -->
