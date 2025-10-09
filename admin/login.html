@@ -111,11 +111,22 @@
                 if (user.roles) {
                     roleName = user.roles.name;
                 } else if (user.role_id) {
-                    // If roles join failed, use the direct role lookup we already did
-                    console.log("Using direct role lookup data");
-                    if (roleData && !roleError) {
-                        roleName = roleData.name;
-                        console.log("Setting role name from direct lookup:", roleName);
+                    // Try to fetch the role directly
+                    try {
+                        const { data: directRoleData, error: directRoleError } = await supabase
+                            .from('roles')
+                            .select('*')
+                            .eq('id', user.role_id)
+                            .single();
+                            
+                        console.log("Direct role fetch:", directRoleData, directRoleError);
+                        
+                        if (!directRoleError && directRoleData) {
+                            roleName = directRoleData.name;
+                            console.log("Setting role name from direct fetch:", roleName);
+                        }
+                    } catch (roleError) {
+                        console.error("Error fetching role directly:", roleError);
                     }
                 }
 
