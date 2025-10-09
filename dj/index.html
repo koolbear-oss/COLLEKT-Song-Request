@@ -23,13 +23,15 @@
         
         <!-- MODIFY: Find the dashboard-content div and replace it with this -->
         <div class="dashboard-content">
-            <!-- Current requests section (expanded) -->
+            <!-- Current requests section -->
             <div class="section requests-section">
-                <h2>Current Requests <span id="requestCount" class="count-badge">0</span></h2>
-                
-                <div class="filter-container">
-                    <input type="text" id="requestFilter" placeholder="Search requests..." class="filter-input">
-                    <button id="clearFilter" class="clear-filter-button">&times;</button>
+                <div class="section-header">
+                    <h2>Current Requests <span id="requestCount" class="count-badge">0</span></h2>
+                    
+                    <div class="filter-container">
+                        <input type="text" id="requestFilter" placeholder="Search requests..." class="filter-input">
+                        <button id="clearFilter" class="clear-filter-button">&times;</button>
+                    </div>
                 </div>
                 
                 <div id="requestsList" class="requests-container">
@@ -43,9 +45,12 @@
                 <div class="toggle-arrow">›</div>
             </div>
             
-            <!-- Played tracks section (collapsible) -->
+            <!-- Played tracks section -->
             <div class="section played-section" id="playedSection">
-                <h2>Played Tracks <span id="playedCount" class="count-badge">0</span></h2>
+                <div class="section-header">
+                    <h2>Played Tracks <span id="playedCount" class="count-badge">0</span></h2>
+                    <button id="restoreAllButton" class="restore-all-button">Restore All</button>
+                </div>
                 <div id="playedList" class="requests-container">
                     <!-- Played tracks will be added here dynamically -->
                 </div>

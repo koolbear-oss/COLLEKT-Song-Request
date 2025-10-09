@@ -457,3 +457,43 @@ button:active {
 .sidebar-collapsed .toggle-arrow {
   transform: rotate(180deg);
 }
+
+/* Sticky section headers */
+.section-header {
+  position: sticky;
+  top: 0;
+  background-color: var(--section-bg);
+  padding: 15px 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 15px;
+}
+
+/* Ensure filter container stays with header */
+.section-header .filter-container {
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+/* Add some space below the sticky header */
+.section-header + .requests-container {
+  padding-top: 5px;
+}
+
+/* Played section header */
+.played-section .section-header {
+  padding-right: 15px;
+}
+
+/* Restore All button */
+.restore-all-button {
+  margin-top: 10px;
+  background-color: var(--restore-color);
+  font-size: 0.9em;
+  padding: 6px 10px;
+}
+
+.restore-all-button:hover {
+  background-color: var(--restore-color);
+  opacity: 0.9;
+}

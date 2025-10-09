@@ -436,3 +436,47 @@ sidebarToggle.addEventListener('click', function() {
 // Start with sidebar expanded by default
 // To start collapsed, uncomment the next line:
 dashboardContent.classList.add('sidebar-collapsed');
+
+// Add event listener for Restore All button
+document.getElementById('restoreAllButton').addEventListener('click', restoreAllRequests);
+
+// Function to restore all played requests
+async function restoreAllRequests() {
+  if (!confirm('Are you sure you want to move all played tracks back to the requests list?')) {
+    return;
+  }
+  
+  try {
+    const { data: playedRequests, error: fetchError } = await supabase
+      .from('requests')
+      .select('id')
+      .eq('event_id', eventId)
+      .eq('played', true);
+    
+    if (fetchError) throw fetchError;
+    
+    if (!playedRequests || playedRequests.length === 0) {
+      alert('No played tracks to restore.');
+      return;
+    }
+    
+    // Update all played requests to unplayed
+    const { error: updateError } = await supabase
+      .from('requests')
+      .update({ 
+        played: false,
+        played_at: null
+      })
+      .eq('event_id', eventId)
+      .eq('played', true);
+    
+    if (updateError) throw updateError;
+    
+    // Re-fetch requests
+    fetchRequests();
+    
+  } catch (error) {
+    console.error('Error restoring all requests:', error);
+    alert('Failed to restore all requests: ' + error.message);
+  }
+}
