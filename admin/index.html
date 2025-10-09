@@ -48,9 +48,32 @@
                 <p class="loading">Loading events...</p>
             </div>
         </div>
-    
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script>
+        // Initialize Supabase client for authentication check
+        const authUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+        const authKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+        const authClient = window.supabase.createClient(authUrl, authKey);
+        
+        // Check authentication before loading the main app
+        (async function checkAuth() {
+            const { data: { user } } = await authClient.auth.getUser();
+            
+            if (!user) {
+                // Not logged in, redirect to login page
+                window.location.href = 'login.html';
+            } else {
+                // Store user info for the main app.js
+                window.currentUser = user;
+                
+                // The rest of your app will load normally since
+                // app.js is loaded after this script
+            }
+        })();
+    </script>
     <script src="app.js"></script>
 </body>
 </html>
