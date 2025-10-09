@@ -41,26 +41,84 @@
             </p>
         </div>
     </div>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Initialize Supabase client
+        const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            // Simple hardcoded credentials for now
-            if (email === "collekt.radioshow@gmail.com" && password === "Beats90****") {
-                // Set a flag in localStorage to indicate the user is logged in
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userEmail', email);
+            // Hide error message initially
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            try {
+                // Special case for admin account
+                if (email === "collekt.radioshow@gmail.com" && password === "Beats90****") {
+                    // Set a flag in localStorage to indicate the user is logged in
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('isAdmin', 'true');
+                    localStorage.setItem('userPermissions', JSON.stringify(['create_events', 'export_requests', 'custom_qr_message']));
+                    
+                    // Redirect to admin dashboard
+                    window.location.href = 'index.html';
+                    return;
+                }
                 
-                // Temporary permission setup for testing
-                localStorage.setItem('userPermissions', JSON.stringify(['create_events', 'export_requests', 'custom_qr_message']));
+                // For all other users, use Supabase Auth
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                // Check if user is active in dj_users table
+                const { data: user, error: userError } = await supabase
+                    .from('dj_users')
+                    .select('*, roles(name, id)')
+                    .eq('auth_id', data.user.id)
+                    .single();
+                
+                if (userError) {
+                    throw new Error('User data not found. Please contact support.');
+                }
+                
+                if (!user.active) {
+                    throw new Error('Your account is not active yet. Please wait for admin approval.');
+                }
+                
+                // Store user info
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userName', user.name);
+                localStorage.setItem('userRole', user.roles?.name || 'Basic DJ');
+                localStorage.setItem('userRoleId', user.role_id);
+                
+                // Get permissions for this role
+                const { data: permissions, error: permError } = await supabase
+                    .from('role_permissions')
+                    .select('permissions(code_name)')
+                    .eq('role_id', user.role_id);
+                    
+                if (!permError && permissions) {
+                    const permissionCodes = permissions.map(p => p.permissions.code_name);
+                    localStorage.setItem('userPermissions', JSON.stringify(permissionCodes));
+                }
                 
                 // Redirect to admin dashboard
                 window.location.href = 'index.html';
-            } else {
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('errorMessage').textContent = error.message || 'Invalid email or password';
                 document.getElementById('errorMessage').style.display = 'block';
             }
         });
