@@ -39,6 +39,7 @@ async function createEvent() {
   try {
     // Get current user's email
     const userEmail = localStorage.getItem('userEmail');
+    console.log("Creating event with creator:", userEmail);
     
     // Insert new event
     const { data, error } = await supabase
@@ -46,10 +47,12 @@ async function createEvent() {
       .insert([{ 
         name: eventName, 
         active: true,
-        created_by: userEmail  // Add this line to store creator's email
+        created_by: userEmail  // This should set the creator's email
       }])
       .select()
       .single();
+    
+    console.log("Event created:", data);
     
     if (error) throw error;
     
@@ -240,11 +243,19 @@ async function loadEvents() {
     
     // Filter events by user if not admin
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    const userEmail = localStorage.getItem('userEmail');
+    
+    console.log("User info:", {
+      isAdmin: isAdmin,
+      email: userEmail,
+    });
+    
     if (!isAdmin) {
-      // Get the current user's email
-      const userEmail = localStorage.getItem('userEmail');
+      console.log("Filtering events for non-admin user:", userEmail);
       // Add filter to only show events created by this user
       query = query.eq('created_by', userEmail);
+    } else {
+      console.log("Admin user - showing all events");
     }
     
     // Filter active/archived events
@@ -254,7 +265,7 @@ async function loadEvents() {
     
     const { data, error } = await query;
     
-    if (error) throw error;
+    console.log("Events loaded:", data);
     
     // Clear events list
     eventsList.innerHTML = '';

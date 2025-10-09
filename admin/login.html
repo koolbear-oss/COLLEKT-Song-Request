@@ -62,10 +62,10 @@
             try {
                 // Special case for admin account
                 if (email === "collekt.radioshow@gmail.com" && password === "Beats90****") {
-                    console.log("Admin login successful"); // Debug
+                    console.log("Admin login successful");
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('userEmail', email);
-                    localStorage.setItem('isAdmin', 'true');
+                    localStorage.setItem('isAdmin', 'true'); // Make sure this is set
                     localStorage.setItem('userPermissions', JSON.stringify(['create_events', 'export_requests', 'custom_qr_message']));
                     
                     window.location.href = 'index.html';
@@ -119,6 +119,7 @@
                 localStorage.setItem('userName', user.name);
                 localStorage.setItem('userRole', roleName);
                 localStorage.setItem('userRoleId', roleId);
+                localStorage.setItem('isAdmin', 'false'); // Explicitly set non-admin
 
                 // Set default permissions based on role name
                 let defaultPermissions = ['create_events']; // Basic DJ
