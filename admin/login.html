@@ -60,21 +60,10 @@
             document.getElementById('errorMessage').style.display = 'none';
             
             try {
-                // Special case for admin account
-                if (email === "collekt.radioshow@gmail.com" && password === "Beats90****") {
-                    console.log("Admin login successful");
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('userEmail', email);
-                    localStorage.setItem('isAdmin', 'true'); // Make sure this is set
-                    localStorage.setItem('userPermissions', JSON.stringify(['create_events', 'export_requests', 'custom_qr_message']));
-                    
-                    window.location.href = 'index.html';
-                    return;
-                }
                 
                 console.log("Attempting Supabase auth..."); // Debug
                 
-                // For all other users, use Supabase Auth
+                // For all users, use Supabase Auth
                 const { data, error } = await supabase.auth.signInWithPassword({
                     email: email,
                     password: password
