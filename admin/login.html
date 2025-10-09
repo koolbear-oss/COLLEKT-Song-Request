@@ -129,9 +129,10 @@
                 }
 
                 localStorage.setItem('userPermissions', JSON.stringify(defaultPermissions));
-
+                console.log("Login successful, redirecting to dashboard...");
                 // Redirect to admin dashboard
                 window.location.href = 'index.html';
+                console.log("If you see this, the redirect didn't happen immediately");
             } catch (error) {
                 console.error('Login error:', error);
                 document.getElementById('errorMessage').textContent = error.message || 'Invalid email or password';
