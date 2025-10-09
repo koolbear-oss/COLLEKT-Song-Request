@@ -92,18 +92,46 @@
                     .select('*, roles(name, id)')
                     .eq('auth_id', data.user.id)
                     .single();
-                
-                console.log("User data:", user, userError); // Debug
-                
+
+                console.log("User data:", user, userError);
+
                 if (userError) {
                     throw new Error('User data not found. Please contact support.');
                 }
-                
+
                 if (!user.active) {
                     throw new Error('Your account is not active yet. Please wait for admin approval.');
                 }
-                
-                // Rest of the function remains the same...
+
+                // Handle case where roles join fails
+                let roleName = 'Basic DJ'; // Default role name
+                let roleId = user.role_id;
+
+                // If roles join worked properly, use that data
+                if (user.roles) {
+                    roleName = user.roles.name;
+                }
+
+                // Store user info
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userName', user.name);
+                localStorage.setItem('userRole', roleName);
+                localStorage.setItem('userRoleId', roleId);
+
+                // Set default permissions based on role name
+                let defaultPermissions = ['create_events']; // Basic DJ
+                if (roleName === 'Pro DJ') {
+                    defaultPermissions = ['create_events', 'export_requests'];
+                } else if (roleName === 'Admin') {
+                    defaultPermissions = ['create_events', 'export_requests', 'custom_qr_message'];
+                }
+
+                localStorage.setItem('userPermissions', JSON.stringify(defaultPermissions));
+
+                // Redirect to admin dashboard
+                window.location.href = 'index.html';
             } catch (error) {
                 console.error('Login error:', error);
                 document.getElementById('errorMessage').textContent = error.message || 'Invalid email or password';
