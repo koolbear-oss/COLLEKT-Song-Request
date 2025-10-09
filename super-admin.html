@@ -267,15 +267,35 @@
         // Activate user
         async function activateUser(userId) {
             try {
+                // Log the activation attempt
+                console.log('Activating user:', userId);
+                
+                // Update the user in the database
                 const { error } = await supabase
                     .from('dj_users')
                     .update({ active: true })
                     .eq('id', userId);
                 
-                if (error) throw error;
+                if (error) {
+                    throw error;
+                }
                 
+                // Show success message
                 alert('User activated successfully!');
-                loadUsers(); // Refresh the list
+                
+                // Find the row in the table and update it visually
+                const userRow = document.querySelector(`button[data-action="activate"][data-id="${userId}"]`).closest('tr');
+                const statusCell = userRow.querySelector('td:nth-child(4)'); // The status column
+                
+                // Update the status cell
+                statusCell.className = 'status-active';
+                statusCell.textContent = 'Active';
+                
+                // Remove the activate button
+                userRow.querySelector('button[data-action="activate"]').remove();
+                
+                // Refresh the list to ensure everything is in sync
+                setTimeout(loadUsers, 1000); // Reload after a short delay
                 
             } catch (error) {
                 console.error('Error activating user:', error);
