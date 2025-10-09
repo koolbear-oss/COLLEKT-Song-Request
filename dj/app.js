@@ -480,3 +480,27 @@ async function restoreAllRequests() {
     alert('Failed to restore all requests: ' + error.message);
   }
 }
+
+// Navigation button event listeners
+document.getElementById('backToEventsButton').addEventListener('click', navigateToEvents);
+document.getElementById('viewQrButton').addEventListener('click', openQrDisplay);
+document.getElementById('guestFormButton').addEventListener('click', openGuestForm);
+
+// Navigation functions
+function navigateToEvents() {
+  window.location.href = '../admin/';
+}
+
+function openQrDisplay() {
+  if (!eventId) return;
+  
+  // Open QR display in new tab
+  window.open(`../display.html?event=${eventId}&message=Request%20Your%20Song`, '_blank');
+}
+
+function openGuestForm() {
+  if (!eventId) return;
+  
+  // Open guest form in new tab
+  window.open(`../guest/?event=${eventId}`, '_blank');
+}
