@@ -108,7 +108,7 @@ async function fetchRequests() {
 
 // Display requests in the specified container
 function displayRequests(container, requests, isPlayed = false) {
-  // Clear existing content (except loading spinner)
+  // Clear existing content
   container.innerHTML = '';
   
   // If no requests, show a message
@@ -143,8 +143,18 @@ function displayRequests(container, requests, isPlayed = false) {
     
     // Set up button actions
     if (!isPlayed) {
+      // For active requests
+      requestCard.querySelector('.star-button').addEventListener('click', () => starRequest(request.id));
       requestCard.querySelector('.play-button').addEventListener('click', () => markAsPlayed(request.id));
+      requestCard.querySelector('.restore-button').style.display = 'none'; // Hide restore button
+    } else {
+      // For played requests
+      requestCard.querySelector('.restore-button').addEventListener('click', () => restoreRequest(request.id));
+      // Hide star and play buttons
+      requestCard.querySelector('.star-button').style.display = 'none';
+      requestCard.querySelector('.play-button').style.display = 'none';
     }
+    
     requestCard.querySelector('.delete-button').addEventListener('click', () => deleteRequest(request.id));
     
     // Add to container
@@ -350,4 +360,60 @@ function clearFilter() {
   filterInput.value = '';
   filterRequests();
   filterInput.blur();
+}
+
+// Mark request as starred (move to top)
+async function starRequest(requestId) {
+  try {
+    // Get all requests to find the lowest position
+    const { data: requests, error: fetchError } = await supabase
+      .from('requests')
+      .select('position')
+      .eq('event_id', eventId)
+      .eq('played', false)
+      .order('position', { ascending: true });
+    
+    if (fetchError) throw fetchError;
+    
+    // Calculate a position value that will put this at the top
+    // (one less than the current minimum)
+    let topPosition = 0;
+    if (requests && requests.length > 0) {
+      const minPosition = Math.min(...requests.map(r => r.position || 0));
+      topPosition = minPosition - 1;
+    }
+    
+    // Update the position to move it to the top
+    const { error: updateError } = await supabase
+      .from('requests')
+      .update({ position: topPosition })
+      .eq('id', requestId);
+    
+    if (updateError) throw updateError;
+    
+    // Re-fetch requests to update the UI
+    fetchRequests();
+  } catch (error) {
+    console.error('Error starring request:', error);
+  }
+}
+
+// Restore request from played to active queue
+async function restoreRequest(requestId) {
+  try {
+    const { error } = await supabase
+      .from('requests')
+      .update({ 
+        played: false,
+        played_at: null
+      })
+      .eq('id', requestId);
+    
+    if (error) throw error;
+    
+    // Re-fetch requests
+    fetchRequests();
+  } catch (error) {
+    console.error('Error restoring request:', error);
+  }
 }
