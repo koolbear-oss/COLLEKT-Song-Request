@@ -321,3 +321,81 @@ label {
 .played-section .request-card {
   grid-template-columns: 2fr 1fr;
 }
+
+/* Filter input styling */
+.filter-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 8px 30px 8px 10px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
+  color: var(--text-color);
+}
+
+.clear-filter-button {
+  position: absolute;
+  right: 5px;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 18px;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.clear-filter-button:hover {
+  opacity: 1;
+}
+
+/* Better card layout */
+.request-card {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  cursor: grab;
+}
+
+.played-section .request-card {
+  /* Keep the same height as current requests */
+  grid-template-columns: 2fr 1fr;
+  cursor: default;
+}
+
+.request-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.timestamp {
+  font-size: 0.8em;
+  opacity: 0.7;
+  margin-top: 5px;
+  display: block; /* Ensure visibility */
+}
+
+.request-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.play-button, .delete-button {
+  padding: 6px 12px;
+}
+
+/* Make delete button more discreet in played section */
+.played-section .delete-button {
+  padding: 4px 8px;
+  font-size: 0.8em;
+  background-color: rgba(244, 67, 54, 0.7);
+}

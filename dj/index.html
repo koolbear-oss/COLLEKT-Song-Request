@@ -25,6 +25,10 @@
             <!-- Active requests section -->
             <div class="section requests-section">
                 <h2>Current Requests <span id="requestCount" class="count-badge">0</span></h2>
+                    <div class="filter-container">
+                        <input type="text" id="requestFilter" placeholder="Search requests..." class="filter-input">
+                        <button id="clearFilter" class="clear-filter-button">&times;</button>
+                    </div>
                 <div id="requestsList" class="requests-container">
                     <!-- Requests will be added here dynamically -->
                     <div class="loading-spinner"></div>
@@ -41,10 +45,7 @@
         </div>
     </div>
 
-    <div class="filter-container">
-        <input type="text" id="requestFilter" placeholder="Search requests..." class="filter-input">
-        <button id="clearFilter" class="clear-filter-button">&times;</button>
-    </div>
+
     
     <!-- Request template (hidden) -->
     <template id="requestTemplate">
@@ -59,7 +60,7 @@
             </div>
             <div class="request-actions">
                 <button class="play-button">Play</button>
-                <button class="delete-button">Delete</button>
+                <button class="delete-button">✕</button>
             </div>
         </div>
     </template>
