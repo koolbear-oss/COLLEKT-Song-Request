@@ -26,37 +26,93 @@
             <h1>DJ Request Admin</h1>
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" required>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" required>
                 </div>
-                <p id="errorMessage" class="error-message">Invalid username or password</p>
+                <p id="errorMessage" class="error-message">Invalid email or password</p>
                 <button type="submit">Login</button>
             </form>
+            <p style="margin-top: 20px; text-align: center;">
+                Need an account? <a href="../register.html" style="color: #8a2be2;">Register here</a>
+            </p>
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Initialize Supabase client
+        const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            // Simple hardcoded credentials - replace with your preferred credentials
-            if (username === "collekt.radioshow@gmail.com" && password === "Beats90****") {
-                // Set a flag in localStorage to indicate the user is logged in
+            try {
+                // Attempt to sign in
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                // Check if user is active in dj_users table
+                const { data: user, error: userError } = await supabase
+                    .from('dj_users')
+                    .select('*, roles(*)')
+                    .eq('auth_id', data.user.id)
+                    .eq('active', true)
+                    .single();
+                
+                if (userError || !user) {
+                    document.getElementById('errorMessage').textContent = 'Your account is not active. Please contact support.';
+                    document.getElementById('errorMessage').style.display = 'block';
+                    await supabase.auth.signOut();
+                    return;
+                }
+                
+                // Store user info
                 localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userId', data.user.id);
+                localStorage.setItem('userRole', user.roles.name);
+                localStorage.setItem('userPermissions', JSON.stringify(await getUserPermissions(user.role_id)));
                 
                 // Redirect to admin dashboard
                 window.location.href = 'index.html';
-            } else {
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('errorMessage').textContent = 'Invalid email or password';
                 document.getElementById('errorMessage').style.display = 'block';
             }
         });
+        
+        // Function to get user permissions based on role
+        async function getUserPermissions(roleId) {
+            try {
+                const { data, error } = await supabase
+                    .from('role_permissions')
+                    .select('permissions(code_name)')
+                    .eq('role_id', roleId);
+                
+                if (error) throw error;
+                
+                // Extract permission code names
+                return data.map(rp => rp.permissions.code_name);
+                
+            } catch (error) {
+                console.error('Error fetching permissions:', error);
+                return [];
+            }
+        }
     </script>
 </body>
 </html>
