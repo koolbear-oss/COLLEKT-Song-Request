@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <button id="logoutButton" style="position: absolute; top: 20px; right: 20px;">Logout</button>
-
+        <button id="superAdminButton" style="position: absolute; top: 20px; right: 110px; display: none;">Super Admin</button>
         <h1>Song Request QR Generator</h1>
         
         <div class="form-container">
@@ -74,6 +74,26 @@
         window.location.href = 'login.html';
         });
     </script>    
+
+    <script>
+    // Show Super Admin button only for the admin account
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if the admin is logged in
+        if (localStorage.getItem('isLoggedIn')) {
+        // Check if it's the main admin account (replace with your email)
+        const userEmail = localStorage.getItem('userEmail') || 'collekt.radioshow@gmail.com';
+        
+        if (userEmail === 'collekt.radioshow@gmail.com') {
+            document.getElementById('superAdminButton').style.display = 'block';
+        }
+        }
+        
+        // Add click event to navigate to super admin
+        document.getElementById('superAdminButton').addEventListener('click', function() {
+        window.location.href = '../super-admin.html';
+        });
+    });
+    </script>
     
 </body>
 </html>

@@ -53,6 +53,7 @@
             if (email === "collekt.radioshow@gmail.com" && password === "Beats90****") {
                 // Set a flag in localStorage to indicate the user is logged in
                 localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userEmail', email);
                 
                 // Temporary permission setup for testing
                 localStorage.setItem('userPermissions', JSON.stringify(['create_events', 'export_requests', 'custom_qr_message']));
