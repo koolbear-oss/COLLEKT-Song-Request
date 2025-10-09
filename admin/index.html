@@ -8,6 +8,8 @@
 </head>
 <body>
     <div class="container">
+        <button id="logoutButton" style="position: absolute; top: 20px; right: 20px;">Logout</button>
+
         <h1>Song Request QR Generator</h1>
         
         <div class="form-container">
@@ -52,6 +54,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
+    <script>
+        // Simple authentication check
+        if (!localStorage.getItem('isLoggedIn')) {
+            // Not logged in, redirect to login page
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <script>
         // Initialize Supabase client for authentication check
         const authUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
@@ -75,5 +86,13 @@
         })();
     </script>
     <script src="app.js"></script>
+    
+    <script>
+        document.getElementById('logoutButton').addEventListener('click', function() {
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'login.html';
+        });
+    </script>    
+    
 </body>
 </html>
