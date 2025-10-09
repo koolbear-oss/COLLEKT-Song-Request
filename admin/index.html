@@ -59,7 +59,10 @@
         // Simple authentication check
         if (!localStorage.getItem('isLoggedIn')) {
             // Not logged in, redirect to login page
-            window.location.href = 'login.html';
+            window.location.replace('login.html');
+        } else {
+            // Flag to prevent app.js from doing its own auth checks
+            window.bypassAuthCheck = true;
         }
     </script>
 
@@ -86,7 +89,7 @@
         })();
     </script>
     <script src="app.js"></script>
-    
+
     <script>
         document.getElementById('logoutButton').addEventListener('click', function() {
         localStorage.removeItem('isLoggedIn');

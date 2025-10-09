@@ -180,9 +180,20 @@ function formatDate(date) {
 }
 
 // Modified loadEvents function to handle archived events
-// Modified loadEvents function to handle archived events and user filtering
 async function loadEvents() {
   try {
+    // Skip Supabase auth check if using simple auth
+    if (!window.bypassAuthCheck) {
+      // Check if user is authenticated with Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        // Not logged in, redirect to login page
+        window.location.href = 'login.html';
+        return;
+      }
+    }
+    
     // Add a toggle for archived events - only if it doesn't exist
     if (!document.querySelector('.archive-toggle input')) {
       const toggleContainer = document.createElement('div');
@@ -208,37 +219,11 @@ async function loadEvents() {
     
     const showArchived = document.getElementById('showArchived') && document.getElementById('showArchived').checked;
     
-    // Check if user is authenticated
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      // Not logged in, redirect to login page
-      window.location.href = 'login.html';
-      return;
-    }
-    
     // Start building the query
     let query = supabase
       .from('events')
       .select('*')
       .order('created_at', { ascending: false });
-    
-    // Get user's events from dj_users table
-    const { data: userEvents, error: userError } = await supabase
-      .from('dj_users')
-      .select('event_id')
-      .eq('auth_id', user.id);
-    
-    // Filter events by user if we found their associated events
-    if (!userError && userEvents && userEvents.length > 0) {
-      // Extract event IDs
-      const eventIds = userEvents.map(ue => ue.event_id).filter(id => id !== null);
-      
-      // If user has associated events, filter by them
-      if (eventIds.length > 0) {
-        query = query.in('id', eventIds);
-      }
-    }
     
     // Filter active/archived events
     if (!showArchived) {
@@ -269,38 +254,38 @@ async function loadEvents() {
       const eventCard = document.createElement('div');
       eventCard.className = `event-card ${isArchived ? 'archived' : ''}`;
       eventCard.innerHTML = `
-          <div class="event-info">
+        <div class="event-info">
           <h3>${event.name} ${isArchived ? '<span class="archived-badge">Archived</span>' : ''}</h3>
           <p>Created: ${formatDate(new Date(event.created_at))}</p>
-          </div>
-          <div class="event-actions">
+        </div>
+        <div class="event-actions">
           <button class="display-button" data-id="${event.id}" data-name="${event.name}">QR Display</button>
           <button class="guest-button" data-id="${event.id}">Guest Form</button>
           <button class="dashboard-button" data-id="${event.id}">DJ Dashboard</button>
           <button class="archive-button" data-id="${event.id}" data-active="${event.active}">
-              ${isArchived ? 'Unarchive' : 'Archive'}
+            ${isArchived ? 'Unarchive' : 'Archive'}
           </button>
-          </div>
+        </div>
       `;
       
       // Direct access to QR Display page
       eventCard.querySelector('.display-button').addEventListener('click', () => {
-          const displayUrl = `${window.location.origin}/display.html?event=${event.id}&message=Request%20Your%20Song`;
-          window.open(displayUrl, '_blank');
+        const displayUrl = `${window.location.origin}/display.html?event=${event.id}&message=Request%20Your%20Song`;
+        window.open(displayUrl, '_blank');
       });
       
       // Direct access to Guest Form
       eventCard.querySelector('.guest-button').addEventListener('click', () => {
-          window.open(`${window.location.origin}/guest/?event=${event.id}`, '_blank');
+        window.open(`${window.location.origin}/guest/?event=${event.id}`, '_blank');
       });
       
       // Direct access to DJ Dashboard
       eventCard.querySelector('.dashboard-button').addEventListener('click', () => {
-          window.open(`${window.location.origin}/dj/?event=${event.id}`, '_blank');
+        window.open(`${window.location.origin}/dj/?event=${event.id}`, '_blank');
       });
       
       eventCard.querySelector('.archive-button').addEventListener('click', () => {
-          toggleArchiveEvent(event.id, event.active);
+        toggleArchiveEvent(event.id, event.active);
       });
       
       eventsList.appendChild(eventCard);
