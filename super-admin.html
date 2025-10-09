@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard - DJ Request System</title>
+    <link rel="stylesheet" href="admin/styles.css">
+    <style>
+        .admin-panel {
+            padding: 30px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .users-table th, .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        .users-table th {
+            background-color: rgba(138, 43, 226, 0.2);
+        }
+        .status-inactive {
+            color: #ff6b6b;
+        }
+        .status-active {
+            color: #4caf50;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .role-admin {
+            background-color: #8a2be2;
+        }
+        .role-pro {
+            background-color: #2e8b57;
+        }
+        .role-basic {
+            background-color: #4169e1;
+        }
+        .action-button {
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-panel">
+            <h1>Super Admin Dashboard</h1>
+            <h2>User Management</h2>
+            
+            <div id="usersList">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Subscription End</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="6">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Logout Button -->
+        <button id="logoutButton" style="position: fixed; top: 20px; right: 20px;">Logout</button>
+
+        <div id="editUserModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>Edit User</h3>
+                <div id="editForm">
+                    <input type="hidden" id="editUserId">
+                    
+                    <div class="form-group">
+                        <label for="editName">Name</label>
+                        <input type="text" id="editName">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editRole">Role</label>
+                        <select id="editRole">
+                            <option value="">Loading roles...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editStatus">Status</label>
+                        <select id="editStatus">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editSubscription">Subscription End Date</label>
+                        <input type="date" id="editSubscription">
+                    </div>
+                    
+                    <div class="button-group">
+                        <button id="saveUserButton">Save Changes</button>
+                        <button id="cancelEditButton">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Check if admin is logged in
+        if (!localStorage.getItem('isLoggedIn') || localStorage.getItem('userEmail') !== 'collekt.radioshow@gmail.com') {
+            window.location.href = 'admin/login.html';
+        }
+        
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        }
+        
+        // Get role badge HTML
+        function getRoleBadge(roleName) {
+            let className = '';
+            switch (roleName) {
+                case 'Admin':
+                    className = 'role-admin';
+                    break;
+                case 'Pro DJ':
+                    className = 'role-pro';
+                    break;
+                case 'Basic DJ':
+                    className = 'role-basic';
+                    break;
+            }
+            return `<span class="role-badge ${className}">${roleName}</span>`;
+        }
+        
+        // Load users
+        async function loadUsers() {
+            try {
+                const { data: users, error } = await supabase
+                    .from('dj_users')
+                    .select('*, roles(name)')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                const tableBody = document.getElementById('usersTableBody');
+                tableBody.innerHTML = '';
+                
+                if (!users || users.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
+                    return;
+                }
+                
+                users.forEach(user => {
+                    const tr = document.createElement('tr');
+                    const roleName = user.roles ? user.roles.name : 'N/A';
+                    
+                    tr.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${getRoleBadge(roleName)}</td>
+                        <td class="${user.active ? 'status-active' : 'status-inactive'}">${user.active ? 'Active' : 'Inactive'}</td>
+                        <td>${formatDate(user.subscription_ends)}</td>
+                        <td>
+                            ${!user.active ? `<button class="action-button" data-action="activate" data-id="${user.id}">Activate</button>` : ''}
+                            <button class="action-button" data-action="edit" data-id="${user.id}">Edit</button>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(tr);
+                });
+                
+                // Add event listeners for action buttons
+                document.querySelectorAll('[data-action="activate"]').forEach(button => {
+                    button.addEventListener('click', () => activateUser(button.getAttribute('data-id')));
+                });
+                
+                document.querySelectorAll('[data-action="edit"]').forEach(button => {
+                    button.addEventListener('click', () => editUser(button.getAttribute('data-id')));
+                });
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="6">Error loading users</td></tr>';
+            }
+        }
+        
+        // Activate user
+        async function activateUser(userId) {
+            try {
+                const { error } = await supabase
+                    .from('dj_users')
+                    .update({ active: true })
+                    .eq('id', userId);
+                
+                if (error) throw error;
+                
+                alert('User activated successfully!');
+                loadUsers(); // Refresh the list
+                
+            } catch (error) {
+                console.error('Error activating user:', error);
+                alert('Failed to activate user: ' + error.message);
+            }
+        }
+        
+        // Edit user (placeholder for now)
+        function editUser(userId) {
+            openEditUserModal(userId);
+        }
+
+        // Open the edit user modal
+        function openEditUserModal(userId) {
+            editUser(userId);
+        }
+        
+        // Logout
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'admin/login.html';
+        });
+        
+        // Load users when page loads
+        document.addEventListener('DOMContentLoaded', loadUsers);
+
+       // Load roles for select dropdown
+        async function loadRoles() {
+            try {
+                const { data: roles, error } = await supabase
+                    .from('roles')
+                    .select('*');
+                
+                if (error) throw error;
+                
+                const roleSelect = document.getElementById('editRole');
+                roleSelect.innerHTML = '';
+                
+                if (roles && roles.length > 0) {
+                    roles.forEach(role => {
+                        const option = document.createElement('option');
+                        option.value = role.id;
+                        option.textContent = role.name;
+                        roleSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading roles:', error);
+            }
+        }
+
+        // Open edit user modal
+        async function editUser(userId) {
+            try {
+                // Load roles for dropdown
+                await loadRoles();
+                
+                // Get user details
+                const { data: user, error } = await supabase
+                    .from('dj_users')
+                    .select('*, roles(id, name)')
+                    .eq('id', userId)
+                    .single();
+                
+                if (error) throw error;
+                
+                // Populate form
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editName').value = user.name;
+                document.getElementById('editStatus').value = user.active.toString();
+                
+                if (user.role_id) {
+                    document.getElementById('editRole').value = user.role_id;
+                }
+                
+                // Format date for input
+                if (user.subscription_ends) {
+                    const date = new Date(user.subscription_ends);
+                    const formattedDate = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                    document.getElementById('editSubscription').value = formattedDate;
+                } else {
+                    // Default to 1 month from now
+                    const date = new Date();
+                    date.setMonth(date.getMonth() + 1);
+                    document.getElementById('editSubscription').value = date.toISOString().split('T')[0];
+                }
+                
+                // Show modal
+                document.getElementById('editUserModal').style.display = 'flex';
+                
+            } catch (error) {
+                console.error('Error opening edit form:', error);
+                alert('Failed to load user details: ' + error.message);
+            }
+        }
+
+        // Save user changes
+        async function saveUserChanges() {
+            try {
+                const userId = document.getElementById('editUserId').value;
+                const name = document.getElementById('editName').value;
+                const roleId = document.getElementById('editRole').value;
+                const active = document.getElementById('editStatus').value === 'true';
+                const subscriptionEnd = document.getElementById('editSubscription').value;
+                
+                // Create subscription date
+                const subscriptionDate = new Date(subscriptionEnd);
+                
+                const { error } = await supabase
+                    .from('dj_users')
+                    .update({
+                        name: name,
+                        role_id: roleId,
+                        active: active,
+                        subscription_ends: subscriptionDate.toISOString()
+                    })
+                    .eq('id', userId);
+                
+                if (error) throw error;
+                
+                alert('User updated successfully!');
+                document.getElementById('editUserModal').style.display = 'none';
+                loadUsers(); // Refresh the list
+                
+            } catch (error) {
+                console.error('Error saving user changes:', error);
+                alert('Failed to update user: ' + error.message);
+            }
+        }
+
+        // Close modal
+        function closeEditModal() {
+            document.getElementById('editUserModal').style.display = 'none';
+        }
+
+        // Add event listeners for the new buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('saveUserButton').addEventListener('click', saveUserChanges);
+            document.getElementById('cancelEditButton').addEventListener('click', closeEditModal);
+        }); 
+    </script>
+</body>
+</html>
