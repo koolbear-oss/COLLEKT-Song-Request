@@ -70,7 +70,7 @@ async function initializeDashboard() {
 }
 
 // Fetch requests from Supabase
-async function fetchRequests() {
+async function fetchRequests(resetStarred = true) {
   if (!eventId) return;
   
   try {
@@ -80,7 +80,8 @@ async function fetchRequests() {
       .select('*')
       .eq('event_id', eventId)
       .eq('played', false)
-      .order('position', { ascending: true });
+      .order('is_starred', { ascending: false }) // Starred items first
+      .order('position', { ascending: true });   // Then by position
     
     // Fetch played requests
     const { data: playedRequests, error: playedError } = await supabase
@@ -132,15 +133,9 @@ function displayRequests(container, requests, isPlayed = false) {
     requestCard.dataset.id = request.id;
     requestCard.dataset.position = request.position;
     
-    // Add this code to mark starred items (assuming lowest position is starred)
-    if (!isPlayed && requests.length > 1) {
-      // Find the minimum position value
-      const minPosition = Math.min(...requests.map(r => r.position || 0));
-      
-      // Mark as starred if this is the top item
-      if (request.position === minPosition) {
-        requestCard.classList.add('starred');
-      }
+    // Mark starred items based on is_starred flag
+    if (!isPlayed && request.is_starred) {
+      requestCard.classList.add('starred');
     }
     
     // Fill in request details
@@ -150,8 +145,8 @@ function displayRequests(container, requests, isPlayed = false) {
     // Handle message - truncate if needed
     const message = request.message || '';
     requestCard.querySelector('.message').textContent = truncateComment(message);
-
-    // Add a title attribute for full message on hover
+    
+    // Add title for tooltip on hover for long messages
     if (message.length > 40) {
       requestCard.querySelector('.message').setAttribute('title', message);
     }
@@ -181,53 +176,100 @@ function displayRequests(container, requests, isPlayed = false) {
   });
 }
 
+// Add this function for comment truncation
+function truncateComment(comment, maxLength = 40) {
+  if (!comment || comment.length <= maxLength) {
+    return comment;
+  }
+  
+  // Find a good break point around the middle
+  const breakPoint = Math.min(maxLength, Math.floor(maxLength / 2) + 
+                             comment.substring(Math.floor(maxLength / 2), maxLength).indexOf(' '));
+  
+  if (breakPoint <= 0 || breakPoint >= maxLength) {
+    // If no good break point found, just truncate
+    return comment.substring(0, maxLength) + '...';
+  }
+  
+  return comment.substring(0, breakPoint) + '...';
+}
+
 // Initialize SortableJS for drag-and-drop
 function initializeSortable() {
   new Sortable(requestsListElement, {
     animation: 150,
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
+    // Prevent text selection during drag
+    preventOnFilter: true,
+    filter: '.star-button, .play-button, .restore-button, .delete-button',
+    preventDefaultOnFilter: true,
+    
+    // Improve drop previewing
     dragClass: 'sortable-drag',
     
-    // Enable multi-directional sorting
-    swapThreshold: 0.65,
-    direction: 'horizontal',
-    
-    // Add better visual feedback
-    forceFallback: true,  // This forces the fallback behavior for better visual feedback
-    fallbackClass: 'sortable-fallback',
-    fallbackOnBody: true,
-    
     onStart: function(evt) {
-      // Add a class to the body to indicate dragging is active
-      document.body.classList.add('dragging-active');
-      evt.item.classList.add('being-dragged');
+      // Prevent unwanted text selection
+      document.body.classList.add('dragging');
     },
     
     onEnd: async function(evt) {
-      // Remove dragging classes
-      document.body.classList.remove('dragging-active');
-      evt.item.classList.remove('being-dragged');
+      document.body.classList.remove('dragging');
+      
+      // Don't update if nothing changed
+      if (evt.oldIndex === evt.newIndex) return;
       
       const requestId = evt.item.dataset.id;
-      const newPosition = evt.newIndex;
+      const newIndex = evt.newIndex;
       
       try {
-        // Update position in database
-        const { error } = await supabase
+        // Calculate new position value
+        const { data: requests, error: fetchError } = await supabase
+          .from('requests')
+          .select('id, position')
+          .eq('event_id', eventId)
+          .eq('played', false)
+          .order('position', { ascending: true });
+        
+        if (fetchError) throw fetchError;
+        
+        // Reorder logic that preserves starred status
+        const newPosition = calculateNewPosition(requests, newIndex);
+        
+        // Update the position
+        const { error: updateError } = await supabase
           .from('requests')
           .update({ position: newPosition })
           .eq('id', requestId);
         
-        if (error) throw error;
+        if (updateError) throw updateError;
         
-        // Re-fetch requests to ensure correct ordering
-        fetchRequests();
+        // Refetch without affecting starred status
+        fetchRequests(false);
       } catch (error) {
         console.error('Error updating position:', error);
       }
     }
   });
+}
+
+// Helper function to calculate new position
+function calculateNewPosition(requests, newIndex) {
+  if (!requests || requests.length === 0) return 0;
+  
+  // Sort by position
+  const sorted = [...requests].sort((a, b) => a.position - b.position);
+  
+  if (newIndex <= 0) {
+    // Moving to start - use position smaller than first item
+    return sorted[0].position - 10;
+  } else if (newIndex >= sorted.length) {
+    // Moving to end - use position larger than last item
+    return sorted[sorted.length - 1].position + 10;
+  } else {
+    // Moving to middle - use position between two items
+    return (sorted[newIndex - 1].position + sorted[newIndex].position) / 2;
+  }
 }
 
 // Mark request as played
@@ -407,42 +449,68 @@ async function starRequest(requestId) {
   try {
     // Add visual feedback immediately
     const requestCard = document.querySelector(`.request-card[data-id="${requestId}"]`);
-    requestCard.classList.add('starred');
     
-    const starButton = requestCard.querySelector('.star-button');
-    starButton.classList.add('animate');
+    // Toggle starred status
+    const isCurrentlyStarred = requestCard.classList.contains('starred');
     
-    // Remove animation class after it completes
-    setTimeout(() => {
-      starButton.classList.remove('animate');
-    }, 300);
-    
-    // Get all requests to find the lowest position
-    const { data: requests, error: fetchError } = await supabase
-      .from('requests')
-      .select('position')
-      .eq('event_id', eventId)
-      .eq('played', false)
-      .order('position', { ascending: true });
-    
-    if (fetchError) throw fetchError;
-    
-    // Calculate a position value that will put this at the top
-    let topPosition = 0;
-    if (requests && requests.length > 0) {
-      const minPosition = Math.min(...requests.map(r => r.position || 0));
-      topPosition = minPosition - 1;
+    if (isCurrentlyStarred) {
+      // Unstar the item
+      requestCard.classList.remove('starred');
+      
+      // Update in database - assign normal position
+      const { error } = await supabase
+        .from('requests')
+        .update({ 
+          is_starred: false,
+          // No need to change position
+        })
+        .eq('id', requestId);
+      
+      if (error) throw error;
+    } else {
+      // Star the item
+      requestCard.classList.add('starred');
+      
+      const starButton = requestCard.querySelector('.star-button');
+      starButton.classList.add('animate');
+      
+      // Remove animation class after it completes
+      setTimeout(() => {
+        starButton.classList.remove('animate');
+      }, 300);
+      
+      // Get all starred requests to find lowest position
+      const { data: starredRequests, error: starredError } = await supabase
+        .from('requests')
+        .select('position')
+        .eq('event_id', eventId)
+        .eq('played', false)
+        .eq('is_starred', true)
+        .order('position', { ascending: true });
+      
+      if (starredError) throw starredError;
+      
+      // Calculate position to put at top of starred items
+      let topPosition = -1000; // Default position for first starred item
+      
+      if (starredRequests && starredRequests.length > 0) {
+        // Put before the first starred item
+        topPosition = Math.min(...starredRequests.map(r => r.position || 0)) - 10;
+      }
+      
+      // Update in database
+      const { error } = await supabase
+        .from('requests')
+        .update({ 
+          is_starred: true,
+          position: topPosition
+        })
+        .eq('id', requestId);
+      
+      if (error) throw error;
     }
     
-    // Update the position to move it to the top
-    const { error: updateError } = await supabase
-      .from('requests')
-      .update({ position: topPosition })
-      .eq('id', requestId);
-    
-    if (updateError) throw updateError;
-    
-    // Re-fetch requests to update the UI
+    // Re-fetch requests
     fetchRequests();
   } catch (error) {
     console.error('Error starring request:', error);
@@ -552,22 +620,4 @@ function openGuestForm() {
   
   // Open guest form in new tab
   window.open(`../guest/?event=${eventId}`, '_blank');
-}
-
-// Function to truncate comments to specified length
-function truncateComment(comment, maxLength = 40) {
-  if (!comment || comment.length <= maxLength) {
-    return comment;
-  }
-  
-  // Find a good break point around the middle
-  const breakPoint = Math.min(maxLength, Math.floor(maxLength / 2) + 
-                             comment.substring(Math.floor(maxLength / 2), maxLength).indexOf(' '));
-  
-  if (breakPoint <= 0 || breakPoint >= maxLength) {
-    // If no good break point found, just truncate
-    return comment.substring(0, maxLength) + '...';
-  }
-  
-  return comment.substring(0, breakPoint) + '...';
 }
