@@ -538,3 +538,40 @@ body.dragging-active .requests-container {
     align-items: flex-start;
   }
 }
+
+/* Drop indicator styles */
+.drop-indicator {
+  height: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.drop-indicator::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background-color: transparent;
+  transform: translateY(-50%);
+  transition: all 0.2s ease;
+}
+
+.drop-indicator.highlight {
+  height: 16px;
+}
+
+.drop-indicator.highlight::after {
+  background-color: var(--primary-color);
+  height: 4px;
+  box-shadow: 0 0 8px var(--primary-color);
+}
+
+/* Adjust spacing in the request container during drag */
+body.dragging .requests-container {
+  gap: 5px;
+}

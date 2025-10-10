@@ -176,7 +176,7 @@ function displayRequests(container, requests, isPlayed = false) {
   });
 }
 
-// Add this function for comment truncation
+// Function to truncate comments to specified length
 function truncateComment(comment, maxLength = 40) {
   if (!comment || comment.length <= maxLength) {
     return comment;
@@ -194,46 +194,62 @@ function truncateComment(comment, maxLength = 40) {
   return comment.substring(0, breakPoint) + '...';
 }
 
-// Initialize SortableJS for drag-and-drop
+// Initialize SortableJS for drag-and-drop with anchor points
 function initializeSortable() {
   new Sortable(requestsListElement, {
     animation: 150,
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
-    // Prevent text selection during drag
-    preventOnFilter: true,
-    filter: '.star-button, .play-button, .restore-button, .delete-button',
-    preventDefaultOnFilter: true,
-    
-    // Improve drop previewing
     dragClass: 'sortable-drag',
     
+    // Enable better visual feedback
+    fallbackOnBody: true,
+    swapThreshold: 0.5,
+    direction: 'horizontal',
+    
+    // Add these settings for better control
+    forceFallback: true,
+    fallbackClass: 'sortable-fallback',
+    
+    // Show drop indicators
     onStart: function(evt) {
-      // Prevent unwanted text selection
       document.body.classList.add('dragging');
+      evt.item.classList.add('being-dragged');
+      
+      // Add drop indicators between items
+      addDropIndicators();
+    },
+    
+    onMove: function(evt) {
+      updateDropIndicatorHighlight(evt);
+      return true;
     },
     
     onEnd: async function(evt) {
       document.body.classList.remove('dragging');
+      evt.item.classList.remove('being-dragged');
       
-      // Don't update if nothing changed
+      // Remove drop indicators
+      removeDropIndicators();
+      
+      // Skip if nothing changed
       if (evt.oldIndex === evt.newIndex) return;
       
       const requestId = evt.item.dataset.id;
       const newIndex = evt.newIndex;
       
       try {
-        // Calculate new position value
+        // Get all requests to calculate new position
         const { data: requests, error: fetchError } = await supabase
           .from('requests')
-          .select('id, position')
+          .select('id, position, is_starred')
           .eq('event_id', eventId)
           .eq('played', false)
+          .order('is_starred', { ascending: false })
           .order('position', { ascending: true });
         
         if (fetchError) throw fetchError;
         
-        // Reorder logic that preserves starred status
         const newPosition = calculateNewPosition(requests, newIndex);
         
         // Update the position
@@ -244,13 +260,111 @@ function initializeSortable() {
         
         if (updateError) throw updateError;
         
-        // Refetch without affecting starred status
-        fetchRequests(false);
+        // Refresh the request list
+        fetchRequests();
       } catch (error) {
         console.error('Error updating position:', error);
       }
     }
   });
+}
+
+// Add drop indicators between items
+function addDropIndicators() {
+  const cards = requestsListElement.querySelectorAll('.request-card');
+  
+  // Add indicator before first card
+  const firstIndicator = document.createElement('div');
+  firstIndicator.className = 'drop-indicator';
+  firstIndicator.dataset.position = 0;
+  requestsListElement.insertBefore(firstIndicator, cards[0]);
+  
+  // Add indicators between cards
+  cards.forEach((card, index) => {
+    if (index < cards.length - 1) {
+      const indicator = document.createElement('div');
+      indicator.className = 'drop-indicator';
+      indicator.dataset.position = index + 1;
+      requestsListElement.insertBefore(indicator, card.nextSibling);
+    }
+  });
+  
+  // Add indicator after last card
+  const lastIndicator = document.createElement('div');
+  lastIndicator.className = 'drop-indicator';
+  lastIndicator.dataset.position = cards.length;
+  requestsListElement.appendChild(lastIndicator);
+}
+
+// Update which drop indicator is highlighted
+function updateDropIndicatorHighlight(evt) {
+  // Clear previous highlights
+  document.querySelectorAll('.drop-indicator.highlight').forEach(el => {
+    el.classList.remove('highlight');
+  });
+  
+  // Get mouse position
+  const mouseY = evt.originalEvent.clientY;
+  const mouseX = evt.originalEvent.clientX;
+  
+  // Find closest indicator
+  const indicators = document.querySelectorAll('.drop-indicator');
+  let closestIndicator = null;
+  let closestDistance = Infinity;
+  
+  indicators.forEach(indicator => {
+    const rect = indicator.getBoundingClientRect();
+    const indicatorX = rect.left + rect.width / 2;
+    const indicatorY = rect.top + rect.height / 2;
+    
+    const distance = Math.sqrt(
+      Math.pow(mouseX - indicatorX, 2) + 
+      Math.pow(mouseY - indicatorY, 2)
+    );
+    
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndicator = indicator;
+    }
+  });
+  
+  if (closestIndicator) {
+    closestIndicator.classList.add('highlight');
+  }
+}
+
+// Remove all drop indicators
+function removeDropIndicators() {
+  document.querySelectorAll('.drop-indicator').forEach(el => {
+    el.remove();
+  });
+}
+
+// Calculate position value based on surrounding items
+function calculateNewPosition(requests, newIndex) {
+  if (!requests || requests.length === 0) return 0;
+  
+  // Sort by position
+  const sorted = [...requests].sort((a, b) => a.position - b.position);
+  
+  // Keep starred items at top
+  const starredItems = sorted.filter(item => item.is_starred);
+  const unstarredItems = sorted.filter(item => !item.is_starred);
+  
+  // If dropping at position 0
+  if (newIndex <= 0) {
+    return (sorted[0].position || 0) - 10;
+  }
+  
+  // If dropping at last position
+  if (newIndex >= sorted.length) {
+    return (sorted[sorted.length - 1].position || 0) + 10;
+  }
+  
+  // Dropping in the middle - calculate position between items
+  const beforePos = sorted[newIndex - 1].position || 0;
+  const afterPos = sorted[newIndex].position || 0;
+  return (beforePos + afterPos) / 2;
 }
 
 // Helper function to calculate new position
