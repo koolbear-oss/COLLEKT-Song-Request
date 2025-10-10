@@ -149,7 +149,12 @@ function displayRequests(container, requests, isPlayed = false) {
     
     // Handle message - truncate if needed
     const message = request.message || '';
-    requestCard.querySelector('.message').textContent = message;
+    requestCard.querySelector('.message').textContent = truncateComment(message);
+
+    // Add a title attribute for full message on hover
+    if (message.length > 40) {
+      requestCard.querySelector('.message').setAttribute('title', message);
+    }
     
     // Format timestamp
     const timestamp = new Date(isPlayed ? request.played_at : request.created_at);
@@ -182,7 +187,28 @@ function initializeSortable() {
     animation: 150,
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    
+    // Enable multi-directional sorting
+    swapThreshold: 0.65,
+    direction: 'horizontal',
+    
+    // Add better visual feedback
+    forceFallback: true,  // This forces the fallback behavior for better visual feedback
+    fallbackClass: 'sortable-fallback',
+    fallbackOnBody: true,
+    
+    onStart: function(evt) {
+      // Add a class to the body to indicate dragging is active
+      document.body.classList.add('dragging-active');
+      evt.item.classList.add('being-dragged');
+    },
+    
     onEnd: async function(evt) {
+      // Remove dragging classes
+      document.body.classList.remove('dragging-active');
+      evt.item.classList.remove('being-dragged');
+      
       const requestId = evt.item.dataset.id;
       const newPosition = evt.newIndex;
       
@@ -526,4 +552,22 @@ function openGuestForm() {
   
   // Open guest form in new tab
   window.open(`../guest/?event=${eventId}`, '_blank');
+}
+
+// Function to truncate comments to specified length
+function truncateComment(comment, maxLength = 40) {
+  if (!comment || comment.length <= maxLength) {
+    return comment;
+  }
+  
+  // Find a good break point around the middle
+  const breakPoint = Math.min(maxLength, Math.floor(maxLength / 2) + 
+                             comment.substring(Math.floor(maxLength / 2), maxLength).indexOf(' '));
+  
+  if (breakPoint <= 0 || breakPoint >= maxLength) {
+    // If no good break point found, just truncate
+    return comment.substring(0, maxLength) + '...';
+  }
+  
+  return comment.substring(0, breakPoint) + '...';
 }

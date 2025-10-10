@@ -556,3 +556,41 @@ header h1 {
 .star-button.animate {
   animation: star-pulse 0.3s ease-in-out;
 }
+
+/* Enhanced drag and drop styles */
+.sortable-ghost {
+  opacity: 0.2;
+  background-color: var(--primary-color);
+}
+
+.sortable-chosen {
+  z-index: 10000;
+}
+
+.sortable-drag {
+  opacity: 0.8;
+}
+
+.sortable-fallback {
+  transform: rotate(2deg);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.being-dragged {
+  border: 2px dashed var(--primary-color);
+}
+
+/* Style when dragging is active */
+body.dragging-active .request-card:not(.being-dragged):not(.sortable-ghost) {
+  transition: transform 0.2s ease;
+}
+
+body.dragging-active .request-card:not(.being-dragged):hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Add space for drop targets */
+body.dragging-active .requests-container {
+  padding: 10px;
+}
