@@ -617,3 +617,51 @@ body.dragging .requests-container {
   min-height: 0;
   transition: none;
 }
+
+.drop-point {
+  height: 8px;
+  margin: 2px 0;
+  width: 100%;
+  position: relative;
+  z-index: 50;
+  transition: height 0.15s ease;
+}
+
+.drop-point.highlight {
+  height: 12px;
+}
+
+.drop-point.highlight::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  background-color: var(--primary-color);
+  transform: translateY(-50%);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--primary-color);
+}
+
+.dragging-clone {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0.85;
+  transform: rotate(2deg);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+.being-dragged {
+  opacity: 0.2;
+  border: 2px dashed var(--primary-color);
+}
+
+body.dragging {
+  cursor: grabbing;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
