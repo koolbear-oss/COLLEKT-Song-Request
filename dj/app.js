@@ -196,173 +196,80 @@ function truncateComment(comment, maxLength = 40) {
 
 // Initialize SortableJS for drag-and-drop with anchor points
 function initializeSortable() {
-  const container = requestsListElement;
-  let draggedCard = null;
-  let draggedClone = null;
-  let initialMouseX, initialMouseY;
-  let initialCardX, initialCardY;
-  let dropPoints = [];
-  
-  // Create markers for drop points
-  function createDropPoints() {
-    const cards = Array.from(container.querySelectorAll('.request-card'));
-    dropPoints = [];
+  new Sortable(requestsListElement, {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
     
-    // Remove any existing drop points
-    container.querySelectorAll('.drop-point').forEach(p => p.remove());
+    // Prevent grid disruption during drag
+    forceFallback: true,
+    fallbackClass: 'sortable-fallback',
+    fallbackOnBody: false, // Keep the ghost element within the container
     
-    // Create drop point before first card
-    if (cards.length > 0) {
-      const firstPoint = document.createElement('div');
-      firstPoint.className = 'drop-point';
-      firstPoint.dataset.index = '0';
-      container.insertBefore(firstPoint, cards[0]);
-      dropPoints.push(firstPoint);
-    }
+    // Prevent text selection
+    preventDefaultOnFilter: true,
     
-    // Create drop points between cards
-    cards.forEach((card, i) => {
-      if (i < cards.length - 1) {
-        const point = document.createElement('div');
-        point.className = 'drop-point';
-        point.dataset.index = (i + 1).toString();
-        container.insertBefore(point, card.nextSibling);
-        dropPoints.push(point);
+    // Use a customized approach for indicators
+    onStart: function(evt) {
+      document.body.classList.add('dragging');
+      
+      // Create a single indicator that follows the mouse
+      const indicator = document.createElement('div');
+      indicator.className = 'active-drop-indicator';
+      document.body.appendChild(indicator);
+      
+      // Store the original item dimensions for proper placeholder
+      const rect = evt.item.getBoundingClientRect();
+      evt.item.style.width = rect.width + 'px';
+      evt.item.style.height = rect.height + 'px';
+    },
+    
+    onMove: function(evt) {
+      // Update indicator position
+      const indicator = document.querySelector('.active-drop-indicator');
+      if (indicator) {
+        const mousePosition = evt.originalEvent;
+        
+        // Find the nearest drop point in the grid
+        const dropPoint = findNearestDropPoint(evt, mousePosition);
+        
+        if (dropPoint) {
+          // Position the indicator at the drop point
+          indicator.style.top = dropPoint.top + 'px';
+          indicator.style.left = dropPoint.left + 'px';
+          indicator.style.width = dropPoint.width + 'px';
+          indicator.style.height = '4px';
+          indicator.style.display = 'block';
+          
+          // Store the target index
+          indicator.dataset.targetIndex = dropPoint.index;
+        } else {
+          indicator.style.display = 'none';
+        }
       }
-    });
-    
-    // Create drop point after last card
-    if (cards.length > 0) {
-      const lastPoint = document.createElement('div');
-      lastPoint.className = 'drop-point';
-      lastPoint.dataset.index = cards.length.toString();
-      container.appendChild(lastPoint);
-      dropPoints.push(lastPoint);
-    }
-  }
-  
-  // Start dragging a card
-  function startDrag(e, card) {
-    if (e.target.closest('.star-button, .play-button, .restore-button, .delete-button')) {
-      return; // Don't start drag on buttons
-    }
-    
-    // Create droppoint markers
-    createDropPoints();
-    
-    // Set the dragged card
-    draggedCard = card;
-    
-    // Create a clone for dragging
-    draggedClone = card.cloneNode(true);
-    draggedClone.classList.add('dragging-clone');
-    document.body.appendChild(draggedClone);
-    
-    // Position the clone at the original position
-    const rect = card.getBoundingClientRect();
-    initialCardX = rect.left;
-    initialCardY = rect.top;
-    
-    // Store initial mouse position
-    initialMouseX = e.clientX;
-    initialMouseY = e.clientY;
-    
-    // Position clone
-    draggedClone.style.width = rect.width + 'px';
-    draggedClone.style.height = rect.height + 'px';
-    draggedClone.style.left = initialCardX + 'px';
-    draggedClone.style.top = initialCardY + 'px';
-    
-    // Hide original card
-    card.classList.add('being-dragged');
-    
-    // Add dragging class to document
-    document.body.classList.add('dragging');
-    
-    // Add event listeners for drag and end
-    document.addEventListener('mousemove', moveDrag);
-    document.addEventListener('mouseup', endDrag);
-    
-    // Prevent default drag behavior
-    e.preventDefault();
-  }
-  
-  // Move the dragged card clone
-  function moveDrag(e) {
-    if (!draggedClone) return;
-    
-    // Move the clone with the mouse
-    const deltaX = e.clientX - initialMouseX;
-    const deltaY = e.clientY - initialMouseY;
-    
-    draggedClone.style.left = (initialCardX + deltaX) + 'px';
-    draggedClone.style.top = (initialCardY + deltaY) + 'px';
-    
-    // Highlight the closest drop point
-    highlightClosestDropPoint(e);
-  }
-  
-  // Find and highlight the closest drop point
-  function highlightClosestDropPoint(e) {
-    // Clear all highlights
-    dropPoints.forEach(point => point.classList.remove('highlight'));
-    
-    if (dropPoints.length === 0) return;
-    
-    // Get mouse position
-    const mouseX = e.clientX;
-    const mouseY = e.clientY;
-    
-    // Find closest drop point
-    let closestPoint = null;
-    let closestDistance = Infinity;
-    
-    dropPoints.forEach(point => {
-      const rect = point.getBoundingClientRect();
-      const pointX = rect.left + rect.width / 2;
-      const pointY = rect.top + rect.height / 2;
       
-      const distance = Math.sqrt(
-        Math.pow(mouseX - pointX, 2) + 
-        Math.pow(mouseY - pointY, 2)
-      );
+      // Allow the move
+      return true;
+    },
+    
+    onEnd: async function(evt) {
+      document.body.classList.remove('dragging');
       
-      if (distance < closestDistance) {
-        closestDistance = distance;
-        closestPoint = point;
+      // Get the active indicator
+      const indicator = document.querySelector('.active-drop-indicator');
+      let targetIndex = evt.newIndex; // Default
+      
+      // Use the indicator's target index if available
+      if (indicator && indicator.dataset.targetIndex) {
+        targetIndex = parseInt(indicator.dataset.targetIndex);
+        indicator.remove();
       }
-    });
-    
-    // Highlight closest point if within reasonable distance
-    if (closestPoint && closestDistance < 150) {
-      closestPoint.classList.add('highlight');
-    }
-  }
-  
-  // End dragging and place the card
-  async function endDrag(e) {
-    if (!draggedCard || !draggedClone) return;
-    
-    // Remove the clone
-    draggedClone.remove();
-    draggedClone = null;
-    
-    // Remove drag class
-    document.body.classList.remove('dragging');
-    
-    // Find highlighted drop point
-    const highlightedPoint = document.querySelector('.drop-point.highlight');
-    
-    if (highlightedPoint) {
-      const newIndex = parseInt(highlightedPoint.dataset.index);
-      const requestId = draggedCard.dataset.id;
       
-      // Remove all drop points
-      dropPoints.forEach(p => p.remove());
-      dropPoints = [];
+      // Skip if nothing changed
+      if (evt.oldIndex === targetIndex) return;
       
-      // Show the original card again
-      draggedCard.classList.remove('being-dragged');
+      const requestId = evt.item.dataset.id;
       
       try {
         // Get all requests to calculate new position
@@ -376,8 +283,7 @@ function initializeSortable() {
         
         if (fetchError) throw fetchError;
         
-        // Calculate new position value
-        const newPosition = calculateNewPosition(requests, newIndex);
+        const newPosition = calculateNewPosition(requests, targetIndex);
         
         // Update the position
         const { error: updateError } = await supabase
@@ -392,39 +298,79 @@ function initializeSortable() {
       } catch (error) {
         console.error('Error updating position:', error);
       }
-    } else {
-      // No valid drop point, just restore the card
-      draggedCard.classList.remove('being-dragged');
-      dropPoints.forEach(p => p.remove());
-      dropPoints = [];
     }
-    
-    // Remove event listeners
-    document.removeEventListener('mousemove', moveDrag);
-    document.removeEventListener('mouseup', endDrag);
-  }
+  });
+}
+
+// Add drop indicators between items
+function addDropIndicators() {
+  const cards = requestsListElement.querySelectorAll('.request-card');
   
-  // Add mousedown listeners to all cards
-  function setupCardListeners() {
-    const cards = container.querySelectorAll('.request-card');
-    cards.forEach(card => {
-      card.addEventListener('mousedown', e => startDrag(e, card));
-    });
-  }
+  // Add indicator before first card
+  const firstIndicator = document.createElement('div');
+  firstIndicator.className = 'drop-indicator';
+  firstIndicator.dataset.position = 0;
+  requestsListElement.insertBefore(firstIndicator, cards[0]);
   
-  // Initial setup
-  setupCardListeners();
-  
-  // Set up mutation observer to handle newly added cards
-  const observer = new MutationObserver(mutations => {
-    mutations.forEach(mutation => {
-      if (mutation.type === 'childList' && mutation.addedNodes.length) {
-        setupCardListeners();
-      }
-    });
+  // Add indicators between cards
+  cards.forEach((card, index) => {
+    if (index < cards.length - 1) {
+      const indicator = document.createElement('div');
+      indicator.className = 'drop-indicator';
+      indicator.dataset.position = index + 1;
+      requestsListElement.insertBefore(indicator, card.nextSibling);
+    }
   });
   
-  observer.observe(container, { childList: true, subtree: true });
+  // Add indicator after last card
+  const lastIndicator = document.createElement('div');
+  lastIndicator.className = 'drop-indicator';
+  lastIndicator.dataset.position = cards.length;
+  requestsListElement.appendChild(lastIndicator);
+}
+
+// Update which drop indicator is highlighted
+function updateDropIndicatorHighlight(evt) {
+  // Clear previous highlights
+  document.querySelectorAll('.drop-indicator.highlight').forEach(el => {
+    el.classList.remove('highlight');
+  });
+  
+  // Get mouse position
+  const mouseY = evt.originalEvent.clientY;
+  const mouseX = evt.originalEvent.clientX;
+  
+  // Find closest indicator
+  const indicators = document.querySelectorAll('.drop-indicator');
+  let closestIndicator = null;
+  let closestDistance = Infinity;
+  
+  indicators.forEach(indicator => {
+    const rect = indicator.getBoundingClientRect();
+    const indicatorX = rect.left + rect.width / 2;
+    const indicatorY = rect.top + rect.height / 2;
+    
+    const distance = Math.sqrt(
+      Math.pow(mouseX - indicatorX, 2) + 
+      Math.pow(mouseY - indicatorY, 2)
+    );
+    
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndicator = indicator;
+    }
+  });
+  
+  if (closestIndicator) {
+    closestIndicator.classList.add('highlight');
+  }
+}
+
+// Remove all drop indicators
+function removeDropIndicators() {
+  document.querySelectorAll('.drop-indicator').forEach(el => {
+    el.remove();
+  });
 }
 
 // Calculate position value based on surrounding items
