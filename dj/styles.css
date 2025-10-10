@@ -471,39 +471,40 @@ button:active {
 
 /* Drag and drop styles */
 .sortable-ghost {
-  opacity: 0.3;
-  background-color: var(--primary-color);
-  border: 2px dashed white;
-}
-
-.sortable-chosen {
-  z-index: 10000;
-}
-
-.sortable-drag {
-  opacity: 0.8;
-}
-
-.sortable-fallback {
-  transform: rotate(2deg);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-}
-
-.being-dragged {
+  opacity: 0.4;
+  background-color: var(--card-bg);
   border: 2px dashed var(--primary-color);
 }
 
-body.dragging-active .request-card:not(.being-dragged):not(.sortable-ghost) {
-  transition: transform 0.2s ease;
+.sortable-chosen {
+  cursor: grabbing !important;
 }
 
-body.dragging-active .request-card:not(.being-dragged):hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+.sortable-drag {
+  opacity: 1;
+  cursor: grabbing !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  transform: rotate(3deg);
+  z-index: 10000;
 }
 
-body.dragging-active .requests-container {
-  padding: 10px;
+.being-dragged {
+  opacity: 0.9;
+}
+
+/* Swap highlight effect */
+.sortable-swap-highlight {
+  background-color: rgba(138, 43, 226, 0.2);
+  transition: background-color 0.2s ease;
+}
+
+/* Keep grid stable during drag */
+body.dragging .requests-container {
+  /* Grid stays fixed, no layout shifts */
+}
+
+body.dragging .request-card:not(.sortable-ghost):not(.sortable-drag) {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 /* Loading spinner */
@@ -539,52 +540,9 @@ body.dragging-active .requests-container {
   }
 }
 
-/* Drop indicator styles */
-.drop-indicator {
-  height: 10px;
-  margin: 5px 0;
-  border-radius: 5px;
-  background-color: transparent;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.drop-indicator::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 2px;
-  background-color: transparent;
-  transform: translateY(-50%);
-  transition: all 0.2s ease;
-}
-
-.drop-indicator.highlight {
-  height: 16px;
-}
-
-.drop-indicator.highlight::after {
-  background-color: var(--primary-color);
-  height: 4px;
-  box-shadow: 0 0 8px var(--primary-color);
-}
-
 /* Adjust spacing in the request container during drag */
 body.dragging .requests-container {
   gap: 5px;
-}
-
-/* Active drop indicator that follows the mouse */
-.active-drop-indicator {
-  position: fixed;
-  z-index: 10000;
-  height: 4px;
-  background-color: var(--primary-color);
-  border-radius: 2px;
-  box-shadow: 0 0 8px var(--primary-color);
-  pointer-events: none;
 }
 
 /* Keep the cards in place during drag */
@@ -592,29 +550,12 @@ body.dragging .requests-container {
   position: relative;
 }
 
-/* Preserve the grid layout during drag */
-.sortable-fallback {
-  position: absolute !important;
-  opacity: 0.8;
-  z-index: 9999;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-}
-
-/* Hide the ghost to avoid grid rearrangement */
-.sortable-ghost {
-  opacity: 0.2;
-  visibility: hidden;
-}
-
-/* Better behavior during drag */
 .dragging .requests-container {
-  grid-auto-flow: dense; /* Helps prevent layout shifts */
+  /* Keep grid stable */
+  grid-auto-flow: row;
 }
 
-/* Prevent layout shifts by maintaining card dimensions during drag */
 .dragging .request-card {
-  min-width: 0;
-  min-height: 0;
-  transition: none;
+  /* Smooth transitions for repositioning */
+  transition: transform 0.15s ease;
 }
-
