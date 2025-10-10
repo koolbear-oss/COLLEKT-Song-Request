@@ -202,41 +202,74 @@ function initializeSortable() {
     chosenClass: 'sortable-chosen',
     dragClass: 'sortable-drag',
     
-    // Enable better visual feedback
-    fallbackOnBody: true,
-    swapThreshold: 0.5,
-    direction: 'horizontal',
-    
-    // Add these settings for better control
+    // Prevent grid disruption during drag
     forceFallback: true,
     fallbackClass: 'sortable-fallback',
+    fallbackOnBody: false, // Keep the ghost element within the container
     
-    // Show drop indicators
+    // Prevent text selection
+    preventDefaultOnFilter: true,
+    
+    // Use a customized approach for indicators
     onStart: function(evt) {
       document.body.classList.add('dragging');
-      evt.item.classList.add('being-dragged');
       
-      // Add drop indicators between items
-      addDropIndicators();
+      // Create a single indicator that follows the mouse
+      const indicator = document.createElement('div');
+      indicator.className = 'active-drop-indicator';
+      document.body.appendChild(indicator);
+      
+      // Store the original item dimensions for proper placeholder
+      const rect = evt.item.getBoundingClientRect();
+      evt.item.style.width = rect.width + 'px';
+      evt.item.style.height = rect.height + 'px';
     },
     
     onMove: function(evt) {
-      updateDropIndicatorHighlight(evt);
+      // Update indicator position
+      const indicator = document.querySelector('.active-drop-indicator');
+      if (indicator) {
+        const mousePosition = evt.originalEvent;
+        
+        // Find the nearest drop point in the grid
+        const dropPoint = findNearestDropPoint(evt, mousePosition);
+        
+        if (dropPoint) {
+          // Position the indicator at the drop point
+          indicator.style.top = dropPoint.top + 'px';
+          indicator.style.left = dropPoint.left + 'px';
+          indicator.style.width = dropPoint.width + 'px';
+          indicator.style.height = '4px';
+          indicator.style.display = 'block';
+          
+          // Store the target index
+          indicator.dataset.targetIndex = dropPoint.index;
+        } else {
+          indicator.style.display = 'none';
+        }
+      }
+      
+      // Allow the move
       return true;
     },
     
     onEnd: async function(evt) {
       document.body.classList.remove('dragging');
-      evt.item.classList.remove('being-dragged');
       
-      // Remove drop indicators
-      removeDropIndicators();
+      // Get the active indicator
+      const indicator = document.querySelector('.active-drop-indicator');
+      let targetIndex = evt.newIndex; // Default
+      
+      // Use the indicator's target index if available
+      if (indicator && indicator.dataset.targetIndex) {
+        targetIndex = parseInt(indicator.dataset.targetIndex);
+        indicator.remove();
+      }
       
       // Skip if nothing changed
-      if (evt.oldIndex === evt.newIndex) return;
+      if (evt.oldIndex === targetIndex) return;
       
       const requestId = evt.item.dataset.id;
-      const newIndex = evt.newIndex;
       
       try {
         // Get all requests to calculate new position
@@ -250,7 +283,7 @@ function initializeSortable() {
         
         if (fetchError) throw fetchError;
         
-        const newPosition = calculateNewPosition(requests, newIndex);
+        const newPosition = calculateNewPosition(requests, targetIndex);
         
         // Update the position
         const { error: updateError } = await supabase
@@ -267,6 +300,84 @@ function initializeSortable() {
       }
     }
   });
+}
+
+// Find the nearest drop point in the grid
+function findNearestDropPoint(evt, mousePosition) {
+  const container = requestsListElement;
+  const cards = Array.from(container.querySelectorAll('.request-card'));
+  
+  if (cards.length === 0) {
+    // If no cards, return position for first card
+    const containerRect = container.getBoundingClientRect();
+    return {
+      top: containerRect.top + 10,
+      left: containerRect.left + 10,
+      width: containerRect.width - 20,
+      index: 0
+    };
+  }
+  
+  // Get mouse position
+  const mouseX = mousePosition.clientX;
+  const mouseY = mousePosition.clientY;
+  
+  // Map all possible drop positions (between cards)
+  const dropPositions = [];
+  
+  // First position (before first card)
+  const firstCard = cards[0];
+  const firstRect = firstCard.getBoundingClientRect();
+  dropPositions.push({
+    top: firstRect.top - 5,
+    left: firstRect.left,
+    width: firstRect.width,
+    index: 0,
+    distance: Math.abs(mouseY - (firstRect.top - 5))
+  });
+  
+  // Between cards
+  for (let i = 0; i < cards.length - 1; i++) {
+    const card = cards[i];
+    const nextCard = cards[i + 1];
+    const rect = card.getBoundingClientRect();
+    const nextRect = nextCard.getBoundingClientRect();
+    
+    // If cards are on the same row
+    if (Math.abs(rect.top - nextRect.top) < 20) {
+      dropPositions.push({
+        top: rect.top + rect.height / 2,
+        left: rect.right + 5,
+        width: nextRect.left - rect.right - 10,
+        index: i + 1,
+        distance: Math.abs(mouseX - (rect.right + (nextRect.left - rect.right) / 2))
+      });
+    } else {
+      // End of row
+      dropPositions.push({
+        top: rect.bottom + 5,
+        left: rect.left,
+        width: rect.width,
+        index: i + 1,
+        distance: Math.abs(mouseY - (rect.bottom + 5))
+      });
+    }
+  }
+  
+  // Last position (after last card)
+  const lastCard = cards[cards.length - 1];
+  const lastRect = lastCard.getBoundingClientRect();
+  dropPositions.push({
+    top: lastRect.bottom + 5,
+    left: lastRect.left,
+    width: lastRect.width,
+    index: cards.length,
+    distance: Math.abs(mouseY - (lastRect.bottom + 5))
+  });
+  
+  // Find the closest drop position
+  dropPositions.sort((a, b) => a.distance - b.distance);
+  return dropPositions[0];
 }
 
 // Add drop indicators between items

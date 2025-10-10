@@ -575,3 +575,45 @@ body.dragging-active .requests-container {
 body.dragging .requests-container {
   gap: 5px;
 }
+
+/* Active drop indicator that follows the mouse */
+.active-drop-indicator {
+  position: fixed;
+  z-index: 10000;
+  height: 4px;
+  background-color: var(--primary-color);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--primary-color);
+  pointer-events: none;
+}
+
+/* Keep the cards in place during drag */
+.requests-container {
+  position: relative;
+}
+
+/* Preserve the grid layout during drag */
+.sortable-fallback {
+  position: absolute !important;
+  opacity: 0.8;
+  z-index: 9999;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Hide the ghost to avoid grid rearrangement */
+.sortable-ghost {
+  opacity: 0.2;
+  visibility: hidden;
+}
+
+/* Better behavior during drag */
+.dragging .requests-container {
+  grid-auto-flow: dense; /* Helps prevent layout shifts */
+}
+
+/* Prevent layout shifts by maintaining card dimensions during drag */
+.dragging .request-card {
+  min-width: 0;
+  min-height: 0;
+  transition: none;
+}
