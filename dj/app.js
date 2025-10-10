@@ -202,74 +202,41 @@ function initializeSortable() {
     chosenClass: 'sortable-chosen',
     dragClass: 'sortable-drag',
     
-    // Prevent grid disruption during drag
+    // Enable better visual feedback
+    fallbackOnBody: true,
+    swapThreshold: 0.5,
+    direction: 'horizontal',
+    
+    // Add these settings for better control
     forceFallback: true,
     fallbackClass: 'sortable-fallback',
-    fallbackOnBody: false, // Keep the ghost element within the container
     
-    // Prevent text selection
-    preventDefaultOnFilter: true,
-    
-    // Use a customized approach for indicators
+    // Show drop indicators
     onStart: function(evt) {
       document.body.classList.add('dragging');
+      evt.item.classList.add('being-dragged');
       
-      // Create a single indicator that follows the mouse
-      const indicator = document.createElement('div');
-      indicator.className = 'active-drop-indicator';
-      document.body.appendChild(indicator);
-      
-      // Store the original item dimensions for proper placeholder
-      const rect = evt.item.getBoundingClientRect();
-      evt.item.style.width = rect.width + 'px';
-      evt.item.style.height = rect.height + 'px';
+      // Add drop indicators between items
+      addDropIndicators();
     },
     
     onMove: function(evt) {
-      // Update indicator position
-      const indicator = document.querySelector('.active-drop-indicator');
-      if (indicator) {
-        const mousePosition = evt.originalEvent;
-        
-        // Find the nearest drop point in the grid
-        const dropPoint = findNearestDropPoint(evt, mousePosition);
-        
-        if (dropPoint) {
-          // Position the indicator at the drop point
-          indicator.style.top = dropPoint.top + 'px';
-          indicator.style.left = dropPoint.left + 'px';
-          indicator.style.width = dropPoint.width + 'px';
-          indicator.style.height = '4px';
-          indicator.style.display = 'block';
-          
-          // Store the target index
-          indicator.dataset.targetIndex = dropPoint.index;
-        } else {
-          indicator.style.display = 'none';
-        }
-      }
-      
-      // Allow the move
+      updateDropIndicatorHighlight(evt);
       return true;
     },
     
     onEnd: async function(evt) {
       document.body.classList.remove('dragging');
+      evt.item.classList.remove('being-dragged');
       
-      // Get the active indicator
-      const indicator = document.querySelector('.active-drop-indicator');
-      let targetIndex = evt.newIndex; // Default
-      
-      // Use the indicator's target index if available
-      if (indicator && indicator.dataset.targetIndex) {
-        targetIndex = parseInt(indicator.dataset.targetIndex);
-        indicator.remove();
-      }
+      // Remove drop indicators
+      removeDropIndicators();
       
       // Skip if nothing changed
-      if (evt.oldIndex === targetIndex) return;
+      if (evt.oldIndex === evt.newIndex) return;
       
       const requestId = evt.item.dataset.id;
+      const newIndex = evt.newIndex;
       
       try {
         // Get all requests to calculate new position
@@ -283,7 +250,7 @@ function initializeSortable() {
         
         if (fetchError) throw fetchError;
         
-        const newPosition = calculateNewPosition(requests, targetIndex);
+        const newPosition = calculateNewPosition(requests, newIndex);
         
         // Update the position
         const { error: updateError } = await supabase
