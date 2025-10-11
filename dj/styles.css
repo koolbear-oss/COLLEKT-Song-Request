@@ -292,25 +292,45 @@ button:active {
     top: 0;
     background-color: var(--section-bg);
     padding: 15px 0;
-    z-index: 100; /* Lower than popup but higher than cards */
+    z-index: 100;
     border-bottom: 1px solid var(--card-border);
     margin-bottom: 15px;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .section-header h2 {
-    margin-bottom: 0; /* Remove bottom margin since we're using gap */
+    margin-bottom: 0;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
 }
 
 .section-header .filter-container {
-    margin: 0; /* Remove top/bottom margins since we're using gap */
-    align-self: flex-start; /* Align filter to the left */
+    margin: 0;
+    flex: 1;
+    max-width: 250px; /* Even more compact */
+    min-width: 150px; /* But not too small */
+}
+
+/* Mobile adjustment for compact layout */
+@media (max-width: 768px) {
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .section-header .filter-container {
+        max-width: none; /* Full width on mobile */
+        align-self: stretch;
+    }
+    
+    .section-header h2 {
+        align-self: flex-start;
+    }
 }
 
 .section-header + .requests-container {
@@ -683,18 +703,25 @@ body.dragging .requests-container {
     }
     
     .settings-popup {
-        right: -50px; /* Adjust positioning for mobile */
-        min-width: 280px; /* Slightly wider on mobile */
+        right: 0;
+        left: 0;
+        margin: 10px auto;
+        min-width: 280px;
+        max-width: 90vw; /* Don't exceed viewport width */
     }
     
-    .event-name {
-        font-size: 0.9em; /* Slightly smaller event name on mobile */
+    /* Compact filter on mobile */
+    .filter-container {
+        max-width: none; /* Full width on mobile */
+    }
+    
+    .filter-input {
+        font-size: 16px; /* Prevent zoom on iOS */
     }
 }
 
 @media (max-width: 480px) {
     .settings-popup {
-        right: -80px;
         min-width: 260px;
     }
     
@@ -705,5 +732,15 @@ body.dragging .requests-container {
     .icon-button {
         width: 36px;
         height: 36px;
+    }
+    
+    /* Even more compact section header on very small screens */
+    .section-header {
+        padding: 10px 0;
+        gap: 8px;
+    }
+    
+    .section-header h2 {
+        font-size: 1.1em;
     }
 }
