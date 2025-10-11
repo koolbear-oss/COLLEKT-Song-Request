@@ -45,6 +45,12 @@ if (!eventId) {
 
 // Initialize the dashboard
 async function initializeDashboard() {
+  // Check if user is logged in
+  if (!localStorage.getItem('isLoggedIn')) {
+    alert('Your session has expired. Please log in again.');
+    window.location.href = '../admin/login.html';
+    return;
+  }
   // Fetch event details
   if (eventId) {
     const { data: event, error } = await supabase

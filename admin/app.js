@@ -33,12 +33,21 @@ async function createEvent() {
   
   if (!eventName) {
     alert('Please enter an event name');
+    eventNameInput.focus();
     return;
   }
   
   try {
+    // Disable the create button during the operation
+    createButton.disabled = true;
+    createButton.textContent = 'Creating...';
+    
     // Get current user's email
     const userEmail = localStorage.getItem('userEmail');
+    if (!userEmail) {
+      throw new Error('User not logged in. Please login again.');
+    }
+    
     console.log("Creating event with creator:", userEmail);
     
     // Insert new event
@@ -47,14 +56,14 @@ async function createEvent() {
       .insert([{ 
         name: eventName, 
         active: true,
-        created_by: userEmail  // This should set the creator's email
+        created_by: userEmail
       }])
       .select()
       .single();
     
-    console.log("Event created:", data);
-    
     if (error) throw error;
+    
+    console.log("Event created:", data);
     
     // Generate QR code
     generateQR(data);
@@ -62,9 +71,16 @@ async function createEvent() {
     // Refresh events list
     loadEvents();
     
+    // Clear the input
+    eventNameInput.value = '';
+    
   } catch (error) {
     console.error('Error creating event:', error);
-    alert('Failed to create event');
+    alert('Failed to create event: ' + error.message);
+  } finally {
+    // Re-enable the button
+    createButton.disabled = false;
+    createButton.textContent = 'Create Event & Generate QR';
   }
 }
 

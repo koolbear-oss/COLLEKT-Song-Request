@@ -55,18 +55,23 @@ requestForm.addEventListener('submit', async (e) => {
   let hasError = false;
   
   if (!songTitle) {
-    const errorEl = document.createElement('div');
-    errorEl.className = 'error';
-    errorEl.textContent = 'Please enter a song title';
-    document.getElementById('songTitle').parentNode.appendChild(errorEl);
+    addError('songTitle', 'Please enter a song title');
+    hasError = true;
+  } else if (songTitle.length < 2) {
+    addError('songTitle', 'Song title must be at least 2 characters');
     hasError = true;
   }
   
   if (!artistName) {
-    const errorEl = document.createElement('div');
-    errorEl.className = 'error';
-    errorEl.textContent = 'Please enter an artist name';
-    document.getElementById('artistName').parentNode.appendChild(errorEl);
+    addError('artistName', 'Please enter an artist name');
+    hasError = true;
+  } else if (artistName.length < 2) {
+    addError('artistName', 'Artist name must be at least 2 characters');
+    hasError = true;
+  }
+  
+  if (message && message.length > 100) {
+    addError('message', 'Message must be less than 100 characters');
     hasError = true;
   }
   
@@ -78,6 +83,16 @@ requestForm.addEventListener('submit', async (e) => {
   showLoading(true);
   
   try {
+    // Check if event exists and is active
+    const { data: eventData, error: eventError } = await supabase
+      .from('events')
+      .select('active')
+      .eq('id', eventId)
+      .single();
+    
+    if (eventError) throw new Error('Event not found');
+    if (!eventData.active) throw new Error('This event has been archived');
+    
     // Get count of current requests to set position
     const { data: existingRequests, error: countError } = await supabase
       .from('requests')
@@ -85,7 +100,7 @@ requestForm.addEventListener('submit', async (e) => {
       .eq('event_id', eventId)
       .eq('played', false);
       
-    const position = existingRequests ? existingRequests.length : 0;
+    const position = existingRequests ? existingRequests.length * 100 : 0;
     
     // Submit request to Supabase
     const { data, error } = await supabase
@@ -120,6 +135,14 @@ requestForm.addEventListener('submit', async (e) => {
     showLoading(false);
   }
 });
+
+// Add a helper function for adding error messages
+function addError(fieldId, message) {
+  const errorEl = document.createElement('div');
+  errorEl.className = 'error';
+  errorEl.textContent = message;
+  document.getElementById(fieldId).parentNode.appendChild(errorEl);
+}
 
 // Make another request button
 newRequestButton.addEventListener('click', () => {
