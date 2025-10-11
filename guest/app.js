@@ -54,6 +54,7 @@ requestForm.addEventListener('submit', async (e) => {
   
   let hasError = false;
   
+  // Validation logic (keep existing validation code)
   if (!songTitle) {
     addError('songTitle', 'Please enter a song title');
     hasError = true;
@@ -83,6 +84,10 @@ requestForm.addEventListener('submit', async (e) => {
   showLoading(true);
   
   try {
+    // Format inputs before submission
+    const formattedTitle = formatSongTitle(songTitle);
+    const formattedArtist = formatArtistName(artistName);
+    
     // Check if event exists and is active
     const { data: eventData, error: eventError } = await supabase
       .from('events')
@@ -102,24 +107,24 @@ requestForm.addEventListener('submit', async (e) => {
       
     const position = existingRequests ? existingRequests.length * 100 : 0;
     
-    // Submit request to Supabase
+    // Submit request to Supabase with formatted values
     const { data, error } = await supabase
       .from('requests')
       .insert([
         {
           event_id: eventId,
-          title: songTitle,
-          artist: artistName,
+          title: formattedTitle,
+          artist: formattedArtist,
           message: message,
-          position: position // Position based on current queue length
+          position: position
         }
       ]);
     
     if (error) throw error;
     
-    // Show confirmation with song details
-    document.getElementById('confirmedSong').textContent = songTitle;
-    document.getElementById('confirmedArtist').textContent = artistName;
+    // Show confirmation with formatted song details
+    document.getElementById('confirmedSong').textContent = formattedTitle;
+    document.getElementById('confirmedArtist').textContent = formattedArtist;
     
     // Show confirmation
     requestForm.classList.add('hidden');

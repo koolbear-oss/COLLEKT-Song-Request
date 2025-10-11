@@ -114,9 +114,6 @@ async function fetchRequests(resetStarred = true) {
 
     // Display requests and highlight new ones
     displayRequests(requestsListElement, activeRequests || [], false, newRequests.map(r => r.id));
-
-    // Display requests
-    displayRequests(requestsListElement, activeRequests || []);
     displayRequests(playedListElement, playedRequests || [], true);
     
     // Update counters
