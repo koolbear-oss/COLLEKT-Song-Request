@@ -202,10 +202,10 @@ function initializeSortable() {
     chosenClass: 'sortable-chosen',
     dragClass: 'sortable-drag',
     
-    // Enhanced drag settings
-    forceFallback: true, // Better cross-browser consistency
+    // Enhanced drag settings - FIXED CONFIG
+    forceFallback: false, // Changed back to false to avoid touch issues
     fallbackTolerance: 3,
-    fallbackOnBody: true,
+    fallbackOnBody: false, // Changed to false
     
     // Smooth swapping behavior
     swap: true,
@@ -216,6 +216,10 @@ function initializeSortable() {
     // Make entire card draggable
     handle: '.request-card',
     
+    // Add touch-specific settings to prevent errors
+    touchStartThreshold: 5, // Add this
+    supportPointer: true, // Add this for better pointer event support
+    
     onStart: function(evt) {
       document.body.classList.add('dragging');
       evt.item.classList.add('being-dragged');
@@ -225,8 +229,8 @@ function initializeSortable() {
       document.body.classList.remove('dragging');
       evt.item.classList.remove('being-dragged');
       
-      // Skip if nothing changed
-      if (evt.oldIndex === evt.newIndex) return;
+      // Skip if nothing changed or if item was dropped outside
+      if (evt.oldIndex === evt.newIndex || evt.newIndex === undefined) return;
       
       const requestId = evt.item.dataset.id;
       

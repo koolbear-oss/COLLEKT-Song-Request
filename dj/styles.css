@@ -500,7 +500,7 @@ button:active {
 
 /* Keep grid stable during drag */
 body.dragging .requests-container {
-  /* Grid stays fixed, no layout shifts */
+  contain: layout;
 }
 
 body.dragging .request-card:not(.sortable-ghost):not(.sortable-drag) {
