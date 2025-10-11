@@ -30,26 +30,27 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
       body: JSON.stringify({
         model: "gpt-3.5-turbo-instruct",
         prompt: `For this song request:
-Title: ${title}
-Artist: ${artist}
+        Title: ${title}
+        Artist: ${artist}
 
-Provide the following information in a JSON format:
-1. The standardized song title with proper capitalization
-2. The standardized artist name with proper capitalization
-3. The musical key in Camelot notation (e.g., "8A", "11B") if you know it
-4. The BPM (Beats Per Minute) if you know it
+        Provide the following information in a JSON format:
+        1. The standardized song title with proper capitalization, BUT PRESERVE original spelling variants like "Ur" instead of "Your" or stylistic choices
+        2. The standardized artist name with proper capitalization
+        3. The musical key in Camelot notation (e.g., "8A", "11B") if you know it
+        4. The BPM (Beats Per Minute) if you know it
 
-Only return data you're confident about. For key and BPM, return null if unknown.
-Don't make up information or guess wildly. It's better to return null than incorrect data.
+        Only return data you're confident about. For key and BPM, return null if unknown.
+        Don't make up information or guess wildly. It's better to return null than incorrect data.
+        Don't "correct" unique stylistic choices in spelling - maintain the artist's original intent.
 
-Return a JSON object like this:
-{
-  "title": "Standardized Song Title",
-  "artist": "Standardized Artist Name",
-  "key": "8A", // or null if unknown
-  "bpm": 128, // or null if unknown
-  "confidence": "high" // or "medium" or "low"
-}`,
+        Return a JSON object like this:
+        {
+          "title": "Standardized Song Title",
+          "artist": "Standardized Artist Name",
+          "key": "8A", // or null if unknown
+          "bpm": 128, // or null if unknown
+          "confidence": "high" // or "medium" or "low"
+        }`,
         max_tokens: 300,
         temperature: 0.3
       })

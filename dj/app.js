@@ -128,7 +128,7 @@ async function fetchRequests(resetStarred = true) {
 
     // Update the last check time
     lastRequestsCheck = new Date().getTime();
-
+    console.log("All active requests:", activeRequests);
     // Process requests with OpenAI for Pro users
     if (activeRequests && activeRequests.length > 0) {
       // Check if user is Pro/Admin
