@@ -313,30 +313,44 @@ async function renumberAllPositions(requests, draggedId, newIndex) {
     for (let i = 0; i < newIndex; i++) {
       updates.push({
         id: otherRequests[i].id,
-        position: (i + 1) * 100
+        position: (i + 1) * 100,
+        event_id: eventId, // Add event_id to avoid null constraint violation
+        updated_at: new Date().toISOString() // Add timestamp
       });
     }
     
     // Add the dragged item
     updates.push({
       id: draggedId,
-      position: (newIndex + 1) * 100
+      position: (newIndex + 1) * 100,
+      event_id: eventId, // Add event_id to avoid null constraint violation
+      updated_at: new Date().toISOString() // Add timestamp
     });
     
     // Add items after the insertion point
     for (let i = newIndex; i < otherRequests.length; i++) {
       updates.push({
         id: otherRequests[i].id,
-        position: (i + 2) * 100
+        position: (i + 2) * 100,
+        event_id: eventId, // Add event_id to avoid null constraint violation
+        updated_at: new Date().toISOString() // Add timestamp
       });
     }
     
-    // Perform bulk update
-    const { error } = await supabase
-      .from('requests')
-      .upsert(updates);
-    
-    if (error) throw error;
+    // Perform bulk update - use update() instead of upsert() for partial updates
+    // We'll update each record individually to avoid complex upsert logic
+    for (const update of updates) {
+      const { error } = await supabase
+        .from('requests')
+        .update({ 
+          position: update.position,
+          updated_at: update.updated_at
+        })
+        .eq('id', update.id)
+        .eq('event_id', eventId);
+      
+      if (error) throw error;
+    }
     
   } catch (error) {
     console.error('Error in bulk renumbering:', error);
