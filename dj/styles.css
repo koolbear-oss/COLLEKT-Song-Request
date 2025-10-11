@@ -136,57 +136,60 @@ header h1 {
 }
 
 .settings-popup {
-  position: fixed;
-  top: 100px;
-  right: 20px;
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-  padding: 0;
-  min-width: 250px;
-  z-index: 9999;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    padding: 0;
+    min-width: 250px;
+    z-index: 10000; /* Extremely high z-index */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    /* Ensure no parent can clip this */
+    clip: auto;
+    overflow: visible;
 }
 
 .settings-popup.show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 .popup-content {
-  padding: 20px;
+    padding: 20px;
 }
 
 .settings-popup .refresh-controls {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 15px;
-  margin-bottom: 15px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
 .settings-popup .slider {
-  width: 100%;
-  margin-top: 5px;
+    width: 100%;
+    margin-top: 5px;
 }
 
 .export-button {
-  width: 100%;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .export-button:hover {
-  opacity: 0.9;
+    opacity: 0.9;
 }
 
 /* ===== BUTTON BASE STYLES ===== */
@@ -684,23 +687,21 @@ body.dragging .requests-container {
   }
   
   /* Mobile popup positioning */
-  .settings-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    right: auto;
-    transform: translate(-50%, -50%) translateY(-10px);
-    min-width: 280px;
-    max-width: 90vw;
-  }
-  
-  .settings-popup.show {
-    transform: translate(-50%, -50%) translateY(0);
-  }
-  
-  .filter-input {
-    font-size: 16px;
-  }
+    .settings-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        right: auto;
+        bottom: auto;
+        transform: translate(-50%, -50%) translateY(-10px);
+        min-width: 280px;
+        max-width: 90vw;
+        margin: 0;
+    }
+    
+    .settings-popup.show {
+        transform: translate(-50%, -50%) translateY(0);
+    }
 }
 
 @media (max-width: 480px) {
