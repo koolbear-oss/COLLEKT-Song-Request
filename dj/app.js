@@ -21,6 +21,7 @@ const settingsPopup = document.getElementById('settingsPopup');
 // Auto-refresh timer
 let refreshTimer;
 let refreshInterval = 30; // Default refresh time in seconds
+let lastRequestsCheck = new Date().getTime();
 
 // Additional DOM elements for refresh timer
 const refreshSlider = document.getElementById('refreshSlider');
@@ -102,6 +103,18 @@ async function fetchRequests(resetStarred = true) {
     if (activeError) throw activeError;
     if (playedError) throw playedError;
     
+    // Identify new requests (added since last check)
+    const newRequests = activeRequests ? activeRequests.filter(req => {
+      const requestTime = new Date(req.created_at).getTime();
+      return requestTime > lastRequestsCheck;
+    }) : [];
+
+    // Update the last check time
+    lastRequestsCheck = new Date().getTime();
+
+    // Display requests and highlight new ones
+    displayRequests(requestsListElement, activeRequests || [], false, newRequests.map(r => r.id));
+
     // Display requests
     displayRequests(requestsListElement, activeRequests || []);
     displayRequests(playedListElement, playedRequests || [], true);
@@ -116,7 +129,7 @@ async function fetchRequests(resetStarred = true) {
 }
 
 // Display requests in the specified container
-function displayRequests(container, requests, isPlayed = false) {
+function displayRequests(container, requests, isPlayed = false, newRequestIds = []) {
   // Clear existing content
   container.innerHTML = '';
   
@@ -140,6 +153,18 @@ function displayRequests(container, requests, isPlayed = false) {
     // Set data attribute for identification
     requestCard.dataset.id = request.id;
     requestCard.dataset.position = request.position;
+
+    // Highlight new requests
+    if (!isPlayed && newRequestIds.includes(request.id)) {
+      requestCard.classList.add('new-request');
+      // Auto-remove highlight after 30 seconds
+      setTimeout(() => {
+        const card = document.querySelector(`.request-card[data-id="${request.id}"]`);
+        if (card) {
+          card.classList.remove('new-request');
+        }
+      }, 30000);
+    }
     
     // Mark starred items based on is_starred flag
     if (!isPlayed && request.is_starred) {

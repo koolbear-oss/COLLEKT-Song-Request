@@ -503,6 +503,18 @@ button:active {
   transform: scale(1.1);
 }
 
+.request-card.new-request {
+  border: 2px solid #4caf50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  animation: pulse-highlight 2s infinite;
+}
+
+@keyframes pulse-highlight {
+  0% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+  50% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); }
+  100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+}
+
 /* Button Color Variants */
 .star-button { color: var(--star-color); }
 .play-button { color: var(--success-color); }
