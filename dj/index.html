@@ -23,12 +23,25 @@
             <h1>Collekt Song Requests</h1>
             <div class="event-info">
                 <span id="eventName">Loading event...</span>
-                <div class="refresh-controls">
-                    <label for="refreshSlider">Auto-refresh: <span id="refreshInterval">30</span>s</label>
-                    <input type="range" id="refreshSlider" min="2" max="120" value="30" class="slider">
-                    <button id="refreshButton">Refresh Now</button>
+                <div class="header-controls">
+                    <button id="refreshButton" class="icon-button" title="Refresh Now">
+                        <span class="refresh-icon">🔄</span>
+                    </button>
+                    <div class="settings-container">
+                        <button id="settingsButton" class="icon-button" title="Settings">
+                            <span class="settings-icon">⚙️</span>
+                        </button>
+                        <div id="settingsPopup" class="settings-popup">
+                            <div class="popup-content">
+                                <div class="refresh-controls">
+                                    <label for="refreshSlider">Auto-refresh: <span id="refreshInterval">30</span>s</label>
+                                    <input type="range" id="refreshSlider" min="2" max="120" value="30" class="slider">
+                                </div>
+                                <button id="exportButton" class="export-button">Export Playlist</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button id="exportButton">Export</button>
             </div>
         </header>
         

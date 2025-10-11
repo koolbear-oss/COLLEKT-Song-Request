@@ -15,6 +15,8 @@ const requestCountElement = document.getElementById('requestCount');
 const playedCountElement = document.getElementById('playedCount');
 const refreshButton = document.getElementById('refreshButton');
 const exportButton = document.getElementById('exportButton');
+const settingsButton = document.getElementById('settingsButton');
+const settingsPopup = document.getElementById('settingsPopup');
 
 // Auto-refresh timer
 let refreshTimer;
@@ -507,12 +509,12 @@ refreshButton.addEventListener('click', fetchRequests);
 
 // Update interval when slider changes
 refreshSlider.addEventListener('input', function() {
-  refreshInterval = parseInt(this.value);
-  refreshIntervalDisplay.textContent = refreshInterval;
+    refreshInterval = parseInt(this.value);
+    refreshIntervalDisplay.textContent = refreshInterval;
 });
 
 refreshSlider.addEventListener('change', function() {
-  startRefreshTimer();
+    startRefreshTimer();
 });
 
 // Initialize the dashboard when the page loads
@@ -736,3 +738,28 @@ function openGuestForm() {
   // Open guest form in new tab
   window.open(`../guest/?event=${eventId}`, '_blank');
 }
+
+// Toggle settings popup
+settingsButton.addEventListener('click', function(e) {
+    e.stopPropagation();
+    settingsPopup.classList.toggle('show');
+});
+
+// Close popup when clicking outside
+document.addEventListener('click', function(e) {
+    if (!settingsPopup.contains(e.target) && e.target !== settingsButton) {
+        settingsPopup.classList.remove('show');
+    }
+});
+
+// Close popup when pressing Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && settingsPopup.classList.contains('show')) {
+        settingsPopup.classList.remove('show');
+    }
+});
+
+// Prevent popup from closing when clicking inside it
+settingsPopup.addEventListener('click', function(e) {
+    e.stopPropagation();
+});
