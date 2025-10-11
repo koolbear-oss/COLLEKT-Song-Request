@@ -178,10 +178,36 @@ function displayRequests(container, requests, isPlayed = false) {
     }
     
     requestCard.querySelector('.delete-button').addEventListener('click', () => deleteRequest(request.id));
+
+    requestCard.querySelector('.copy-button').addEventListener('click', () => {
+      const songTitle = request.title;
+      const artistName = request.artist;
+      copyForSeratoSearch(songTitle, artistName);
+    });
     
     // Add to container
     container.appendChild(requestCard);
   });
+}
+
+// Function to copy song and artist for Serato search
+function copyForSeratoSearch(songTitle, artistName) {
+  const searchText = `${songTitle} ${artistName}`;
+  
+  // Create a temporary textarea element to copy the text
+  const textarea = document.createElement('textarea');
+  textarea.value = searchText;
+  document.body.appendChild(textarea);
+  
+  // Select and copy the text
+  textarea.select();
+  document.execCommand('copy');
+  
+  // Remove the temporary textarea
+  document.body.removeChild(textarea);
+  
+  // Show feedback
+  showTempMessage('Copied for Serato search', 'info');
 }
 
 // Function to truncate comments to specified length

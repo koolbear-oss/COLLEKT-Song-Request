@@ -508,11 +508,13 @@ button:active {
 .play-button { color: var(--success-color); }
 .restore-button { color: var(--restore-color); }
 .delete-button { color: var(--danger-color); }
+.copy-button { color: #2196f3; }
 
 /* Contextual Button Visibility */
 .requests-section .restore-button,
 .played-section .play-button, 
-.played-section .star-button {
+.played-section .star-button,
+.played-section .copy-button {
   display: none;
 }
 
