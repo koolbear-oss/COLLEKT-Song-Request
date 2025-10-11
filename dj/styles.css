@@ -46,7 +46,7 @@ header {
   background-color: var(--header-bg);
   padding: 15px 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  z-index: 10;
+  z-index: 100;
 }
 
 header h1 {
@@ -56,6 +56,7 @@ header h1 {
 
 .event-info {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 15px;
 }
@@ -94,129 +95,101 @@ header h1 {
   font-size: 1.1em;
 }
 
-/* ===== CONTROLS & INTERACTIVE ELEMENTS ===== */
-.refresh-controls {
+/* ===== HEADER CONTROLS & SETTINGS ===== */
+.header-controls {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.slider {
-  width: 100px;
-  cursor: pointer;
-  accent-color: var(--primary-color);
-}
-
-label {
-  white-space: nowrap;
-}
-
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
 .icon-button {
-    background: none;
-    border: 1px solid var(--card-border);
-    color: var(--text-color);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    padding: 0;
+  background: none;
+  border: 1px solid var(--card-border);
+  color: var(--text-color);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
 }
 
 .icon-button:hover {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .refresh-icon {
-    font-size: 1.2em;
+  font-size: 1.2em;
 }
 
 .settings-icon {
-    font-size: 1.1em;
+  font-size: 1.1em;
 }
 
 /* Settings Popup */
 .settings-container {
-    position: relative;
+  position: relative;
 }
 
 .settings-popup {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 10px;
-    background-color: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 8px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-    padding: 0;
-    min-width: 250px;
-    z-index: 2000; /* Increased from 1000 to ensure it's above everything */
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  padding: 0;
+  min-width: 250px;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
 }
 
 .settings-popup.show {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .popup-content {
-    padding: 20px;
+  padding: 20px;
 }
 
 .settings-popup .refresh-controls {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 15px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 15px;
 }
 
 .settings-popup .slider {
-    width: 100%;
-    margin-top: 5px;
+  width: 100%;
+  margin-top: 5px;
 }
 
 .export-button {
-    width: 100%;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
+  width: 100%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .export-button:hover {
-    opacity: 0.9;
+  opacity: 0.9;
 }
 
-/* Close popup when clicking outside */
-.settings-popup::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-}
-
-/* Button Base Styles */
+/* ===== BUTTON BASE STYLES ===== */
 button {
   background-color: var(--primary-color);
   color: white;
@@ -242,23 +215,85 @@ button:active {
   padding: 6px 10px;
 }
 
-/* Filter Styles */
+/* ===== SECTION HEADER LAYOUT ===== */
+.section {
+  padding: 20px;
+  overflow-y: auto;
+  background-color: var(--section-bg);
+}
+
+.section-header {
+  position: sticky;
+  top: 0;
+  background-color: var(--section-bg);
+  padding: 15px 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--card-border);
+  margin-bottom: 15px;
+}
+
+.header-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.header-title-row h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.count-badge {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+.section-header + .requests-container {
+  padding-top: 5px;
+}
+
+.played-section .section-header {
+  padding-right: 15px;
+}
+
+/* ===== FILTER STYLES ===== */
 .filter-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    position: relative;
-    max-width: 300px; /* Limit maximum width */
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-width: 200px;
+  max-width: 300px;
 }
 
 .filter-input {
-    width: 100%;
-    padding: 8px 30px 8px 10px;
-    border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--card-border);
-    color: var(--text-color);
-    font-size: 0.9em; /* Slightly smaller font */
+  width: 100%;
+  padding: 8px 30px 8px 10px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
+  color: var(--text-color);
+  font-size: 0.9em;
+  transition: all 0.2s;
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
 }
 
 .clear-filter-button {
@@ -278,79 +313,7 @@ button:active {
   opacity: 1;
 }
 
-
-
-/* ===== SIDEBAR & SECTIONS ===== */
-.section {
-  padding: 20px;
-  overflow-y: auto;
-  background-color: var(--section-bg);
-}
-
-.section-header {
-    position: sticky;
-    top: 0;
-    background-color: var(--section-bg);
-    padding: 15px 0;
-    z-index: 100;
-    border-bottom: 1px solid var(--card-border);
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.section-header h2 {
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-}
-
-.section-header .filter-container {
-    margin: 0;
-    flex: 1;
-    max-width: 250px; /* Even more compact */
-    min-width: 150px; /* But not too small */
-}
-
-/* Mobile adjustment for compact layout */
-@media (max-width: 768px) {
-    .section-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    
-    .section-header .filter-container {
-        max-width: none; /* Full width on mobile */
-        align-self: stretch;
-    }
-    
-    .section-header h2 {
-        align-self: flex-start;
-    }
-}
-
-.section-header + .requests-container {
-  padding-top: 5px;
-}
-
-.played-section .section-header {
-  padding-right: 15px;
-}
-
-.count-badge {
-  background-color: var(--primary-color);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 14px;
-  margin-left: 10px;
-}
-
-/* Sidebar Layout */
+/* ===== SIDEBAR LAYOUT ===== */
 .requests-section {
   position: absolute;
   top: 0;
@@ -683,64 +646,92 @@ body.dragging .requests-container {
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
-    .dashboard-content {
-        flex-direction: column;
-    }
-    
-    .requests-section {
-        border-right: none;
-        border-bottom: 1px solid var(--card-border);
-    }
-    
-    .event-info {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .header-controls {
-        align-self: flex-end;
-    }
-    
-    .settings-popup {
-        right: 0;
-        left: 0;
-        margin: 10px auto;
-        min-width: 280px;
-        max-width: 90vw; /* Don't exceed viewport width */
-    }
-    
-    /* Compact filter on mobile */
-    .filter-container {
-        max-width: none; /* Full width on mobile */
-    }
-    
-    .filter-input {
-        font-size: 16px; /* Prevent zoom on iOS */
-    }
+  .dashboard-content {
+    flex-direction: column;
+  }
+  
+  .requests-section {
+    border-right: none;
+    border-bottom: 1px solid var(--card-border);
+  }
+  
+  .event-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .header-controls {
+    align-self: flex-end;
+  }
+  
+  /* Mobile header layout */
+  .header-title-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  
+  .header-controls-right {
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .filter-container {
+    max-width: none;
+    flex: 1;
+    min-width: auto;
+  }
+  
+  /* Mobile popup positioning */
+  .settings-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%) translateY(-10px);
+    min-width: 280px;
+    max-width: 90vw;
+  }
+  
+  .settings-popup.show {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  
+  .filter-input {
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 480px) {
-    .settings-popup {
-        min-width: 260px;
-    }
-    
-    .header-controls {
-        gap: 8px;
-    }
-    
-    .icon-button {
-        width: 36px;
-        height: 36px;
-    }
-    
-    /* Even more compact section header on very small screens */
-    .section-header {
-        padding: 10px 0;
-        gap: 8px;
-    }
-    
-    .section-header h2 {
-        font-size: 1.1em;
-    }
+  .header-title-row h2 {
+    font-size: 1.1em;
+  }
+  
+  .settings-popup {
+    min-width: 260px;
+  }
+  
+  .header-controls {
+    gap: 8px;
+  }
+  
+  .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .header-controls-right {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .filter-container {
+    order: -1;
+  }
+  
+  .section-header {
+    padding: 10px 0;
+  }
 }

@@ -742,12 +742,18 @@ function openGuestForm() {
 // Toggle settings popup
 settingsButton.addEventListener('click', function(e) {
     e.stopPropagation();
-    settingsPopup.classList.toggle('show');
+    const isShowing = settingsPopup.classList.toggle('show');
+    
+    // Optional: Close other popups if you have multiple
+    if (isShowing) {
+        // Add any additional logic when popup opens
+        console.log('Settings popup opened');
+    }
 });
 
 // Close popup when clicking outside
 document.addEventListener('click', function(e) {
-    if (!settingsPopup.contains(e.target) && e.target !== settingsButton) {
+    if (!settingsPopup.contains(e.target) && e.target !== settingsButton && !settingsButton.contains(e.target)) {
         settingsPopup.classList.remove('show');
     }
 });
@@ -756,6 +762,7 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && settingsPopup.classList.contains('show')) {
         settingsPopup.classList.remove('show');
+        settingsButton.focus(); // Return focus to settings button
     }
 });
 
