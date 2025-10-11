@@ -176,6 +176,13 @@ async function fetchRequests(resetStarred = true) {
 
 // Display requests in the specified container
 function displayRequests(container, requests, isPlayed = false, newRequestIds = []) {
+  console.log("Displaying requests in container:", container.id);
+  console.log("Number of requests to display:", requests.length);
+  
+  // Add individual request logging
+  requests.forEach((req, index) => {
+    console.log(`Request ${index}:`, req.title, "by", req.artist);
+  });
   // Clear existing content
   container.innerHTML = '';
   
