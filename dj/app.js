@@ -952,13 +952,17 @@ settingsPopup.addEventListener('click', function(e) {
     e.stopPropagation();
 });
 
-// Pro feature - Handle OpenAI API key
+// Add this to the end of dj/app.js
 document.addEventListener('DOMContentLoaded', function() {
   // Check if user is Pro DJ or Admin
   const userRole = localStorage.getItem('userRole');
+  console.log("User role:", userRole); // Add this for debugging
+  
   const isPro = userRole === 'Pro DJ' || userRole === 'Admin';
+  console.log("Is Pro/Admin:", isPro); // Add this for debugging
   
   if (isPro) {
+    console.log("Showing Pro settings"); // Add this for debugging
     // Show Pro settings
     document.getElementById('proSettings').style.display = 'block';
     
