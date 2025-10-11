@@ -56,8 +56,32 @@ async function initializeDashboard() {
   // Clear the filter field on initialization
   const filterInput = document.getElementById('requestFilter');
   if (filterInput) {
-    filterInput.value = ''; // Clear any existing value
-    console.log("Cleared filter field on initialization");
+    // Force clear the value in multiple ways
+    filterInput.value = '';
+    filterInput.defaultValue = '';
+    
+    // Prevent automatic population
+    setTimeout(() => {
+      if (filterInput.value) {
+        console.log("Filter field was populated automatically. Clearing again.");
+        filterInput.value = '';
+      }
+    }, 100);
+    
+    // Set up a MutationObserver to detect value changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+          console.log("Filter value changed. Clearing again.");
+          filterInput.value = '';
+        }
+      });
+    });
+    
+    // Start observing the filter input for value changes
+    observer.observe(filterInput, { attributes: true });
+    
+    console.log("Cleared filter field on initialization and added protection");
   }
 
   // Fetch event details
@@ -649,6 +673,19 @@ document.addEventListener('DOMContentLoaded', initializeDashboard);
 
 // Add these variables with other DOM elements
 const filterInput = document.getElementById('requestFilter');
+if (filterInput) {
+  // Add this debug code
+  Object.defineProperty(filterInput, 'value', {
+    set: function(val) {
+      console.log('Filter value being set to:', val);
+      console.trace('Stack trace for filter value setting');
+      this.setAttribute('value', val);
+    },
+    get: function() {
+      return this.getAttribute('value');
+    }
+  });
+}
 const clearFilterButton = document.getElementById('clearFilter');
 
 // Add filter functionality
