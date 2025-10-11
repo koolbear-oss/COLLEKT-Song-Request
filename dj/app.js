@@ -303,49 +303,29 @@ function calculateNewPosition(requests, newIndex, draggedId) {
 // Bulk renumber all positions to ensure clean ordering
 async function renumberAllPositions(requests, draggedId, newIndex) {
   try {
-    // Filter out dragged item and create new array with clean positions
-    const otherRequests = requests.filter(req => req.id !== draggedId);
+    // Simple approach: assign clean positions to all items
+    const allRequests = [...requests];
+    const draggedItem = allRequests.find(req => req.id === draggedId);
     
-    // Create new positions with increments of 100
-    const updates = [];
+    // Remove dragged item and reinsert at new position
+    const otherRequests = allRequests.filter(req => req.id !== draggedId);
+    const reorderedRequests = [
+      ...otherRequests.slice(0, newIndex),
+      draggedItem,
+      ...otherRequests.slice(newIndex)
+    ];
     
-    // Add items before the insertion point
-    for (let i = 0; i < newIndex; i++) {
-      updates.push({
-        id: otherRequests[i].id,
-        position: (i + 1) * 100,
-        event_id: eventId, // Add event_id to avoid null constraint violation
-        updated_at: new Date().toISOString() // Add timestamp
-      });
-    }
+    // Assign clean positions (100, 200, 300, etc.)
+    const updates = reorderedRequests.map((request, index) => ({
+      id: request.id,
+      position: (index + 1) * 100
+    }));
     
-    // Add the dragged item
-    updates.push({
-      id: draggedId,
-      position: (newIndex + 1) * 100,
-      event_id: eventId, // Add event_id to avoid null constraint violation
-      updated_at: new Date().toISOString() // Add timestamp
-    });
-    
-    // Add items after the insertion point
-    for (let i = newIndex; i < otherRequests.length; i++) {
-      updates.push({
-        id: otherRequests[i].id,
-        position: (i + 2) * 100,
-        event_id: eventId, // Add event_id to avoid null constraint violation
-        updated_at: new Date().toISOString() // Add timestamp
-      });
-    }
-    
-    // Perform bulk update - use update() instead of upsert() for partial updates
-    // We'll update each record individually to avoid complex upsert logic
+    // Update positions one by one to avoid complex upsert
     for (const update of updates) {
       const { error } = await supabase
         .from('requests')
-        .update({ 
-          position: update.position,
-          updated_at: update.updated_at
-        })
+        .update({ position: update.position })
         .eq('id', update.id)
         .eq('event_id', eventId);
       
