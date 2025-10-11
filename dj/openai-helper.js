@@ -34,22 +34,27 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
         Artist: ${artist}
 
         Provide the following information in a JSON format:
-        1. The standardized song title with proper capitalization (preserving stylistic choices like "Ur" vs "Your")
-        2. The standardized artist name with proper capitalization
-        3. The musical key in Camelot notation (e.g., "8A", "11B") ONLY if this is a real, commercially released song AND you are confident about the key
-        4. The BPM (Beats Per Minute) ONLY if this is a real, commercially released song AND you are confident about the tempo
+        1. The standardized song title with proper capitalization, but NEVER change factual elements like:
+          - Numbers (e.g., "Summer of 69" must remain "69", not "68")
+          - Names 
+          - Places
+          - Dates
+        2. The standardized artist name with proper capitalization (but don't "correct" the spelling of artist names)
+        3. The musical key in Camelot notation (e.g., "8A", "11B") ONLY for real songs you're confident about
+        4. The BPM (Beats Per Minute) ONLY for real songs you're confident about
 
-        IMPORTANT: Do NOT make up or guess key and BPM values. Only provide these if you're reasonably confident they're correct. It's MUCH better to return null than to provide incorrect musical data.
-        For title and artist, maintain original stylistic choices (e.g., "Thang" not "Thing", "U" not "You").
+        CRITICAL: Do NOT alter numbers or facts in titles. "Summer of 69" should NEVER become "Summer of 68".
+        Do NOT make up or guess key and BPM values. Return null for these if you're not confident.
+        Preserve original stylistic choices (e.g., "Thang" not "Thing", "U" not "You").
 
         Return a JSON object like this:
         {
-          "title": "Standardized Song Title",
+          "title": "Standardized Song Title", 
           "artist": "Standardized Artist Name",
-          "key": null,  // Only include a value if you're confident, otherwise leave as null
-          "bpm": null,  // Only include a value if you're confident, otherwise leave as null
-          "confidence": "high", // "medium", "low", or "none" for key and BPM
-          "is_real_song": true // false if you suspect this isn't a real commercial release
+          "key": null,  // Only include if confident, otherwise null
+          "bpm": null,  // Only include if confident, otherwise null
+          "confidence": "high", // for your overall confidence
+          "is_real_song": true // false if you suspect this isn't real
         }`,
         max_tokens: 300,
         temperature: 0.3
