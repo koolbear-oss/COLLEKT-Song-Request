@@ -18,6 +18,11 @@ const exportButton = document.getElementById('exportButton');
 const settingsButton = document.getElementById('settingsButton');
 const settingsPopup = document.getElementById('settingsPopup');
 
+// With this more precise declaration:
+let filterInput = null;
+let clearFilterButton = null;
+let activeFilter = 'all';  // This needs to be globally available for filter functions
+
 // Auto-refresh timer
 let refreshTimer;
 let refreshInterval = 30; // Default refresh time in seconds
@@ -688,9 +693,6 @@ function filterRequests() {
 
 const quickFilterButtons = document.querySelectorAll('.quick-filter-button');
 
-// Initialize active filter
-let activeFilter = 'all';
-
 quickFilterButtons.forEach(button => {
   button.addEventListener('click', () => {
     const filterType = button.getAttribute('data-filter');
@@ -954,11 +956,10 @@ settingsPopup.addEventListener('click', function(e) {
     e.stopPropagation();
 });
 
-// Add this to the end of dj/app.js
 document.addEventListener('DOMContentLoaded', function() {
-  // Get filter elements AFTER DOM is loaded
-  const filterInput = document.getElementById('requestFilter');
-  const clearFilterButton = document.getElementById('clearFilter');
+  // Initialize filter elements
+  filterInput = document.getElementById('requestFilter');
+  clearFilterButton = document.getElementById('clearFilter');
   
   // Clear the filter immediately
   if (filterInput) {
@@ -966,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("Filter cleared on page load");
   }
 
-  // Add filter functionality
+  // Add filter event listeners
   if (filterInput && clearFilterButton) {
     filterInput.addEventListener('input', filterRequests);
     clearFilterButton.addEventListener('click', clearFilter);
@@ -976,6 +977,21 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+  
+  // Initialize quick filter buttons
+  const quickFilterButtons = document.querySelectorAll('.quick-filter-button');
+  quickFilterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const filterType = button.getAttribute('data-filter');
+      
+      // Toggle active class on buttons
+      quickFilterButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      
+      // Apply filter
+      applyQuickFilter(filterType);
+    });
+  });
   
   // Check if user is Pro DJ or Admin
   const userRole = localStorage.getItem('userRole');
