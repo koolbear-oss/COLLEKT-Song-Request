@@ -29,23 +29,19 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo-instruct",
-        prompt: `For this song request:
+        prompt: `This song has been requested:
         Title: ${title}
         Artist: ${artist}
-
-        Provide the following information in a JSON format:
-        1. The standardized song title with proper capitalization, but NEVER change factual elements like:
-          - Numbers (e.g., "Summer of 69" must remain "69", not "68")
-          - Names 
-          - Places
-          - Dates
-        2. The standardized artist name with proper capitalization (but don't "correct" the spelling of artist names)
-        3. The musical key in Camelot notation (e.g., "8A", "11B") ONLY for real songs you're confident about
+        
+        Determine if this combination of artist and title really exists.
+        If so, provide the following (corrected) information in a JSON format:
+        1. The standardized song title with proper capitalization.
+        2. The standardized artist name with proper capitalization.
+        3. The musical key in Camelot notation (e.g., "8A", "11B") ONLY for real songs you're confident about.
         4. The BPM (Beats Per Minute) ONLY for real songs you're confident about
 
-        CRITICAL: Do NOT alter numbers or facts in titles. "Summer of 69" should NEVER become "Summer of 68".
+        CRITICAL: Correct small errors from the input data that could be typing errors.
         Do NOT make up or guess key and BPM values. Return null for these if you're not confident.
-        Preserve original stylistic choices (e.g., "Thang" not "Thing", "U" not "You").
 
         Return a JSON object like this:
         {
