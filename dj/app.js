@@ -52,6 +52,14 @@ async function initializeDashboard() {
     window.location.href = '../admin/login.html';
     return;
   }
+
+  // Clear the filter field on initialization
+  const filterInput = document.getElementById('requestFilter');
+  if (filterInput) {
+    filterInput.value = ''; // Clear any existing value
+    console.log("Cleared filter field on initialization");
+  }
+
   // Fetch event details
   if (eventId) {
     const { data: event, error } = await supabase
@@ -120,7 +128,10 @@ async function fetchRequests(resetStarred = true) {
       
       if (isPro) {
         // Find first non-enhanced request
-        const requestToEnhance = activeRequests.find(req => !req.enhanced_by_ai);
+        const requestToEnhance = activeRequests.find(req => {
+          const requestTime = new Date(req.created_at).getTime();
+          return !req.enhanced_by_ai && requestTime > lastRequestsCheck;
+        });
         
         if (requestToEnhance) {
           console.log("Enhancing request:", requestToEnhance.title);
