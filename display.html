@@ -10,15 +10,25 @@
             background-color: #121212;
             color: white;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
         }
         .qr-container {
             text-align: center;
             padding: 20px;
+            margin-bottom: 30px;
         }
         h1 {
             color: #8a2be2;
@@ -37,16 +47,108 @@
             margin-top: 15px;
             opacity: 0.9;
         }
+        /* Request Feed Styles */
+        .feed-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 40px;
+            display: none; /* Hidden by default, shown for Pro/Admin */
+        }
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .feed-title {
+            font-size: 24px;
+            color: #8a2be2;
+            margin: 0;
+        }
+        .feed-count {
+            background-color: #8a2be2;
+            color: white;
+            font-size: 14px;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        #requestFeed {
+            width: 100%;
+            border-radius: 10px;
+            background-color: rgba(30, 30, 30, 0.7);
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .request-item {
+            background-color: rgba(50, 50, 50, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .request-item:last-child {
+            margin-bottom: 0;
+        }
+        .request-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin: 0 0 5px 0;
+            color: white;
+        }
+        .request-artist {
+            font-size: 16px;
+            opacity: 0.8;
+            margin: 0;
+        }
+        .request-time {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 8px;
+            text-align: right;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .upgrade-message {
+            background-color: rgba(30, 30, 30, 0.7);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        .upgrade-message h3 {
+            color: #8a2be2;
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
-    <div class="qr-container">
-        <h1 id="customMessage">Request Your Song</h1>
-        <canvas id="qrcode"></canvas>
-        <p>Scan this QR code to request a song</p>
+    <div class="container">
+        <div class="qr-container">
+            <h1 id="customMessage">Request Your Song</h1>
+            <canvas id="qrcode"></canvas>
+            <p>Scan this QR code to request a song</p>
+        </div>
+        
+        <!-- Request Feed Section - Only visible for Pro/Admin users -->
+        <div class="feed-container" id="feedContainer">
+            <div class="feed-header">
+                <h2 class="feed-title">Latest Requests</h2>
+                <span class="feed-count" id="feedCount">0</span>
+            </div>
+            <div id="requestFeed">
+                <!-- Request items will be added here dynamically -->
+                <div class="upgrade-message" id="upgradeMessage">
+                    <h3>Pro Feature</h3>
+                    <p>The live request feed is available for Pro DJ and Admin accounts.</p>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -82,6 +184,43 @@
         } else {
             document.body.innerHTML = '<div class="qr-container"><h1>No Event ID Provided</h1></div>';
         }
+
+        // Initialize Supabase client (will be used for request feed)
+        const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Role-based access control for request feed
+        // We'll check if the logged-in user has access to the feature
+        // and initialize the feed accordingly
+        function checkAccessAndInitialize() {
+            // First, check if we have a valid eventId
+            if (!eventId) return;
+            
+            // Get user role from localStorage 
+            // If user is not logged in, we won't show the feed
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const userRole = localStorage.getItem('userRole');
+            
+            // Show feed container whether user has access or not (we'll show appropriate content)
+            document.getElementById('feedContainer').style.display = 'block';
+            
+            // Check if user has Pro or Admin access
+            const hasProAccess = userRole === 'Pro DJ' || userRole === 'Admin';
+            
+            if (isLoggedIn && hasProAccess) {
+                // User has access - initialize request feed
+                document.getElementById('upgradeMessage').style.display = 'none';
+                initRequestFeed();
+            } else {
+                // User doesn't have access - show upgrade message
+                document.getElementById('upgradeMessage').style.display = 'block';
+            }
+        }
+        
+        // Call the function to check access and initialize the feed
+        // We'll implement the initRequestFeed function in the next step
+        checkAccessAndInitialize();
     </script>
 </body>
 </html>
