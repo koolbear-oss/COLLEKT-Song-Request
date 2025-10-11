@@ -137,10 +137,7 @@ async function fetchRequests(resetStarred = true) {
       
       if (isPro) {
         // Find first non-enhanced request
-        const requestToEnhance = activeRequests.find(req => {
-          const requestTime = new Date(req.created_at).getTime();
-          return !req.enhanced_by_ai && requestTime > lastRequestsCheck;
-        });
+        const requestToEnhance = activeRequests.find(req => !req.enhanced_by_ai);
         
         if (requestToEnhance) {
           console.log("Enhancing request:", requestToEnhance.title);
@@ -279,6 +276,39 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       // Hide star and play buttons
       requestCard.querySelector('.star-button').style.display = 'none';
       requestCard.querySelector('.play-button').style.display = 'none';
+    }
+
+    // Add enhance button for debugging (Pro users only)
+    if (isPro && !isPlayed && !request.enhanced_by_ai) {
+      // Create enhance button
+      const enhanceButton = document.createElement('button');
+      enhanceButton.innerText = '🧠';
+      enhanceButton.title = 'Enhance with AI';
+      enhanceButton.style.fontSize = '14px';
+      enhanceButton.style.padding = '0';
+      enhanceButton.style.width = '28px';
+      enhanceButton.style.height = '28px';
+      enhanceButton.style.borderRadius = '50%';
+      enhanceButton.style.marginLeft = '5px';
+      enhanceButton.style.backgroundColor = 'transparent';
+      enhanceButton.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+      enhanceButton.style.color = '#8a2be2';
+      enhanceButton.style.display = 'flex';
+      enhanceButton.style.alignItems = 'center';
+      enhanceButton.style.justifyContent = 'center';
+      
+      // Add click event
+      enhanceButton.addEventListener('click', async () => {
+        console.log('Manually enhancing request:', request.title);
+        enhanceButton.disabled = true;
+        enhanceButton.innerText = '⏳';
+        const enhanced = await enhanceAndUpdateTrack(request);
+        console.log('Enhancement result:', enhanced);
+        fetchRequests(false); // Refresh display
+      });
+      
+      // Add to actions
+      requestCard.querySelector('.request-actions').appendChild(enhanceButton);
     }
     
     requestCard.querySelector('.delete-button').addEventListener('click', () => deleteRequest(request.id));

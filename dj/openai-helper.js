@@ -98,12 +98,20 @@ async function enhanceAndUpdateTrack(request) {
     const title = request.original_title || request.title;
     const artist = request.original_artist || request.artist;
     
+    // Add detailed logging
+    console.log("Enhancing track details:", {
+      requestId: request.id,
+      title: title,
+      artist: artist,
+      apiKeyPresent: apiKey ? "Yes (length: " + apiKey.length + ")" : "No"
+    });
+
     // Call OpenAI
     const enhancedData = await enhanceTrackWithOpenAI(title, artist, apiKey);
     if (!enhancedData) {
       return request;
     }
-    
+
     console.log("Enhanced data:", enhancedData);
     
     // Update database with enhanced data
