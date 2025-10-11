@@ -788,3 +788,41 @@ body.dragging .requests-container {
   50% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); }
   100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
 }
+
+/* Metadata display */
+.metadata-container {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.key-badge, .bpm-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background-color: rgba(138, 43, 226, 0.15);
+  color: #8a2be2;
+}
+
+.key-badge::before {
+  content: "Key: ";
+  opacity: 0.7;
+}
+
+.bpm-badge::before {
+  content: "BPM: ";
+  opacity: 0.7;
+}
+
+/* Pro badge */
+.pro-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background-color: #2e8b57;
+  color: white;
+  margin-left: 5px;
+  vertical-align: middle;
+}

@@ -1,7 +1,18 @@
 // dj/openai-helper.js
+// Function to check if user has Pro access
+function hasProAccess() {
+  const userRole = localStorage.getItem('userRole');
+  return userRole === 'Pro DJ' || userRole === 'Admin';
+}
 
 // Function to enhance track metadata with OpenAI
 async function enhanceTrackWithOpenAI(title, artist, apiKey) {
+  // Only allow Pro users
+  if (!hasProAccess()) {
+    console.log("Pro subscription required for AI enhancement");
+    return null;
+  }
+  
   // Exit early if no API key
   if (!apiKey) {
     console.error("OpenAI API key is required");
@@ -70,5 +81,61 @@ Return a JSON object like this:
   } catch (error) {
     console.error("Error calling OpenAI:", error);
     return null;
+  }
+}
+
+// Function to enhance a track and update database
+async function enhanceAndUpdateTrack(request) {
+  // Get API key from localStorage
+  const apiKey = localStorage.getItem('openaiApiKey');
+  if (!apiKey) {
+    console.log("No OpenAI API key found");
+    return request;
+  }
+  
+  try {
+    // Get original title and artist
+    const title = request.original_title || request.title;
+    const artist = request.original_artist || request.artist;
+    
+    // Call OpenAI
+    const enhancedData = await enhanceTrackWithOpenAI(title, artist, apiKey);
+    if (!enhancedData) {
+      return request;
+    }
+    
+    console.log("Enhanced data:", enhancedData);
+    
+    // Update database with enhanced data
+    const { data, error } = await supabase
+      .from('requests')
+      .update({
+        // Only update if we have valid data
+        title: enhancedData.title || request.title,
+        artist: enhancedData.artist || request.artist,
+        key: enhancedData.key,
+        bpm: enhancedData.bpm ? parseInt(enhancedData.bpm) : null,
+        enhanced_by_ai: true
+      })
+      .eq('id', request.id);
+    
+    if (error) {
+      console.error("Error updating track in database:", error);
+      return request;
+    }
+    
+    // Return updated request object
+    return {
+      ...request,
+      title: enhancedData.title || request.title,
+      artist: enhancedData.artist || request.artist,
+      key: enhancedData.key,
+      bpm: enhancedData.bpm ? parseInt(enhancedData.bpm) : null,
+      enhanced_by_ai: true
+    };
+    
+  } catch (error) {
+    console.error("Error enhancing track:", error);
+    return request;
   }
 }

@@ -112,6 +112,38 @@ async function fetchRequests(resetStarred = true) {
     // Update the last check time
     lastRequestsCheck = new Date().getTime();
 
+    // Process requests with OpenAI for Pro users
+    if (activeRequests && activeRequests.length > 0) {
+      // Check if user is Pro/Admin
+      const userRole = localStorage.getItem('userRole');
+      const isPro = userRole === 'Pro DJ' || userRole === 'Admin';
+      
+      if (isPro) {
+        // Find first non-enhanced request
+        const requestToEnhance = activeRequests.find(req => !req.enhanced_by_ai);
+        
+        if (requestToEnhance) {
+          console.log("Enhancing request:", requestToEnhance.title);
+          
+          // Process one request per refresh to avoid rate limits
+          try {
+            // Call the helper function to enhance the track
+            const enhancedRequest = await enhanceAndUpdateTrack(requestToEnhance);
+            
+            // Update the request in the array
+            if (enhancedRequest && enhancedRequest.enhanced_by_ai) {
+              const index = activeRequests.findIndex(req => req.id === enhancedRequest.id);
+              if (index !== -1) {
+                activeRequests[index] = enhancedRequest;
+              }
+            }
+          } catch (error) {
+            console.error("Error in AI enhancement:", error);
+          }
+        }
+      }
+    }
+
     // Display requests and highlight new ones
     displayRequests(requestsListElement, activeRequests || [], false, newRequests.map(r => r.id));
     displayRequests(playedListElement, playedRequests || [], true);
@@ -141,7 +173,7 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     container.appendChild(emptyMessage);
     return;
   }
-  
+
   // Create request cards
   requests.forEach(request => {
     const template = document.getElementById('requestTemplate');
@@ -176,6 +208,36 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     const message = request.message || '';
     requestCard.querySelector('.message').textContent = truncateComment(message);
     
+    // Show metadata for Pro users if available
+    const isPro = localStorage.getItem('userRole') === 'Pro DJ' || localStorage.getItem('userRole') === 'Admin';
+    const metadataContainer = requestCard.querySelector('.metadata-container');
+    const keyBadge = requestCard.querySelector('.key-badge');
+    const bpmBadge = requestCard.querySelector('.bpm-badge');
+
+    if (isPro && !isPlayed) {
+      // Show key if available
+      if (request.key) {
+        keyBadge.textContent = request.key;
+        keyBadge.style.display = 'inline-block';
+      } else {
+        keyBadge.style.display = 'none';
+      }
+      
+      // Show BPM if available
+      if (request.bpm) {
+        bpmBadge.textContent = request.bpm;
+        bpmBadge.style.display = 'inline-block';
+      } else {
+        bpmBadge.style.display = 'none';
+      }
+      
+      // Only show container if we have data
+      metadataContainer.style.display = (request.key || request.bpm) ? 'flex' : 'none';
+    } else {
+      // Hide metadata for non-Pro users
+      metadataContainer.style.display = 'none';
+    }
+
     // Add title for tooltip on hover for long messages
     if (message.length > 40) {
       requestCard.querySelector('.message').setAttribute('title', message);
@@ -919,3 +981,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
