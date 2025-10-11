@@ -158,10 +158,10 @@ label {
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
     padding: 0;
     min-width: 250px;
-    z-index: 1000;
+    z-index: 2000; /* Increased from 1000 to ensure it's above everything */
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
@@ -244,19 +244,21 @@ button:active {
 
 /* Filter Styles */
 .filter-container {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-  position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    position: relative;
+    max-width: 300px; /* Limit maximum width */
 }
 
 .filter-input {
-  width: 100%;
-  padding: 8px 30px 8px 10px;
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--card-border);
-  color: var(--text-color);
+    width: 100%;
+    padding: 8px 30px 8px 10px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--card-border);
+    color: var(--text-color);
+    font-size: 0.9em; /* Slightly smaller font */
 }
 
 .clear-filter-button {
@@ -276,6 +278,8 @@ button:active {
   opacity: 1;
 }
 
+
+
 /* ===== SIDEBAR & SECTIONS ===== */
 .section {
   padding: 20px;
@@ -283,24 +287,30 @@ button:active {
   background-color: var(--section-bg);
 }
 
-.section h2 {
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
+.section-header {
+    position: sticky;
+    top: 0;
+    background-color: var(--section-bg);
+    padding: 15px 0;
+    z-index: 100; /* Lower than popup but higher than cards */
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.section-header {
-  position: sticky;
-  top: 0;
-  background-color: var(--section-bg);
-  padding: 15px 0;
-  z-index: 50;
-  border-bottom: 1px solid var(--card-border);
-  margin-bottom: 15px;
+.section-header h2 {
+    margin-bottom: 0; /* Remove bottom margin since we're using gap */
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .section-header .filter-container {
-  margin: 10px 0 0;
+    margin: 0; /* Remove top/bottom margins since we're using gap */
+    align-self: flex-start; /* Align filter to the left */
 }
 
 .section-header + .requests-container {
