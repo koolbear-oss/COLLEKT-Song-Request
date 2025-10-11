@@ -260,18 +260,21 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       const enhanceButton = document.createElement('button');
       enhanceButton.innerText = '🧠';
       enhanceButton.title = 'Enhance with AI';
-      enhanceButton.style.fontSize = '14px';
+      enhanceButton.className = 'enhance-button'; // Add this class
+      
+      // Improve visibility
+      enhanceButton.style.fontSize = '16px'; // Make slightly larger
       enhanceButton.style.padding = '0';
       enhanceButton.style.width = '28px';
       enhanceButton.style.height = '28px';
       enhanceButton.style.borderRadius = '50%';
-      enhanceButton.style.marginLeft = '5px';
-      enhanceButton.style.backgroundColor = 'transparent';
-      enhanceButton.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+      enhanceButton.style.backgroundColor = 'rgba(138, 43, 226, 0.2)'; // Add background color
+      enhanceButton.style.border = '1px solid rgba(138, 43, 226, 0.5)'; // Add border color
       enhanceButton.style.color = '#8a2be2';
       enhanceButton.style.display = 'flex';
       enhanceButton.style.alignItems = 'center';
       enhanceButton.style.justifyContent = 'center';
+      enhanceButton.style.marginLeft = '5px';
       
       // Add click event
       enhanceButton.addEventListener('click', async () => {
