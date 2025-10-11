@@ -109,16 +109,18 @@ requestForm.addEventListener('submit', async (e) => {
     
     // Submit request to Supabase with formatted values
     const { data, error } = await supabase
-      .from('requests')
-      .insert([
-        {
-          event_id: eventId,
-          title: formattedTitle,
-          artist: formattedArtist,
-          message: message,
-          position: position
-        }
-      ]);
+    .from('requests')
+    .insert([
+      {
+        event_id: eventId,
+        title: formattedTitle,
+        artist: formattedArtist,
+        message: message,
+        position: position,
+        original_title: songTitle,    // Store original title
+        original_artist: artistName   // Store original artist
+      }
+    ]);
     
     if (error) throw error;
     

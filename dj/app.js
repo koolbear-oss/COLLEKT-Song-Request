@@ -889,3 +889,33 @@ document.addEventListener('keydown', function(e) {
 settingsPopup.addEventListener('click', function(e) {
     e.stopPropagation();
 });
+
+// Pro feature - Handle OpenAI API key
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if user is Pro DJ or Admin
+  const userRole = localStorage.getItem('userRole');
+  const isPro = userRole === 'Pro DJ' || userRole === 'Admin';
+  
+  if (isPro) {
+    // Show Pro settings
+    document.getElementById('proSettings').style.display = 'block';
+    
+    // Load saved API key if any
+    const savedKey = localStorage.getItem('openaiApiKey');
+    if (savedKey) {
+      document.getElementById('openaiKey').value = savedKey;
+    }
+    
+    // Handle save button click
+    document.getElementById('saveKeyButton').addEventListener('click', function() {
+      const apiKey = document.getElementById('openaiKey').value.trim();
+      
+      if (apiKey) {
+        localStorage.setItem('openaiApiKey', apiKey);
+        alert('API key saved successfully!');
+      } else {
+        alert('Please enter a valid API key.');
+      }
+    });
+  }
+});
