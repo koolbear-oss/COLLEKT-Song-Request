@@ -129,37 +129,6 @@ async function fetchRequests(resetStarred = true) {
     // Update the last check time
     lastRequestsCheck = new Date().getTime();
     console.log("All active requests:", activeRequests);
-    // Process requests with OpenAI for Pro users
-    if (activeRequests && activeRequests.length > 0) {
-      // Check if user is Pro/Admin
-      const userRole = localStorage.getItem('userRole');
-      const isPro = userRole === 'Pro DJ' || userRole === 'Admin';
-      
-      if (isPro) {
-        // Find first non-enhanced request
-        const requestToEnhance = activeRequests.find(req => !req.enhanced_by_ai);
-        
-        if (requestToEnhance) {
-          console.log("Enhancing request:", requestToEnhance.title);
-          
-          // Process one request per refresh to avoid rate limits
-          try {
-            // Call the helper function to enhance the track
-            const enhancedRequest = await enhanceAndUpdateTrack(requestToEnhance);
-            
-            // Update the request in the array
-            if (enhancedRequest && enhancedRequest.enhanced_by_ai) {
-              const index = activeRequests.findIndex(req => req.id === enhancedRequest.id);
-              if (index !== -1) {
-                activeRequests[index] = enhancedRequest;
-              }
-            }
-          } catch (error) {
-            console.error("Error in AI enhancement:", error);
-          }
-        }
-      }
-    }
 
     // Display requests and highlight new ones
     displayRequests(requestsListElement, activeRequests || [], false, newRequests.map(r => r.id));
