@@ -1,3 +1,14 @@
+window.addEventListener('DOMContentLoaded', function() {
+  // Immediately clear the filter field before anything else runs
+  setTimeout(function() {
+    const filterInput = document.getElementById('requestFilter');
+    if (filterInput) {
+      filterInput.value = '';
+      console.log("Filter cleared by immediate intervention");
+    }
+  }, 0);
+});
+
 // Initialize Supabase client
 const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
