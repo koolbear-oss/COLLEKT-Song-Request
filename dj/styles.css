@@ -515,6 +515,44 @@ button:active {
   100% { box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
 }
 
+.quick-filters {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.quick-filter-button {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--card-border);
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-filter-button:hover {
+  background-color: rgba(138, 43, 226, 0.2);
+}
+
+.quick-filter-button.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .quick-filters {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .quick-filter-button {
+    flex: 1;
+    text-align: center;
+  }
+}
+
 /* Button Color Variants */
 .star-button { color: var(--star-color); }
 .play-button { color: var(--success-color); }

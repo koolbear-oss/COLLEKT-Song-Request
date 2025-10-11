@@ -594,27 +594,96 @@ function filterRequests() {
   const filterText = filterInput.value.toLowerCase();
   const cards = requestsListElement.querySelectorAll('.request-card');
   
-  if (!filterText) {
-    cards.forEach(card => card.style.display = '');
-    return;
-  }
-  
   cards.forEach(card => {
-    const title = card.querySelector('.song-title').textContent.toLowerCase();
-    const artist = card.querySelector('.artist-name').textContent.toLowerCase();
-    const message = card.querySelector('.message').textContent.toLowerCase();
+    // First check if the card should be hidden by quick filter
+    let showByQuickFilter = true;
+    if (activeFilter === 'starred' && !card.classList.contains('starred')) {
+      showByQuickFilter = false;
+    } else if (activeFilter === 'new' && !card.classList.contains('new-request')) {
+      showByQuickFilter = false;
+    }
     
-    if (title.includes(filterText) || artist.includes(filterText) || message.includes(filterText)) {
-      card.style.display = '';
+    // If it passes the quick filter, then check text filter
+    if (showByQuickFilter) {
+      if (!filterText) {
+        card.style.display = '';
+        return;
+      }
+      
+      const title = card.querySelector('.song-title').textContent.toLowerCase();
+      const artist = card.querySelector('.artist-name').textContent.toLowerCase();
+      const message = card.querySelector('.message').textContent.toLowerCase();
+      
+      if (title.includes(filterText) || artist.includes(filterText) || message.includes(filterText)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
     } else {
       card.style.display = 'none';
     }
   });
 }
 
+const quickFilterButtons = document.querySelectorAll('.quick-filter-button');
+
+// Initialize active filter
+let activeFilter = 'all';
+
+quickFilterButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const filterType = button.getAttribute('data-filter');
+    
+    // Toggle active class on buttons
+    quickFilterButtons.forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    
+    // Apply filter
+    applyQuickFilter(filterType);
+  });
+});
+
+function applyQuickFilter(filterType) {
+  activeFilter = filterType;
+  const cards = requestsListElement.querySelectorAll('.request-card');
+  
+  cards.forEach(card => {
+    switch (filterType) {
+      case 'starred':
+        card.style.display = card.classList.contains('starred') ? '' : 'none';
+        break;
+      case 'new':
+        card.style.display = card.classList.contains('new-request') ? '' : 'none';
+        break;
+      case 'all':
+      default:
+        card.style.display = '';
+        break;
+    }
+  });
+  
+  // If text filter is also active, re-apply it
+  if (filterInput.value) {
+    filterRequests();
+  }
+}
+
 function clearFilter() {
   filterInput.value = '';
-  filterRequests();
+  
+  // Reset active quick filter
+  activeFilter = 'all';
+  quickFilterButtons.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.getAttribute('data-filter') === 'all') {
+      btn.classList.add('active');
+    }
+  });
+  
+  // Show all cards
+  const cards = requestsListElement.querySelectorAll('.request-card');
+  cards.forEach(card => card.style.display = '');
+  
   filterInput.blur();
 }
 
