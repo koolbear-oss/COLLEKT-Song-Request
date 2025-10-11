@@ -1,14 +1,3 @@
-window.addEventListener('DOMContentLoaded', function() {
-  // Immediately clear the filter field before anything else runs
-  setTimeout(function() {
-    const filterInput = document.getElementById('requestFilter');
-    if (filterInput) {
-      filterInput.value = '';
-      console.log("Filter cleared by immediate intervention");
-    }
-  }, 0);
-});
-
 // Initialize Supabase client
 const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
@@ -64,35 +53,15 @@ async function initializeDashboard() {
     return;
   }
 
-  // Clear the filter field on initialization
-  const filterInput = document.getElementById('requestFilter');
-  if (filterInput) {
-    // Force clear the value in multiple ways
-    filterInput.value = '';
-    filterInput.defaultValue = '';
-    
-    // Prevent automatic population
-    setTimeout(() => {
-      if (filterInput.value) {
-        console.log("Filter field was populated automatically. Clearing again.");
-        filterInput.value = '';
-      }
-    }, 100);
-    
-    // Set up a MutationObserver to detect value changes
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
-          console.log("Filter value changed. Clearing again.");
-          filterInput.value = '';
-        }
-      });
-    });
-    
-    // Start observing the filter input for value changes
-    observer.observe(filterInput, { attributes: true });
-    
-    console.log("Cleared filter field on initialization and added protection");
+  // Simple, safe filter clear operation
+  try {
+    const filterInput = document.getElementById('requestFilter');
+    if (filterInput) {
+      filterInput.value = '';
+      console.log("Cleared filter field on initialization");
+    }
+  } catch (e) {
+    console.error("Error clearing filter:", e);
   }
 
   // Fetch event details
@@ -685,18 +654,8 @@ document.addEventListener('DOMContentLoaded', initializeDashboard);
 // Add these variables with other DOM elements
 const filterInput = document.getElementById('requestFilter');
 if (filterInput) {
-  // Add this debug code
-  Object.defineProperty(filterInput, 'value', {
-    set: function(val) {
-      console.log('Filter value being set to:', val);
-      console.trace('Stack trace for filter value setting');
-      this.setAttribute('value', val);
-    },
-    get: function() {
-      return this.getAttribute('value');
-    }
-  });
 }
+
 const clearFilterButton = document.getElementById('clearFilter');
 
 // Add filter functionality
