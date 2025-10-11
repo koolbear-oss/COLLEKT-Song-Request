@@ -75,17 +75,33 @@
         #requestFeed {
             width: 100%;
             border-radius: 10px;
-            background-color: rgba(30, 30, 30, 0.7);
+            background-color: rgba(30, 30, 30, 0.5);
             padding: 15px;
-            max-height: 400px;
-            overflow-y: auto;
+            /* Remove max-height and overflow to eliminate scrollbar */
+            overflow: hidden;
+            position: relative;
         }
         .request-item {
-            background-color: rgba(50, 50, 50, 0.5);
+            background-color: rgba(50, 50, 50, 0.6);
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px 15px;
             margin-bottom: 10px;
             animation: fadeIn 0.5s ease-out;
+            transition: opacity 0.3s ease;
+        }
+        /* Default opacity for all items */
+        .request-item {
+            opacity: 1;
+        }
+        /* Fading effect for 2nd and 3rd items */
+        .request-item:nth-child(2) {
+            opacity: 0.7;
+        }
+        .request-item:nth-child(3) {
+            opacity: 0.4;
+        }
+        .request-item:nth-child(n+4) {
+            display: none;
         }
         .request-item:last-child {
             margin-bottom: 0;
@@ -120,6 +136,13 @@
         .upgrade-message h3 {
             color: #8a2be2;
             margin-top: 0;
+        }
+        /* New empty state style */
+        .empty-feed {
+            text-align: center;
+            padding: 20px 0;
+            opacity: 0.7;
+            font-style: italic;
         }
     </style>
 </head>
@@ -301,20 +324,16 @@
                 feed.insertBefore(requestItem, feed.firstChild);
             });
             
-            // If we have more than 10 items, remove extras
+            // Keep only 3 most recent items visible (CSS will handle opacity)
             const items = feed.querySelectorAll('.request-item');
-            if (items.length > 10) {
-                for (let i = 10; i < items.length; i++) {
-                    items[i].remove();
-                    
-                    // Also remove from our tracking set if we knew which ID it was
-                    // (We'll skip this complexity for now)
-                }
+            if (items.length > 3) {
+                // We'll still keep extra items in the DOM, but they'll be hidden by CSS
+                // This approach allows for smoother transitions when new items arrive
             }
             
             // If no requests and feed is empty, show message
             if (items.length === 0) {
-                feed.innerHTML = '<p style="text-align: center; opacity: 0.7;">No requests yet</p>';
+                feed.innerHTML = '<p class="empty-feed">No requests yet</p>';
             }
         }
     </script>
