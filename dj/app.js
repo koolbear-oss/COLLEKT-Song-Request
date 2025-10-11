@@ -202,13 +202,19 @@ function initializeSortable() {
     chosenClass: 'sortable-chosen',
     dragClass: 'sortable-drag',
     
-    // Keep dragged item visible and smooth
-    forceFallback: false,
+    // Enhanced drag settings
+    forceFallback: true, // Better cross-browser consistency
     fallbackTolerance: 3,
+    fallbackOnBody: true,
     
     // Smooth swapping behavior
     swap: true,
     swapClass: 'sortable-swap-highlight',
+    swapThreshold: 0.65,
+    invertSwap: true,
+    
+    // Make entire card draggable
+    handle: '.request-card',
     
     onStart: function(evt) {
       document.body.classList.add('dragging');
@@ -236,20 +242,28 @@ function initializeSortable() {
         
         if (fetchError) throw fetchError;
         
-        const newPosition = calculateNewPosition(requests, evt.newIndex);
+        // Use the enhanced position calculation
+        const newPosition = calculateNewPosition(requests, evt.newIndex, requestId);
         
-        // Update the position
-        const { error: updateError } = await supabase
-          .from('requests')
-          .update({ position: newPosition })
-          .eq('id', requestId);
-        
-        if (updateError) throw updateError;
+        if (newPosition === 'bulk_update_needed') {
+          // Bulk renumber all items for clean positions
+          await renumberAllPositions(requests, requestId, evt.newIndex);
+        } else {
+          // Single item update
+          const { error: updateError } = await supabase
+            .from('requests')
+            .update({ position: newPosition })
+            .eq('id', requestId);
+          
+          if (updateError) throw updateError;
+        }
         
         // Refresh the request list
         await fetchRequests();
       } catch (error) {
         console.error('Error updating position:', error);
+        // Show user feedback
+        showTempMessage('Failed to update order. Reverting...', 'error');
         // Revert on error
         await fetchRequests();
       }
@@ -258,22 +272,100 @@ function initializeSortable() {
 }
 
 // Helper function to calculate new position
-function calculateNewPosition(requests, newIndex) {
+function calculateNewPosition(requests, newIndex, draggedId) {
   if (!requests || requests.length === 0) return 0;
   
-  // Sort by position
-  const sorted = [...requests].sort((a, b) => a.position - b.position);
+  // Filter out the dragged item and sort by position
+  const otherRequests = requests.filter(req => req.id !== draggedId)
+    .sort((a, b) => a.position - b.position);
   
   if (newIndex <= 0) {
-    // Moving to start - use position smaller than first item
-    return sorted[0].position - 10;
-  } else if (newIndex >= sorted.length) {
-    // Moving to end - use position larger than last item
-    return sorted[sorted.length - 1].position + 10;
+    // Moving to start
+    return otherRequests[0].position - 100;
+  } else if (newIndex >= otherRequests.length) {
+    // Moving to end
+    return otherRequests[otherRequests.length - 1].position + 100;
   } else {
-    // Moving to middle - use position between two items
-    return (sorted[newIndex - 1].position + sorted[newIndex].position) / 2;
+    // Moving between items - use simple increment of 100 for stability
+    const prevPos = otherRequests[newIndex - 1].position;
+    const nextPos = otherRequests[newIndex].position;
+    
+    // If there's enough space, use midpoint, otherwise create space
+    if (nextPos - prevPos > 1) {
+      return Math.round((prevPos + nextPos) / 2);
+    } else {
+      // Need to renumber multiple items - return flag for bulk update
+      return 'bulk_update_needed';
+    }
   }
+}
+
+// Bulk renumber all positions to ensure clean ordering
+async function renumberAllPositions(requests, draggedId, newIndex) {
+  try {
+    // Filter out dragged item and create new array with clean positions
+    const otherRequests = requests.filter(req => req.id !== draggedId);
+    
+    // Create new positions with increments of 100
+    const updates = [];
+    
+    // Add items before the insertion point
+    for (let i = 0; i < newIndex; i++) {
+      updates.push({
+        id: otherRequests[i].id,
+        position: (i + 1) * 100
+      });
+    }
+    
+    // Add the dragged item
+    updates.push({
+      id: draggedId,
+      position: (newIndex + 1) * 100
+    });
+    
+    // Add items after the insertion point
+    for (let i = newIndex; i < otherRequests.length; i++) {
+      updates.push({
+        id: otherRequests[i].id,
+        position: (i + 2) * 100
+      });
+    }
+    
+    // Perform bulk update
+    const { error } = await supabase
+      .from('requests')
+      .upsert(updates);
+    
+    if (error) throw error;
+    
+  } catch (error) {
+    console.error('Error in bulk renumbering:', error);
+    throw error;
+  }
+}
+
+// Show temporary message to user
+function showTempMessage(message, type = 'info') {
+  const messageEl = document.createElement('div');
+  messageEl.textContent = message;
+  messageEl.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: ${type === 'error' ? '#f44336' : '#4caf50'};
+    color: white;
+    border-radius: 4px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    font-weight: bold;
+  `;
+  
+  document.body.appendChild(messageEl);
+  
+  setTimeout(() => {
+    document.body.removeChild(messageEl);
+  }, 3000);
 }
 
 // Mark request as played
