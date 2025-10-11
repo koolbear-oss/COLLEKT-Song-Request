@@ -36,19 +36,20 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
         Provide the following information in a JSON format:
         1. The standardized song title with proper capitalization (preserving stylistic choices like "Ur" vs "Your")
         2. The standardized artist name with proper capitalization
-        3. THE MUSICAL KEY in Camelot notation (e.g., "8A", "11B") - THIS IS VERY IMPORTANT
-        4. THE BPM (Beats Per Minute) - THIS IS VERY IMPORTANT
+        3. The musical key in Camelot notation (e.g., "8A", "11B") ONLY if this is a real, commercially released song AND you are confident about the key
+        4. The BPM (Beats Per Minute) ONLY if this is a real, commercially released song AND you are confident about the tempo
 
-        For key and BPM, please provide your best estimate even if you're not 100% confident.
-        For popular songs, you should know the key and BPM - please make your best effort to provide this data.
+        IMPORTANT: Do NOT make up or guess key and BPM values. Only provide these if you're reasonably confident they're correct. It's MUCH better to return null than to provide incorrect musical data.
+        For title and artist, maintain original stylistic choices (e.g., "Thang" not "Thing", "U" not "You").
 
         Return a JSON object like this:
         {
           "title": "Standardized Song Title",
           "artist": "Standardized Artist Name",
-          "key": "8A", // Use your best estimate, only use null if absolutely unknown
-          "bpm": 128, // Use your best estimate, only use null if absolutely unknown
-          "confidence": "high" // or "medium" or "low"
+          "key": null,  // Only include a value if you're confident, otherwise leave as null
+          "bpm": null,  // Only include a value if you're confident, otherwise leave as null
+          "confidence": "high", // "medium", "low", or "none" for key and BPM
+          "is_real_song": true // false if you suspect this isn't a real commercial release
         }`,
         max_tokens: 300,
         temperature: 0.3
