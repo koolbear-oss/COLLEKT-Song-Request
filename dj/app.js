@@ -202,35 +202,56 @@ function initializeSortable() {
     chosenClass: 'sortable-chosen',
     dragClass: 'sortable-drag',
     
-    // Enhanced drag settings - FIXED CONFIG
-    forceFallback: false, // Changed back to false to avoid touch issues
+    // Enhanced drag settings
+    forceFallback: false,
     fallbackTolerance: 3,
-    fallbackOnBody: false, // Changed to false
+    fallbackOnBody: false,
     
-    // Smooth swapping behavior
-    swap: true,
-    swapClass: 'sortable-swap-highlight',
-    swapThreshold: 0.65,
-    invertSwap: true,
+    // CRITICAL: Disable swap behavior to enable insertion between cards
+    swap: false,
+    invertSwap: false,
+    
+    // Enable insertion between items
+    direction: 'horizontal', // This enables horizontal insertion
+    dragClass: 'sortable-drag',
     
     // Make entire card draggable
     handle: '.request-card',
     
-    // Add touch-specific settings to prevent errors
-    touchStartThreshold: 5, // Add this
-    supportPointer: true, // Add this for better pointer event support
+    // Touch settings
+    touchStartThreshold: 5,
+    supportPointer: true,
     
     onStart: function(evt) {
       document.body.classList.add('dragging');
       evt.item.classList.add('being-dragged');
+      
+      // Add visual feedback for all cards during drag
+      const allCards = requestsListElement.querySelectorAll('.request-card');
+      allCards.forEach(card => {
+        if (card !== evt.item) {
+          card.classList.add('drag-inactive');
+        }
+      });
+    },
+    
+    onMove: function(evt) {
+      // This creates the insertion point visual feedback
+      return true; // Allow moving between all containers
     },
     
     onEnd: async function(evt) {
       document.body.classList.remove('dragging');
       evt.item.classList.remove('being-dragged');
       
-      // Skip if nothing changed or if item was dropped outside
-      if (evt.oldIndex === evt.newIndex || evt.newIndex === undefined) return;
+      // Remove visual feedback from all cards
+      const allCards = requestsListElement.querySelectorAll('.request-card');
+      allCards.forEach(card => {
+        card.classList.remove('drag-inactive');
+      });
+      
+      // Skip if nothing changed or dropped outside
+      if (evt.oldIndex === evt.newIndex || evt.newIndex === undefined || evt.newIndex === null) return;
       
       const requestId = evt.item.dataset.id;
       
@@ -277,28 +298,28 @@ function initializeSortable() {
 
 // Helper function to calculate new position
 function calculateNewPosition(requests, newIndex, draggedId) {
-  if (!requests || requests.length === 0) return 0;
+  if (!requests || requests.length === 0) return 100; // Start with 100
   
   // Filter out the dragged item and sort by position
   const otherRequests = requests.filter(req => req.id !== draggedId)
     .sort((a, b) => a.position - b.position);
   
   if (newIndex <= 0) {
-    // Moving to start
+    // Moving to start - position before first item
     return otherRequests[0].position - 100;
   } else if (newIndex >= otherRequests.length) {
-    // Moving to end
+    // Moving to end - position after last item
     return otherRequests[otherRequests.length - 1].position + 100;
   } else {
-    // Moving between items - use simple increment of 100 for stability
-    const prevPos = otherRequests[newIndex - 1].position;
-    const nextPos = otherRequests[newIndex].position;
+    // Moving between items - calculate position between two adjacent items
+    const prevItem = otherRequests[newIndex - 1];
+    const nextItem = otherRequests[newIndex];
     
-    // If there's enough space, use midpoint, otherwise create space
-    if (nextPos - prevPos > 1) {
-      return Math.round((prevPos + nextPos) / 2);
+    // If positions are sequential, use midpoint
+    if (nextItem.position - prevItem.position > 1) {
+      return Math.round((prevItem.position + nextItem.position) / 2);
     } else {
-      // Need to renumber multiple items - return flag for bulk update
+      // Positions are too close, need to renumber
       return 'bulk_update_needed';
     }
   }
