@@ -651,22 +651,6 @@ refreshSlider.addEventListener('change', function() {
 // Initialize the dashboard when the page loads
 document.addEventListener('DOMContentLoaded', initializeDashboard);
 
-// Add these variables with other DOM elements
-const filterInput = document.getElementById('requestFilter');
-if (filterInput) {
-}
-
-const clearFilterButton = document.getElementById('clearFilter');
-
-// Add filter functionality
-filterInput.addEventListener('input', filterRequests);
-clearFilterButton.addEventListener('click', clearFilter);
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.activeElement === filterInput) {
-    clearFilter();
-  }
-});
-
 function filterRequests() {
   const filterText = filterInput.value.toLowerCase();
   const cards = requestsListElement.querySelectorAll('.request-card');
@@ -972,15 +956,36 @@ settingsPopup.addEventListener('click', function(e) {
 
 // Add this to the end of dj/app.js
 document.addEventListener('DOMContentLoaded', function() {
+  // Get filter elements AFTER DOM is loaded
+  const filterInput = document.getElementById('requestFilter');
+  const clearFilterButton = document.getElementById('clearFilter');
+  
+  // Clear the filter immediately
+  if (filterInput) {
+    filterInput.value = '';
+    console.log("Filter cleared on page load");
+  }
+
+  // Add filter functionality
+  if (filterInput && clearFilterButton) {
+    filterInput.addEventListener('input', filterRequests);
+    clearFilterButton.addEventListener('click', clearFilter);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && document.activeElement === filterInput) {
+        clearFilter();
+      }
+    });
+  }
+  
   // Check if user is Pro DJ or Admin
   const userRole = localStorage.getItem('userRole');
-  console.log("User role:", userRole); // Add this for debugging
+  console.log("User role:", userRole);
   
   const isPro = userRole === 'Pro DJ' || userRole === 'Admin';
-  console.log("Is Pro/Admin:", isPro); // Add this for debugging
+  console.log("Is Pro/Admin:", isPro);
   
   if (isPro) {
-    console.log("Showing Pro settings"); // Add this for debugging
+    console.log("Showing Pro settings");
     // Show Pro settings
     document.getElementById('proSettings').style.display = 'block';
     
@@ -1002,5 +1007,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+  
+  // Initialize the dashboard
+  initializeDashboard();
 });
 
