@@ -259,7 +259,7 @@
             try {
                 console.log('Loading users...');
                 
-                // Get all existing dj_users records
+                // Get all dj_users, including inactive ones
                 const { data: djUsers, error: djError } = await supabase
                     .from('dj_users')
                     .select('*, roles(name)')
@@ -270,7 +270,7 @@
                     throw djError;
                 }
                 
-                console.log('DJ users:', djUsers ? djUsers.length : 0);
+                console.log('DJ users found:', djUsers ? djUsers.length : 0);
                 
                 const tableBody = document.getElementById('usersTableBody');
                 tableBody.innerHTML = '';
@@ -281,8 +281,34 @@
                     return;
                 }
                 
+                // Add a filter toggle for inactive users
+                if (!document.getElementById('showInactiveToggle')) {
+                    const filterContainer = document.createElement('div');
+                    filterContainer.style.marginBottom = '20px';
+                    filterContainer.innerHTML = `
+                        <label style="margin-right: 10px;">
+                            <input type="checkbox" id="showInactiveToggle" checked> 
+                            Show inactive (pending) users
+                        </label>
+                    `;
+                    
+                    const tableContainer = document.getElementById('usersList');
+                    tableContainer.insertBefore(filterContainer, tableContainer.querySelector('.users-table'));
+                    
+                    // Add event listener for the toggle
+                    document.getElementById('showInactiveToggle').addEventListener('change', function() {
+                        loadUsers(); // Reload with current filter setting
+                    });
+                }
+                
+                // Apply inactive filter if unchecked
+                const showInactive = document.getElementById('showInactiveToggle').checked;
+                const filteredUsers = showInactive ? djUsers : djUsers.filter(user => user.active);
+                
+                console.log('Users after filtering:', filteredUsers.length);
+                
                 // Process and display all dj users
-                djUsers.forEach(user => {
+                filteredUsers.forEach(user => {
                     const tr = document.createElement('tr');
                     
                     // Determine user status and role
@@ -294,7 +320,7 @@
                         <td>${user.name || 'N/A'}</td>
                         <td>${user.email || 'N/A'}</td>
                         <td>${getRoleBadge(roleName)}</td>
-                        <td class="${isActive ? 'status-active' : 'status-inactive'}">${isActive ? 'Active' : 'Inactive'}</td>
+                        <td class="${isActive ? 'status-active' : 'status-inactive'}">${isActive ? 'Active' : 'Inactive (Pending)'}</td>
                         <td>${formatDate(user.subscription_ends)}</td>
                         <td>
                             ${!isActive ? `<button class="action-button" data-action="activate" data-id="${user.id}">Activate</button>` : ''}
@@ -315,8 +341,6 @@
                 });
                 
                 // Add a "Create New User" button above the table
-                const tableContainer = document.getElementById('usersList');
-                
                 if (!document.getElementById('createUserButton')) {
                     const createButtonContainer = document.createElement('div');
                     createButtonContainer.style.marginBottom = '20px';
@@ -326,7 +350,8 @@
                         </button>
                     `;
                     
-                    tableContainer.insertBefore(createButtonContainer, tableContainer.firstChild);
+                    const tableContainer = document.getElementById('usersList');
+                    tableContainer.insertBefore(createButtonContainer, document.getElementById('showInactiveToggle').parentNode);
                     
                     // Add event listener for create button
                     document.getElementById('createUserButton').addEventListener('click', () => {
@@ -722,6 +747,10 @@
             document.getElementById('saveNewUserButton').addEventListener('click', createNewUser);
             document.getElementById('cancelCreateButton').addEventListener('click', closeCreateModal);
         });
+
+        function closeEditModal() {
+            document.getElementById('editUserModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>

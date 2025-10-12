@@ -86,15 +86,10 @@
             try {
                 console.log("Starting registration process for:", email);
                 
-                // Create auth user with metadata for name
+                // First, create the auth user
                 const { data: authUser, error: authError } = await supabase.auth.signUp({
                     email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            full_name: name,  // Store name in metadata
-                        }
-                    }
+                    password: password
                 });
                 
                 if (authError) {
@@ -104,6 +99,97 @@
                 
                 console.log("Auth user created:", authUser);
                 
+                if (!authUser || !authUser.user || !authUser.user.id) {
+                    console.error("Auth user created but id missing", authUser);
+                    throw new Error("Failed to create user account. Please try again.");
+                }
+                
+                // Immediately sign in with the new credentials to get authenticated permission
+                const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (signInError) {
+                    console.error("Sign in error:", signInError);
+                    throw signInError;
+                }
+                
+                console.log("Signed in as new user to insert dj_users record");
+                
+                // Get the 'Basic DJ' role
+                const { data: roles, error: roleError } = await supabase
+                    .from('roles')
+                    .select('id')
+                    .eq('name', 'Basic DJ');
+
+                if (roleError) {
+                    console.error("Role error:", roleError);
+                    throw roleError;
+                }
+
+                // Check if we found the Basic DJ role
+                if (!roles || roles.length === 0) {
+                    console.error("No Basic DJ role found");
+                    throw new Error('Basic DJ role not found. Please contact the administrator.');
+                }
+
+                const basicRoleId = roles[0].id;
+                console.log("Found Basic DJ role id:", basicRoleId);
+
+                // Check if user with this email already exists in dj_users table
+                const { data: existingUsers, error: userCheckError } = await supabase
+                    .from('dj_users')
+                    .select('id')
+                    .eq('email', email);
+                    
+                if (userCheckError) {
+                    console.error("User check error:", userCheckError);
+                    throw userCheckError;
+                }
+                
+                if (existingUsers && existingUsers.length > 0) {
+                    console.error("User already exists with this email");
+                    throw new Error('A user with this email already exists. Please use a different email or contact support.');
+                }
+
+                // Set subscription_ends to 30 days from now
+                const subscriptionDate = new Date();
+                subscriptionDate.setDate(subscriptionDate.getDate() + 30);
+
+                console.log("Creating dj_users record for:", {
+                    auth_id: authUser.user.id,
+                    name: name,
+                    email: email,
+                    active: false,
+                    role_id: basicRoleId,
+                    subscription_ends: subscriptionDate.toISOString()
+                });
+
+                // Create the dj_users record - now with authenticated permissions
+                const { data: djUser, error: userError } = await supabase
+                    .from('dj_users')
+                    .insert([{
+                        auth_id: authUser.user.id,
+                        name: name,
+                        email: email,
+                        active: false, // Admin needs to activate
+                        role_id: basicRoleId,
+                        subscription_ends: subscriptionDate.toISOString() // 30 days from now
+                    }])
+                    .select();
+                
+                if (userError) {
+                    console.error("User creation error:", userError);
+                    throw userError;
+                }
+                
+                console.log("DJ user created:", djUser);
+                console.log("Registration successful");
+                
+                // Sign out immediately after registration is complete
+                await supabase.auth.signOut();
+                
                 // Show success message
                 document.getElementById('successMessage').style.display = 'block';
                 document.getElementById('registerForm').reset();
@@ -112,6 +198,9 @@
                 console.error('Error registering:', error);
                 document.getElementById('errorMessage').textContent = error.message || 'Error during registration';
                 document.getElementById('errorMessage').style.display = 'block';
+                
+                // Clean up by signing out in case of error
+                await supabase.auth.signOut();
             }
         });
     </script>
