@@ -26,7 +26,7 @@ let activeFilter = 'all';  // This needs to be globally available for filter fun
 // Auto-refresh timer
 let refreshTimer;
 let refreshInterval = 30; // Default refresh time in seconds
-let lastRequestsCheck = new Date().getTime();
+let lastRequestsCheck = new Date().getTime() - (2 * 60 * 1000); // 2 minutes ago
 
 // Additional DOM elements for refresh timer
 const refreshSlider = document.getElementById('refreshSlider');
