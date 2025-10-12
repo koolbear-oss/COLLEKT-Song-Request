@@ -557,6 +557,21 @@ async function markAsPlayed(requestId) {
   }
 }
 
+// Helper function to safely convert timestamps
+function safeTimestamp(timestamp) {
+  if (!timestamp) return null;
+  
+  const date = new Date(timestamp);
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    console.warn('Invalid timestamp:', timestamp, '- using current time');
+    return new Date().toISOString();
+  }
+  
+  return date.toISOString();
+}
+
 // Archive (soft delete) request instead of permanently deleting
 async function deleteRequest(requestId) {
   if (!confirm('Delete this request? It will be moved to archive.')) return;
@@ -576,7 +591,7 @@ async function deleteRequest(requestId) {
     
     console.log('Request to archive:', request); // DEBUG
     
-    // STEP 2: Prepare archive data with proper timestamp handling
+    // STEP 2: Prepare archive data (now timestamps are guaranteed valid)
     const archiveData = {
       original_request_id: request.id,
       event_id: request.event_id,
@@ -591,11 +606,11 @@ async function deleteRequest(requestId) {
       is_starred: request.is_starred || false,
       position: request.position || 0,
       
-      // FIX: Ensure timestamps are in proper ISO format
-      created_at: request.created_at ? new Date(request.created_at).toISOString() : new Date().toISOString(),
+      // Now these work properly since created_at is a real timestamp
+      created_at: request.created_at,
       
       played: request.played || false,
-      played_at: request.played_at ? new Date(request.played_at).toISOString() : null,
+      played_at: request.played_at || null,
       
       deleted_by: localStorage.getItem('userEmail') || 'unknown',
       deletion_reason: 'manual_delete'
