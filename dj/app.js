@@ -576,7 +576,7 @@ async function deleteRequest(requestId) {
     
     console.log('Request to archive:', request); // DEBUG
     
-    // STEP 2: Prepare archive data
+    // STEP 2: Prepare archive data with proper timestamp handling
     const archiveData = {
       original_request_id: request.id,
       event_id: request.event_id,
@@ -590,9 +590,15 @@ async function deleteRequest(requestId) {
       enhanced_by_ai: request.enhanced_by_ai || false,
       is_starred: request.is_starred || false,
       position: request.position || 0,
-      created_at: request.created_at,
+      
+      // FIX: Ensure created_at is a proper timestamp
+      created_at: request.created_at ? new Date(request.created_at).toISOString() : new Date().toISOString(),
+      
       played: request.played || false,
-      played_at: request.played_at || null,
+      
+      // FIX: Ensure played_at is a proper timestamp or null
+      played_at: request.played_at ? new Date(request.played_at).toISOString() : null,
+      
       deleted_by: localStorage.getItem('userEmail') || 'unknown',
       deletion_reason: 'manual_delete'
     };
