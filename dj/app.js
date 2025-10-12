@@ -7,6 +7,25 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 const urlParams = new URLSearchParams(window.location.search);
 const eventId = urlParams.get('event');
 
+// Camelot color wheel mapping for harmonic mixing
+const CAMELOT_COLORS = {
+  // A (Minor) Keys - Cool tones (Blues, Purples, Greens)
+  '1A': '#4A90E2',  '2A': '#5B9BD5',  '3A': '#6CA6D8',  '4A': '#7DB1DB',
+  '5A': '#8E5BA8',  '6A': '#9F66B3',  '7A': '#B071BE',  '8A': '#C17CC9',
+  '9A': '#52B788',  '10A': '#63C294', '11A': '#74CD9F', '12A': '#85D8AB',
+  
+  // B (Major) Keys - Warm tones (Yellows, Oranges, Reds)
+  '1B': '#F4D03F',  '2B': '#F5D752',  '3B': '#F6DE65',  '4B': '#F7E578',
+  '5B': '#E67E22',  '6B': '#E88B35',  '7B': '#EA9848',  '8B': '#ECA55B',
+  '9B': '#E74C3C',  '10B': '#E95D4F', '11B': '#EB6E62', '12B': '#ED7F75'
+};
+
+// Helper function to get Camelot color
+function getCamelotColor(key) {
+  if (!key) return null;
+  return CAMELOT_COLORS[key.toUpperCase()] || null;
+}
+
 // DOM elements
 const eventNameElement = document.getElementById('eventName');
 const requestsListElement = document.getElementById('requestsList');
