@@ -281,7 +281,28 @@
                     return;
                 }
                 
-                // Add a filter toggle for inactive users
+                const tableContainer = document.getElementById('usersList');
+                
+                // Add a "Create New User" button above the table - FIXED ORDER
+                if (!document.getElementById('createUserButton')) {
+                    const createButtonContainer = document.createElement('div');
+                    createButtonContainer.style.marginBottom = '20px';
+                    createButtonContainer.innerHTML = `
+                        <button id="createUserButton" class="action-button" style="padding: 10px 20px; background-color: #4caf50;">
+                            Create New DJ Account
+                        </button>
+                    `;
+                    
+                    // Insert at the beginning of the container
+                    tableContainer.insertBefore(createButtonContainer, tableContainer.firstChild);
+                    
+                    // Add event listener for create button
+                    document.getElementById('createUserButton').addEventListener('click', () => {
+                        openCreateUserModal();
+                    });
+                }
+                
+                // Add a filter toggle for inactive users - FIXED ORDER
                 if (!document.getElementById('showInactiveToggle')) {
                     const filterContainer = document.createElement('div');
                     filterContainer.style.marginBottom = '20px';
@@ -292,8 +313,14 @@
                         </label>
                     `;
                     
-                    const tableContainer = document.getElementById('usersList');
-                    tableContainer.insertBefore(filterContainer, tableContainer.querySelector('.users-table'));
+                    // Insert after create button
+                    const createButton = document.getElementById('createUserButton');
+                    if (createButton && createButton.parentNode) {
+                        tableContainer.insertBefore(filterContainer, createButton.parentNode.nextSibling);
+                    } else {
+                        // Fallback - insert at beginning
+                        tableContainer.insertBefore(filterContainer, tableContainer.firstChild);
+                    }
                     
                     // Add event listener for the toggle
                     document.getElementById('showInactiveToggle').addEventListener('change', function() {
@@ -339,25 +366,6 @@
                 document.querySelectorAll('[data-action="edit"]').forEach(button => {
                     button.addEventListener('click', () => editUser(button.getAttribute('data-id')));
                 });
-                
-                // Add a "Create New User" button above the table
-                if (!document.getElementById('createUserButton')) {
-                    const createButtonContainer = document.createElement('div');
-                    createButtonContainer.style.marginBottom = '20px';
-                    createButtonContainer.innerHTML = `
-                        <button id="createUserButton" class="action-button" style="padding: 10px 20px; background-color: #4caf50;">
-                            Create New DJ Account
-                        </button>
-                    `;
-                    
-                    const tableContainer = document.getElementById('usersList');
-                    tableContainer.insertBefore(createButtonContainer, document.getElementById('showInactiveToggle').parentNode);
-                    
-                    // Add event listener for create button
-                    document.getElementById('createUserButton').addEventListener('click', () => {
-                        openCreateUserModal();
-                    });
-                }
                 
             } catch (error) {
                 console.error('Error loading users:', error);
