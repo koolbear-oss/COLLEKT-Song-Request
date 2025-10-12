@@ -26,7 +26,7 @@ let activeFilter = 'all';  // This needs to be globally available for filter fun
 // Auto-refresh timer
 let refreshTimer;
 let refreshInterval = 30; // Default refresh time in seconds
-let lastRequestsCheck = new Date().getTime() - (2 * 60 * 1000); // 2 minutes ago
+let lastRequestsCheck = new Date().getTime();
 
 // Additional DOM elements for refresh timer
 const refreshSlider = document.getElementById('refreshSlider');
@@ -106,8 +106,8 @@ async function fetchRequests(resetStarred = true) {
       .select('*')
       .eq('event_id', eventId)
       .eq('played', false)
-      .order('is_starred', { ascending: false }) // Starred items first
-      .order('position', { ascending: true });   // Then by position
+      .order('is_starred', { ascending: false })
+      .order('position', { ascending: true });
     
     // Fetch played requests
     const { data: playedRequests, error: playedError } = await supabase
@@ -120,14 +120,13 @@ async function fetchRequests(resetStarred = true) {
     if (activeError) throw activeError;
     if (playedError) throw playedError;
     
-    // Identify new requests (added since last check)
+    // Identify new requests based on ABSOLUTE time (last 2 minutes)
+    const twoMinutesAgo = new Date().getTime() - (2 * 60 * 1000);
     const newRequests = activeRequests ? activeRequests.filter(req => {
       const requestTime = new Date(req.created_at).getTime();
-      return requestTime > lastRequestsCheck;
+      return requestTime > twoMinutesAgo;
     }) : [];
 
-    // Update the last check time
-    lastRequestsCheck = new Date().getTime();
     console.log("All active requests:", activeRequests);
 
     // Display requests and highlight new ones
@@ -141,9 +140,6 @@ async function fetchRequests(resetStarred = true) {
   } catch (error) {
     console.error('Error fetching requests:', error);
   }
-
-  // NEW: Update enhance button visibility
-  await updateEnhanceAllButton();
 }
 
 // Display requests in the specified container
