@@ -2,33 +2,20 @@
 /* ADD to styles.css - Improve key badge contrast */
 /* Camelot key colors with improved text contrast */
 :root {
-  /* A (Minor) Keys - Cool tones (Blues, Purples, Greens) */
-  --key-1A-bg: #4A90E2;  --key-1A-text: white;
-  --key-2A-bg: #5B9BD5;  --key-2A-text: white;
-  --key-3A-bg: #6CA6D8;  --key-3A-text: black;
-  --key-4A-bg: #7DB1DB;  --key-4A-text: black;
-  --key-5A-bg: #8E5BA8;  --key-5A-text: white;
-  --key-6A-bg: #9F66B3;  --key-6A-text: white;
-  --key-7A-bg: #B071BE;  --key-7A-text: white;
-  --key-8A-bg: #C17CC9;  --key-8A-text: black;
-  --key-9A-bg: #52B788;  --key-9A-text: black;
-  --key-10A-bg: #63C294; --key-10A-text: black;
-  --key-11A-bg: #74CD9F; --key-11A-text: black;
-  --key-12A-bg: #85D8AB; --key-12A-text: black;
+  /* Keep original theme variables */
+  --primary-color: #8a2be2; /* Purple */
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --card-bg: #1e1e1e;
+  --card-border: #333333;
   
-  /* B (Major) Keys - Warm tones (Yellows, Oranges, Reds) */
-  --key-1B-bg: #F4D03F;  --key-1B-text: black;
-  --key-2B-bg: #F5D752;  --key-2B-text: black;
-  --key-3B-bg: #F6DE65;  --key-3B-text: black;
-  --key-4B-bg: #F7E578;  --key-4B-text: black;
-  --key-5B-bg: #E67E22;  --key-5B-text: white;
-  --key-6B-bg: #E88B35;  --key-6B-text: white;
-  --key-7B-bg: #EA9848;  --key-7B-text: black;
-  --key-8B-bg: #ECA55B;  --key-8B-text: black;
-  --key-9B-bg: #E74C3C;  --key-9B-text: white;
-  --key-10B-bg: #E95D4F; --key-10B-text: white;
-  --key-11B-bg: #EB6E62; --key-11B-text: white;
-  --key-12B-bg: #ED7F75; --key-12B-text: black;
+  /* Just add text contrast variables for keys */
+  --key-1A-text: white;   --key-2A-text: white;   --key-3A-text: black;   --key-4A-text: black;
+  --key-5A-text: white;   --key-6A-text: white;   --key-7A-text: white;   --key-8A-text: black;
+  --key-9A-text: black;   --key-10A-text: black;  --key-11A-text: black;  --key-12A-text: black;
+  --key-1B-text: black;   --key-2B-text: black;   --key-3B-text: black;   --key-4B-text: black;
+  --key-5B-text: white;   --key-6B-text: white;   --key-7B-text: black;   --key-8B-text: black;
+  --key-9B-text: white;   --key-10B-text: white;  --key-11B-text: white;  --key-12B-text: black;
 }
 
 * {

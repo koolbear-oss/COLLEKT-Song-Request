@@ -24,11 +24,12 @@ const CAMELOT_COLORS = {
 function getCamelotColor(key) {
   if (!key) return null;
   
-  const cssVarName = `--key-${key.toUpperCase()}-bg`;
-  const textVarName = `--key-${key.toUpperCase()}-text`;
+  // Keep existing background color logic
+  const bgColor = CAMELOT_COLORS[key.toUpperCase()] || null;
   
+  // Get text color from CSS variables
+  const textVarName = `--key-${key.toUpperCase()}-text`;
   const rootStyles = getComputedStyle(document.documentElement);
-  const bgColor = rootStyles.getPropertyValue(cssVarName).trim() || null;
   const textColor = rootStyles.getPropertyValue(textVarName).trim() || 'white';
   
   return { 
