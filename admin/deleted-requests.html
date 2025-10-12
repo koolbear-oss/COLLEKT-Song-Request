@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deleted Requests Archive</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Deleted Requests Archive</h1>
+        <button onclick="window.location.href='index.html'">← Back to Events</button>
+        
+        <div id="deletedRequestsList" style="margin-top: 20px;">
+            <p>Loading...</p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+        const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        async function loadDeletedRequests() {
+            const { data, error } = await supabase
+                .from('deleted_requests')
+                .select('*, events(name)')
+                .order('deleted_at', { ascending: false })
+                .limit(100);
+            
+            if (error) {
+                document.getElementById('deletedRequestsList').innerHTML = 
+                    '<p>Error loading deleted requests</p>';
+                return;
+            }
+            
+            let html = '<table class="users-table"><thead><tr>' +
+                '<th>Song</th><th>Artist</th><th>Event</th><th>Deleted</th><th>Reason</th>' +
+                '</tr></thead><tbody>';
+            
+            data.forEach(req => {
+                html += `<tr>
+                    <td>${req.title}</td>
+                    <td>${req.artist}</td>
+                    <td>${req.events?.name || 'Unknown'}</td>
+                    <td>${new Date(req.deleted_at).toLocaleString()}</td>
+                    <td>${req.deletion_reason || 'N/A'}</td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('deletedRequestsList').innerHTML = html;
+        }
+        
+        loadDeletedRequests();
+    </script>
+</body>
+</html>

@@ -557,22 +557,62 @@ async function markAsPlayed(requestId) {
   }
 }
 
-// Delete request
+// Archive (soft delete) request instead of permanently deleting
 async function deleteRequest(requestId) {
-  if (!confirm('Are you sure you want to delete this request?')) return;
+  if (!confirm('Delete this request? It will be moved to archive.')) return;
   
   try {
-    const { error } = await supabase
+    // STEP 1: Get the full request data before deleting
+    const { data: request, error: fetchError } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('id', requestId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+    
+    // STEP 2: Insert into deleted_requests table
+    const { error: archiveError } = await supabase
+      .from('deleted_requests')
+      .insert([{
+        original_request_id: request.id,
+        event_id: request.event_id,
+        title: request.title,
+        artist: request.artist,
+        message: request.message,
+        original_title: request.original_title,
+        original_artist: request.original_artist,
+        key: request.key,
+        bpm: request.bpm,
+        enhanced_by_ai: request.enhanced_by_ai,
+        is_starred: request.is_starred,
+        position: request.position,
+        created_at: request.created_at,
+        played: request.played,
+        played_at: request.played_at,
+        deleted_by: localStorage.getItem('userEmail'),
+        deletion_reason: 'manual_delete' // Can be made dynamic later
+      }]);
+    
+    if (archiveError) throw archiveError;
+    
+    // STEP 3: Now delete from requests table
+    const { error: deleteError } = await supabase
       .from('requests')
       .delete()
       .eq('id', requestId);
     
-    if (error) throw error;
+    if (deleteError) throw deleteError;
     
-    // Re-fetch requests
+    // STEP 4: Show success feedback
+    showTempMessage('Request archived', 'success');
+    
+    // STEP 5: Refresh display
     fetchRequests();
+    
   } catch (error) {
-    console.error('Error deleting request:', error);
+    console.error('Error archiving request:', error);
+    showTempMessage('Failed to delete request: ' + error.message, 'error');
   }
 }
 
