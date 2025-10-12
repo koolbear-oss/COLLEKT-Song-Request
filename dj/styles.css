@@ -1097,3 +1097,37 @@ body.dragging .requests-container {
     }
   }
 }
+
+/* ADD to styles.css - Styling for interactive badges and filter button */
+.interactive-badge {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.interactive-badge:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+}
+
+.clear-filter-global {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: rgba(138, 43, 226, 0.8);
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 10;
+  margin: 10px;
+}
+
+.clear-filter-global:hover {
+  background-color: rgba(138, 43, 226, 1);
+}
+
+.filtering-active .request-card {
+  transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}

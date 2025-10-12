@@ -1365,6 +1365,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize filter elements
   filterInput = document.getElementById('requestFilter');
   clearFilterButton = document.getElementById('clearFilter');
+
+
   
   // Clear the filter immediately
   if (filterInput) {
@@ -1440,6 +1442,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Initialize the dashboard
   initializeDashboard();
+
+  // Initialize key filter listeners
+  initializeKeyFilterListeners();
+  
+  // Re-initialize listeners after requests are loaded
+  // This ensures new cards have listeners too
+  const originalFetchRequests = fetchRequests;
+  fetchRequests = async function(...args) {
+    await originalFetchRequests.apply(this, args);
+    initializeKeyFilterListeners();
+  };
 });
 
 async function getUnenhancedTracks() {
@@ -1455,3 +1468,163 @@ async function getUnenhancedTracks() {
   return data || [];
 }
 
+// ADD to app.js - Key compatibility calculation
+function calculateKeyCompatibility(key1, key2) {
+  if (!key1 || !key2) return 0;
+  
+  // Strip any potential spaces
+  key1 = key1.trim();
+  key2 = key2.trim();
+  
+  // If keys are identical, they're perfectly compatible
+  if (key1 === key2) return 1.0;
+  
+  // Extract number and letter from each key
+  const keyPattern = /(\d+)([AB])/;
+  const match1 = key1.match(keyPattern);
+  const match2 = key2.match(keyPattern);
+  
+  if (!match1 || !match2) return 0;
+  
+  const num1 = parseInt(match1[1]);
+  const type1 = match1[2];
+  const num2 = parseInt(match2[1]);
+  const type2 = match2[2];
+  
+  // Perfect compatibility for relative major/minor (same number, different letter)
+  if (num1 === num2 && type1 !== type2) return 0.9;
+  
+  // Adjacent keys on the Camelot wheel (one step away)
+  const isAdjacent = (
+    // Same letter type, number differs by 1 or 11 (wrap around)
+    (type1 === type2 && (Math.abs(num1 - num2) === 1 || Math.abs(num1 - num2) === 11)) ||
+    // For perfect fifth/fourth relationships
+    (Math.abs(num1 - num2) === 7 && type1 === type2)
+  );
+  
+  if (isAdjacent) return 0.7;
+  
+  // Two steps away = moderate compatibility
+  const isTwoStepsAway = (
+    (type1 === type2 && (Math.abs(num1 - num2) === 2 || Math.abs(num1 - num2) === 10))
+  );
+  
+  if (isTwoStepsAway) return 0.4;
+  
+  // Default: low compatibility
+  return 0.1;
+}
+
+// ADD to app.js - Apply visual filtering effects
+function applyFilterEffect(card, compatibilityScore) {
+  // Base opacity on compatibility (0.2 minimum opacity for all cards)
+  const opacity = 0.2 + (compatibilityScore * 0.8);
+  
+  // Apply visual effects
+  card.style.opacity = opacity.toString();
+  card.style.transition = 'all 0.3s ease-in-out';
+  
+  if (compatibilityScore > 0.7) {
+    // Highly compatible cards get subtle highlight
+    card.style.transform = 'scale(1.02)';
+    card.style.boxShadow = '0 0 10px rgba(138, 43, 226, 0.5)';
+  } else {
+    card.style.transform = 'scale(1)';
+    card.style.boxShadow = '';
+  }
+}
+
+// ADD to app.js - Key filtering implementation
+function filterByKey(selectedKey) {
+  if (!selectedKey) return;
+  
+  // Set filtering state
+  document.body.classList.add('filtering-active');
+  
+  // Store the active filter for potential clear button
+  window.activeFilter = {
+    type: 'key',
+    value: selectedKey
+  };
+  
+  document.querySelectorAll('.request-card').forEach(card => {
+    const cardKeyElement = card.querySelector('.key-badge');
+    if (!cardKeyElement) return;
+    
+    const cardKey = cardKeyElement.textContent.trim();
+    if (!cardKey) return;
+    
+    const compatibility = calculateKeyCompatibility(selectedKey, cardKey);
+    applyFilterEffect(card, compatibility);
+  });
+  
+  // Show clear filter button if not already visible
+  showClearFilterButton();
+}
+
+// ADD to app.js - Add event listeners for key badges
+function initializeKeyFilterListeners() {
+  document.querySelectorAll('.key-badge, .key-badge-large').forEach(badge => {
+    if (badge.textContent.trim()) {  // Only add if badge has content
+      badge.classList.add('interactive-badge');
+      badge.setAttribute('title', 'Click to show compatible keys');
+      
+      // Remove any existing listeners to avoid duplicates
+      badge.removeEventListener('click', keyBadgeClickHandler);
+      
+      // Add click event
+      badge.addEventListener('click', keyBadgeClickHandler);
+    }
+  });
+}
+
+// Key badge click handler
+function keyBadgeClickHandler(e) {
+  e.stopPropagation(); // Prevent card expansion
+  const key = this.textContent.trim();
+  filterByKey(key);
+}
+
+// ADD to app.js - Clear filtering function and button
+function clearFiltering() {
+  // Remove filtering state
+  document.body.classList.remove('filtering-active');
+  window.activeFilter = null;
+  
+  // Reset all cards
+  document.querySelectorAll('.request-card').forEach(card => {
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+    card.style.boxShadow = '';
+  });
+  
+  // Hide clear button
+  const clearButton = document.getElementById('clearFilterButton');
+  if (clearButton) {
+    clearButton.style.display = 'none';
+  }
+}
+
+function showClearFilterButton() {
+  let clearButton = document.getElementById('clearFilterButton');
+  
+  // Create button if it doesn't exist
+  if (!clearButton) {
+    clearButton = document.createElement('button');
+    clearButton.id = 'clearFilterButton';
+    clearButton.className = 'clear-filter-global';
+    clearButton.textContent = 'Clear Filter';
+    clearButton.addEventListener('click', clearFiltering);
+    
+    // Add to DOM - position it near the filter controls
+    const headerControls = document.querySelector('.header-controls-right');
+    if (headerControls) {
+      headerControls.appendChild(clearButton);
+    } else {
+      document.querySelector('.section-header').appendChild(clearButton);
+    }
+  }
+  
+  // Show the button
+  clearButton.style.display = 'block';
+}
