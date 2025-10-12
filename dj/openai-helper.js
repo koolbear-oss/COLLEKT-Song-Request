@@ -29,28 +29,39 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo-instruct",
-        prompt: `This song has been requested:
+        prompt: `You are a music expert identifying and correcting song requests from a DJ event.
+
+        INPUT:
         Title: ${title}
         Artist: ${artist}
-        
-        Determine if this combination of artist and title really exists.
-        If so, provide the following (corrected) information in a JSON format:
-        1. The standardized song title with proper capitalization.
-        2. The standardized artist name with proper capitalization.
-        3. The musical key in Camelot notation (e.g., "8A", "11B") ONLY for real songs you're confident about.
-        4. The BPM (Beats Per Minute) ONLY for real songs you're confident about
 
-        CRITICAL: Correct small errors from the input data that could be typing errors.
-        Do NOT make up or guess key and BPM values. Return null for these if you're not confident.
+        TASK:
+        1. Identify if this is a real song (correct common typos, spelling errors, and word variations)
+        2. Return the OFFICIAL/CORRECT title and artist name as they appear on the actual release
+        3. Provide musical metadata (key, BPM) only if you're highly confident
 
-        Return a JSON object like this:
+        CORRECTION EXAMPLES:
+        - "peach & cream" → "Peaches & Cream" (spelling error)
+        - "dont stop believing" → "Don't Stop Believin'" (punctuation)
+        - "Mr Brightside" → "Mr. Brightside" (proper punctuation)
+        - "Billie Jean" by "MJ" → "Billie Jean" by "Michael Jackson" (expand abbreviations)
+
+        CRITICAL RULES:
+        ✓ CORRECT spelling errors, plurals, punctuation, and abbreviations
+        ✓ Use the OFFICIAL title/artist from the actual music release
+        ✓ For key: Use Camelot notation (e.g., "8A", "11B") - only if confident
+        ✓ For BPM: Use exact tempo - only if confident
+        ✗ Do NOT guess key/BPM if unsure - return null instead
+        ✗ Do NOT make up songs that don't exist
+
+        Return ONLY valid JSON (no markdown, no explanations):
         {
-          "title": "Standardized Song Title", 
-          "artist": "Standardized Artist Name",
-          "key": null,  // Only include if confident, otherwise null
-          "bpm": null,  // Only include if confident, otherwise null
-          "confidence": "high", // for your overall confidence
-          "is_real_song": true // false if you suspect this isn't real
+          "title": "Official Song Title With Correct Spelling",
+          "artist": "Official Artist Name",
+          "key": "8A",
+          "bpm": 102,
+          "confidence": "high",
+          "is_real_song": true
         }`,
         max_tokens: 300,
         temperature: 0.3
