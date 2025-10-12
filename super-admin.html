@@ -174,6 +174,49 @@
             </div>
         </div>
     </div>
+
+    <!-- ADD to super-admin.html - Create new user modal -->
+    <div id="createUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Create New DJ Account</h3>
+            <div id="createForm">
+                <div class="form-group">
+                    <label for="createName">Full Name</label>
+                    <input type="text" id="createName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="createEmail">Email Address</label>
+                    <input type="email" id="createEmail" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="createRole">Role</label>
+                    <select id="createRole">
+                        <option value="">Loading roles...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="createStatus">Status</label>
+                    <select id="createStatus">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive (Pending Approval)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="createSubscription">Subscription End Date</label>
+                    <input type="date" id="createSubscription">
+                </div>
+                
+                <div class="button-group">
+                    <button id="saveNewUserButton">Create Account</button>
+                    <button id="cancelCreateButton">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
@@ -216,15 +259,7 @@
             try {
                 console.log('Loading users...');
                 
-                // First, get all users from Auth
-                const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-                
-                if (authError) {
-                    console.error("Error fetching auth users:", authError);
-                    throw authError;
-                }
-                
-                // Then, get all existing dj_users records
+                // Get all existing dj_users records
                 const { data: djUsers, error: djError } = await supabase
                     .from('dj_users')
                     .select('*, roles(name)')
@@ -235,55 +270,35 @@
                     throw djError;
                 }
                 
-                console.log('Auth users:', authUsers.users.length);
                 console.log('DJ users:', djUsers ? djUsers.length : 0);
-                
-                // Create a lookup map of existing DJ users by auth_id
-                const djUserMap = {};
-                if (djUsers) {
-                    djUsers.forEach(user => {
-                        djUserMap[user.auth_id] = user;
-                    });
-                }
-                
-                // Get roles for dropdown
-                const { data: roles, error: rolesError } = await supabase
-                    .from('roles')
-                    .select('id, name');
-                    
-                if (rolesError) {
-                    console.error("Error fetching roles:", rolesError);
-                    throw rolesError;
-                }
                 
                 const tableBody = document.getElementById('usersTableBody');
                 tableBody.innerHTML = '';
                 
-                // Process and display all auth users
-                authUsers.users.forEach(authUser => {
+                // If no users found
+                if (!djUsers || djUsers.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
+                    return;
+                }
+                
+                // Process and display all dj users
+                djUsers.forEach(user => {
                     const tr = document.createElement('tr');
-                    const djUser = djUserMap[authUser.id];
-                    const userMetadata = authUser.user_metadata || {};
                     
                     // Determine user status and role
-                    const isActive = djUser ? djUser.active : false;
-                    const roleName = djUser && djUser.roles ? djUser.roles.name : 'Not Set';
-                    const userName = djUser ? djUser.name : (userMetadata.full_name || 'New User');
-                    const subscriptionEnds = djUser ? formatDate(djUser.subscription_ends) : 'Not Set';
+                    const isActive = user.active;
+                    const roleName = user.roles?.name || 'Not Set';
                     
                     // Create table row
                     tr.innerHTML = `
-                        <td>${userName}</td>
-                        <td>${authUser.email || 'N/A'}</td>
+                        <td>${user.name || 'N/A'}</td>
+                        <td>${user.email || 'N/A'}</td>
                         <td>${getRoleBadge(roleName)}</td>
                         <td class="${isActive ? 'status-active' : 'status-inactive'}">${isActive ? 'Active' : 'Inactive'}</td>
-                        <td>${subscriptionEnds}</td>
+                        <td>${formatDate(user.subscription_ends)}</td>
                         <td>
-                            ${djUser 
-                                ? `${!isActive ? `<button class="action-button" data-action="activate" data-id="${djUser.id}">Activate</button>` : ''}`
-                                : `<button class="action-button" data-action="create" data-auth-id="${authUser.id}" data-email="${authUser.email}" data-name="${userName}">Create DJ Account</button>`
-                            }
-                            <button class="action-button" data-action="edit" data-id="${djUser ? djUser.id : ''}" data-auth-id="${authUser.id}">Edit</button>
+                            ${!isActive ? `<button class="action-button" data-action="activate" data-id="${user.id}">Activate</button>` : ''}
+                            <button class="action-button" data-action="edit" data-id="${user.id}">Edit</button>
                         </td>
                     `;
                     
@@ -296,21 +311,28 @@
                 });
                 
                 document.querySelectorAll('[data-action="edit"]').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const djUserId = button.getAttribute('data-id');
-                        const authUserId = button.getAttribute('data-auth-id');
-                        editUser(djUserId || authUserId, !djUserId);
-                    });
+                    button.addEventListener('click', () => editUser(button.getAttribute('data-id')));
                 });
                 
-                document.querySelectorAll('[data-action="create"]').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const authId = button.getAttribute('data-auth-id');
-                        const email = button.getAttribute('data-email');
-                        const name = button.getAttribute('data-name');
-                        createDjUser(authId, email, name);
+                // Add a "Create New User" button above the table
+                const tableContainer = document.getElementById('usersList');
+                
+                if (!document.getElementById('createUserButton')) {
+                    const createButtonContainer = document.createElement('div');
+                    createButtonContainer.style.marginBottom = '20px';
+                    createButtonContainer.innerHTML = `
+                        <button id="createUserButton" class="action-button" style="padding: 10px 20px; background-color: #4caf50;">
+                            Create New DJ Account
+                        </button>
+                    `;
+                    
+                    tableContainer.insertBefore(createButtonContainer, tableContainer.firstChild);
+                    
+                    // Add event listener for create button
+                    document.getElementById('createUserButton').addEventListener('click', () => {
+                        openCreateUserModal();
                     });
-                });
+                }
                 
             } catch (error) {
                 console.error('Error loading users:', error);
@@ -549,16 +571,157 @@
             }
         }
 
-        // Close modal
-        function closeEditModal() {
-            document.getElementById('editUserModal').style.display = 'none';
+        // ADD to super-admin.html - Functions for creating new users
+        function openCreateUserModal() {
+            // Load roles for dropdown
+            loadRoles('createRole');
+            
+            // Default values
+            document.getElementById('createName').value = '';
+            document.getElementById('createEmail').value = '';
+            document.getElementById('createStatus').value = 'false'; // Inactive by default
+            
+            // Default subscription to 30 days from now
+            const date = new Date();
+            date.setMonth(date.getMonth() + 1);
+            document.getElementById('createSubscription').value = date.toISOString().split('T')[0];
+            
+            // Show modal
+            document.getElementById('createUserModal').style.display = 'flex';
         }
 
-        // Add event listeners for the new buttons
+        // Updated loadRoles function to work with different select elements
+        async function loadRoles(selectId = 'editRole') {
+            try {
+                const { data: roles, error } = await supabase
+                    .from('roles')
+                    .select('*');
+                
+                if (error) throw error;
+                
+                const roleSelect = document.getElementById(selectId);
+                roleSelect.innerHTML = '';
+                
+                if (roles && roles.length > 0) {
+                    roles.forEach(role => {
+                        const option = document.createElement('option');
+                        option.value = role.id;
+                        option.textContent = role.name;
+                        roleSelect.appendChild(option);
+                    });
+                    
+                    // Default to Basic DJ
+                    const basicDjOption = Array.from(roleSelect.options)
+                        .find(option => option.text === 'Basic DJ');
+                        
+                    if (basicDjOption) {
+                        roleSelect.value = basicDjOption.value;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading roles:', error);
+            }
+        }
+
+        async function createNewUser() {
+            try {
+                const name = document.getElementById('createName').value;
+                const email = document.getElementById('createEmail').value;
+                const roleId = document.getElementById('createRole').value;
+                const active = document.getElementById('createStatus').value === 'true';
+                const subscriptionEnd = document.getElementById('createSubscription').value;
+                
+                if (!name || !email || !roleId) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                
+                // Create subscription date
+                const subscriptionDate = new Date(subscriptionEnd);
+                
+                // Check if user with this email already exists
+                const { data: existingUsers, error: checkError } = await supabase
+                    .from('dj_users')
+                    .select('id')
+                    .eq('email', email);
+                    
+                if (checkError) throw checkError;
+                
+                if (existingUsers && existingUsers.length > 0) {
+                    alert('A user with this email already exists');
+                    return;
+                }
+                
+                // Create a new auth user in Supabase to get auth_id
+                // Note: This uses passwordless login since we're creating from admin side
+                const tempPassword = Math.random().toString(36).slice(-8);
+                const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+                    email: email,
+                    password: tempPassword,
+                    email_confirm: true
+                });
+                
+                if (authError) {
+                    // If we can't create auth user (need service role), we can still create dj_user
+                    console.warn("Could not create auth user:", authError);
+                    console.warn("Creating dj_user without auth_id - user will need to register");
+                    
+                    // Create dj_user without auth_id
+                    const { error: insertError } = await supabase
+                        .from('dj_users')
+                        .insert([{
+                            name: name,
+                            email: email,
+                            role_id: roleId,
+                            active: active,
+                            subscription_ends: subscriptionDate.toISOString()
+                        }]);
+                        
+                    if (insertError) throw insertError;
+                    
+                    alert('DJ User created successfully! The user will need to register to link their account.');
+                } else {
+                    // We were able to create auth user, now create dj_user with auth_id
+                    const auth_id = authUser.user.id;
+                    
+                    const { error: insertError } = await supabase
+                        .from('dj_users')
+                        .insert([{
+                            auth_id: auth_id,
+                            name: name,
+                            email: email,
+                            role_id: roleId,
+                            active: active,
+                            subscription_ends: subscriptionDate.toISOString()
+                        }]);
+                        
+                    if (insertError) throw insertError;
+                    
+                    alert('DJ User created successfully with linked Auth account!');
+                }
+                
+                // Close modal and reload users
+                document.getElementById('createUserModal').style.display = 'none';
+                loadUsers();
+                
+            } catch (error) {
+                console.error('Error creating user:', error);
+                alert('Failed to create user: ' + error.message);
+            }
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createUserModal').style.display = 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('saveUserButton').addEventListener('click', saveUserChanges);
             document.getElementById('cancelEditButton').addEventListener('click', closeEditModal);
-        }); 
+            
+            // Add listeners for create user modal
+            document.getElementById('saveNewUserButton').addEventListener('click', createNewUser);
+            document.getElementById('cancelCreateButton').addEventListener('click', closeCreateModal);
+        });
     </script>
 </body>
 </html>
