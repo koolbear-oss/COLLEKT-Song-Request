@@ -323,10 +323,13 @@
                     .from('requests')
                     .select('*')
                     .eq('event_id', eventId)
-                    .order('created_at', { ascending: false })
+                    .order('created_at', { ascending: false }) // Most recent first
                     .limit(10);
                 
                 if (error) throw error;
+                
+                // Log the returned requests
+                console.log("QR Display - Fetched requests:", requests);
                 
                 // Update the feed count
                 const feedCount = document.getElementById('feedCount');
@@ -336,7 +339,7 @@
                 if (requests && requests.length > 0) {
                     displayRequests(requests);
                 } else {
-                    document.getElementById('requestFeed').innerHTML = '<p style="text-align: center; opacity: 0.7;">No requests yet</p>';
+                    document.getElementById('requestFeed').innerHTML = '<p class="empty-feed">No requests yet</p>';
                 }
             } catch (error) {
                 console.error('Error fetching requests:', error);

@@ -63,6 +63,7 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+        // MODIFY in register.html - Complete the registration form submission handler
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -83,13 +84,25 @@
             }
             
             try {
+                console.log("Starting registration process for:", email);
+                
                 // First, create the auth user
                 const { data: authUser, error: authError } = await supabase.auth.signUp({
                     email: email,
                     password: password
                 });
                 
-                if (authError) throw authError;
+                if (authError) {
+                    console.error("Auth error:", authError);
+                    throw authError;
+                }
+                
+                console.log("Auth user created:", authUser);
+                
+                if (!authUser || !authUser.user || !authUser.user.id) {
+                    console.error("Auth user created but id missing", authUser);
+                    throw new Error("Failed to create user account. Please try again.");
+                }
                 
                 // Get the 'Basic DJ' role
                 const { data: roles, error: roleError } = await supabase
@@ -97,14 +110,39 @@
                     .select('id')
                     .eq('name', 'Basic DJ');
 
-                if (roleError) throw roleError;
+                if (roleError) {
+                    console.error("Role error:", roleError);
+                    throw roleError;
+                }
 
                 // Check if we found the Basic DJ role
                 if (!roles || roles.length === 0) {
+                    console.error("No Basic DJ role found");
                     throw new Error('Basic DJ role not found. Please contact the administrator.');
                 }
 
                 const basicRoleId = roles[0].id;
+                console.log("Found Basic DJ role id:", basicRoleId);
+
+                // Check if user with this email already exists in dj_users table
+                const { data: existingUsers, error: userCheckError } = await supabase
+                    .from('dj_users')
+                    .select('id')
+                    .eq('email', email);
+                    
+                if (userCheckError) {
+                    console.error("User check error:", userCheckError);
+                    throw userCheckError;
+                }
+                
+                if (existingUsers && existingUsers.length > 0) {
+                    console.error("User already exists with this email");
+                    throw new Error('A user with this email already exists. Please use a different email or contact support.');
+                }
+
+                // Set subscription_ends to 30 days from now
+                const subscriptionDate = new Date();
+                subscriptionDate.setDate(subscriptionDate.getDate() + 30);
 
                 // Then create the dj_users record
                 const { error: userError } = await supabase
@@ -115,10 +153,15 @@
                         email: email,
                         active: false, // Admin needs to activate
                         role_id: basicRoleId,
-                        subscription_ends: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+                        subscription_ends: subscriptionDate.toISOString() // 30 days from now
                     }]);
                 
-                if (userError) throw userError;
+                if (userError) {
+                    console.error("User creation error:", userError);
+                    throw userError;
+                }
+                
+                console.log("Registration successful");
                 
                 // Show success message
                 document.getElementById('successMessage').style.display = 'block';
