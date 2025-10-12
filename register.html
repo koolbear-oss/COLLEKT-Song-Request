@@ -68,7 +68,7 @@
             e.preventDefault();
             
             const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim().toLowerCase(); // Normalize email
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             
@@ -86,16 +86,37 @@
             try {
                 console.log("Starting registration process for:", email);
                 
-                // Create auth user with email confirmation bypassed
+                // STEP 1: Check if email already exists in auth system
+                const { data: { users }, error: existingUserError } = await supabase.auth.admin.listUsers();
+                
+                if (existingUserError) {
+                    console.log("Could not check for existing users - proceeding with caution");
+                } else {
+                    // Check if email exists
+                    const existingAuthUser = users?.find(u => u.email.toLowerCase() === email.toLowerCase());
+                    
+                    if (existingAuthUser) {
+                        console.warn("User already exists in Auth system:", existingAuthUser.id);
+                        throw new Error("An account with this email already exists. Please login instead.");
+                    }
+                }
+                
+                // STEP 2: Check if email exists in dj_users table
+                const { data: existingDjUser, error: djUserError } = await supabase
+                    .from('dj_users')
+                    .select('id, auth_id, email')
+                    .ilike('email', email)
+                    .single();
+                    
+                if (existingDjUser) {
+                    console.warn("User already exists in dj_users table:", existingDjUser);
+                    throw new Error("An account with this email already exists. Please login instead.");
+                }
+                
+                // STEP 3: Create auth user
                 const { data: authUser, error: authError } = await supabase.auth.signUp({
                     email: email,
-                    password: password,
-                    options: {
-                        emailRedirectTo: window.location.origin + '/admin/login.html',
-                        data: {
-                            name: name
-                        }
-                    }
+                    password: password
                 });
                 
                 if (authError) {
@@ -105,51 +126,56 @@
                 
                 console.log("Auth user created:", authUser);
                 
-                if (!authUser || !authUser.user || !authUser.user.id) {
+                if (!authUser?.user?.id) {
                     console.error("Auth user created but id missing", authUser);
                     throw new Error("Failed to create user account. Please try again.");
                 }
                 
-                // Get the 'Basic DJ' role
+                // STEP 4: Create dj_users record with the auth_id
+                const authId = authUser.user.id;
+                console.log("Auth ID for new user:", authId);
+                
+                // Get the Basic DJ role
                 const { data: roles, error: roleError } = await supabase
                     .from('roles')
                     .select('id')
                     .eq('name', 'Basic DJ');
-
-                if (roleError) {
+                    
+                if (roleError || !roles || roles.length === 0) {
                     console.error("Role error:", roleError);
-                    throw roleError;
+                    throw new Error("Could not find Basic DJ role");
                 }
-
-                // Check if we found the Basic DJ role
-                if (!roles || roles.length === 0) {
-                    console.error("No Basic DJ role found");
-                    throw new Error('Basic DJ role not found. Please contact the administrator.');
-                }
-
+                
                 const basicRoleId = roles[0].id;
-                console.log("Found Basic DJ role id:", basicRoleId);
-
-                // Set subscription_ends to 30 days from now
+                
+                // Create subscription date
                 const subscriptionDate = new Date();
                 subscriptionDate.setDate(subscriptionDate.getDate() + 30);
                 
-                // Create the dj_users record WITHOUT signing in first
-                // This relies on RLS allowing anyone to insert into dj_users
-                const { data: djUser, error: userError } = await supabase
+                // Create the dj_users record
+                const { error: insertError } = await supabase
                     .from('dj_users')
                     .insert([{
-                        auth_id: authUser.user.id,
+                        auth_id: authId,
                         name: name,
                         email: email,
                         active: false, // Admin needs to activate
                         role_id: basicRoleId,
-                        subscription_ends: subscriptionDate.toISOString() // 30 days from now
+                        subscription_ends: subscriptionDate.toISOString()
                     }]);
-                
-                if (userError) {
-                    console.error("User creation error:", userError);
-                    throw userError;
+                    
+                if (insertError) {
+                    // If dj_users creation fails, clean up by deleting the auth user
+                    console.error("Failed to create DJ user record:", insertError);
+                    try {
+                        // Try to delete the auth user to avoid orphaned records
+                        await supabase.auth.admin.deleteUser(authId);
+                        console.log("Cleaned up orphaned auth user");
+                    } catch (cleanupError) {
+                        console.error("Could not clean up auth user:", cleanupError);
+                    }
+                    
+                    throw new Error("Registration failed. Please try again later.");
                 }
                 
                 console.log("Registration successful");
