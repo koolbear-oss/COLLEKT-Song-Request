@@ -106,8 +106,8 @@ async function fetchRequests(resetStarred = true) {
       .select('*')
       .eq('event_id', eventId)
       .eq('played', false)
-      .order('is_starred', { ascending: false })
-      .order('position', { ascending: true });
+      .order('is_starred', { ascending: false }) // Starred items first
+      .order('position', { ascending: true });   // Then by position
     
     // Fetch played requests
     const { data: playedRequests, error: playedError } = await supabase
@@ -120,14 +120,15 @@ async function fetchRequests(resetStarred = true) {
     if (activeError) throw activeError;
     if (playedError) throw playedError;
     
-    // Identify new requests based on ABSOLUTE time (last 2 minutes)
+    // Identify new requests (added since last check)
     const twoMinutesAgo = new Date().getTime() - (2 * 60 * 1000);
     const newRequests = activeRequests ? activeRequests.filter(req => {
       const requestTime = new Date(req.created_at).getTime();
       return requestTime > twoMinutesAgo;
     }) : [];
 
-    console.log("All active requests:", activeRequests);
+    // Still update lastRequestsCheck for other purposes (like notifications)
+    lastRequestsCheck = new Date().getTime();
 
     // Display requests and highlight new ones
     displayRequests(requestsListElement, activeRequests || [], false, newRequests.map(r => r.id));
@@ -140,6 +141,9 @@ async function fetchRequests(resetStarred = true) {
   } catch (error) {
     console.error('Error fetching requests:', error);
   }
+
+  // NEW: Update enhance button visibility
+  await updateEnhanceAllButton();
 }
 
 // Display requests in the specified container
