@@ -153,6 +153,8 @@ function initializeCardExpansion() {
 async function fetchRequests(resetStarred = true) {
   if (!eventId) return;
   
+  console.log("Fetching requests for event:", eventId);
+  
   try {
     // Fetch active requests
     const { data: activeRequests, error: activeError } = await supabase
@@ -163,6 +165,8 @@ async function fetchRequests(resetStarred = true) {
       .order('is_starred', { ascending: false }) // Starred items first
       .order('position', { ascending: true });   // Then by position
     
+    console.log("Active requests fetched:", activeRequests?.length || 0);
+    
     // Fetch played requests
     const { data: playedRequests, error: playedError } = await supabase
       .from('requests')
@@ -170,6 +174,8 @@ async function fetchRequests(resetStarred = true) {
       .eq('event_id', eventId)
       .eq('played', true)
       .order('played_at', { ascending: false });
+    
+    console.log("Played requests fetched:", playedRequests?.length || 0);
     
     if (activeError) throw activeError;
     if (playedError) throw playedError;
@@ -189,26 +195,42 @@ async function fetchRequests(resetStarred = true) {
     displayRequests(playedListElement, playedRequests || [], true);
     
     // Update counters
-    requestCountElement.textContent = activeRequests ? activeRequests.length : 0;
-    playedCountElement.textContent = playedRequests ? playedRequests.length : 0;
+    if (requestCountElement) {
+      requestCountElement.textContent = activeRequests ? activeRequests.length : 0;
+    }
+    
+    if (playedCountElement) {
+      playedCountElement.textContent = playedRequests ? playedRequests.length : 0;
+    }
+    
+    console.log("Requests displayed successfully");
     
   } catch (error) {
     console.error('Error fetching requests:', error);
+    if (requestsListElement) {
+      requestsListElement.innerHTML = '<p class="loading">Error loading requests</p>';
+    }
   }
 
-  // NEW: Update enhance button visibility
+  // Update enhance button visibility
   await updateEnhanceAllButton();
 }
 
 // Display requests in the specified container
 function displayRequests(container, requests, isPlayed = false, newRequestIds = []) {
-  console.log("Displaying requests in container:", container.id);
+  if (!container) {
+    console.error("Container element is null!");
+    return;
+  }
+  
+  console.log(`Displaying ${isPlayed ? 'played' : 'active'} requests in container:`, container.id);
   console.log("Number of requests to display:", requests.length);
   
   // Add individual request logging
   requests.forEach((req, index) => {
-    console.log(`Request ${index}:`, req.title, "by", req.artist);
+    console.log(`Request ${index}:`, req.title, "by", req.artist, "played:", req.played);
   });
+  
   // Clear existing content
   container.innerHTML = '';
   
@@ -227,11 +249,23 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
   // Create request cards
   requests.forEach(request => {
     const template = document.getElementById('requestTemplate');
+    if (!template) {
+      console.error("Request template element is null!");
+      return;
+    }
+    
     const requestCard = document.importNode(template.content, true).querySelector('.request-card');
+    if (!requestCard) {
+      console.error("Request card element is null after importing template!");
+      return;
+    }
     
     // Set data attribute for identification
     requestCard.dataset.id = request.id;
     requestCard.dataset.position = request.position;
+
+    // Start collapsed by default
+    requestCard.classList.add('collapsed');
 
     // Highlight new requests
     if (!isPlayed && newRequestIds.includes(request.id)) {
@@ -251,12 +285,22 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     }
     
     // Fill in request details
-    requestCard.querySelector('.song-title').textContent = request.title;
-    requestCard.querySelector('.artist-name').textContent = request.artist;
+    const songTitle = requestCard.querySelector('.song-title');
+    const artistName = requestCard.querySelector('.artist-name');
+    const messageEl = requestCard.querySelector('.message');
+    
+    if (songTitle) songTitle.textContent = request.title;
+    if (artistName) artistName.textContent = request.artist;
     
     // Handle message - truncate if needed
     const message = request.message || '';
-    requestCard.querySelector('.message').textContent = truncateComment(message);
+    if (messageEl) {
+      messageEl.textContent = truncateComment(message);
+      // Add title for tooltip on hover for long messages
+      if (message.length > 40) {
+        messageEl.setAttribute('title', message);
+      }
+    }
     
     // Show metadata for Pro users if available
     const isPro = localStorage.getItem('userRole') === 'Pro DJ' || localStorage.getItem('userRole') === 'Admin';
@@ -265,33 +309,39 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     const keyBadgeLarge = requestCard.querySelector('.key-badge-large');
     const bpmBadgeLarge = requestCard.querySelector('.bpm-badge-large');
 
-    if (isPro && !isPlayed) {
+    if (isPro) {
       // Show key if available (collapsed state)
       if (request.key) {
-        keyBadge.textContent = request.key;
-        if (keyBadgeLarge) keyBadgeLarge.textContent = request.key;
+        if (keyBadge) {
+          keyBadge.textContent = request.key;
+          // Apply Camelot color to key badge
+          const keyColor = getCamelotColor(request.key);
+          if (keyColor) keyBadge.style.backgroundColor = keyColor;
+        }
+        
+        if (keyBadgeLarge) {
+          keyBadgeLarge.textContent = request.key;
+          // Apply Camelot color to large key badge
+          const keyColor = getCamelotColor(request.key);
+          if (keyColor) keyBadgeLarge.style.backgroundColor = keyColor;
+        }
       } else {
-        keyBadge.textContent = '';
+        if (keyBadge) keyBadge.textContent = '';
         if (keyBadgeLarge) keyBadgeLarge.textContent = '';
       }
       
-      // Show BPM if available (collapsed state)
+      // Show BPM if available
       if (request.bpm) {
-        bpmBadge.textContent = request.bpm;
+        if (bpmBadge) bpmBadge.textContent = request.bpm;
         if (bpmBadgeLarge) bpmBadgeLarge.textContent = request.bpm;
       } else {
-        bpmBadge.textContent = '';
+        if (bpmBadge) bpmBadge.textContent = '';
         if (bpmBadgeLarge) bpmBadgeLarge.textContent = '';
       }
     } else {
-      // Hide metadata for non-Pro users or played tracks
+      // Hide metadata for non-Pro users
       if (keyBadge) keyBadge.style.display = 'none';
       if (bpmBadge) bpmBadge.style.display = 'none';
-    }
-
-    // Add title for tooltip on hover for long messages
-    if (message.length > 40) {
-      requestCard.querySelector('.message').setAttribute('title', message);
     }
     
     // Format timestamp
@@ -301,7 +351,7 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       timestampElement.textContent = formatDate(timestamp);
     }
     
-    // Set up button actions
+    // Set up button actions with null checks
     if (!isPlayed) {
       // For active requests - quick action buttons
       const playButton = requestCard.querySelector('.quick-actions .play-button');
@@ -324,10 +374,16 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       }
     } else {
       // For played requests
-      requestCard.querySelector('.restore-button').addEventListener('click', () => restoreRequest(request.id));
-      // Hide star and play buttons
-      requestCard.querySelector('.star-button').style.display = 'none';
-      requestCard.querySelector('.play-button').style.display = 'none';
+      const restoreButton = requestCard.querySelector('.restore-button');
+      if (restoreButton) {
+        restoreButton.addEventListener('click', () => restoreRequest(request.id));
+      }
+      
+      // Hide star and play buttons in the played section
+      const starButton = requestCard.querySelector('.star-button');
+      const playButton = requestCard.querySelector('.play-button-expanded');
+      if (starButton) starButton.style.display = 'none';
+      if (playButton) playButton.style.display = 'none';
     }
 
     // Add enhance button for debugging (Pro users only)
@@ -368,13 +424,19 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       }
     }
     
-    requestCard.querySelector('.delete-button').addEventListener('click', () => deleteRequest(request.id));
+    const deleteButton = requestCard.querySelector('.delete-button');
+    if (deleteButton) {
+      deleteButton.addEventListener('click', () => deleteRequest(request.id));
+    }
 
-    requestCard.querySelector('.copy-button').addEventListener('click', () => {
-      const songTitle = request.title;
-      const artistName = request.artist;
-      copyForSeratoSearch(songTitle, artistName);
-    });
+    const copyButton = requestCard.querySelector('.copy-button');
+    if (copyButton) {
+      copyButton.addEventListener('click', () => {
+        const songTitle = request.title;
+        const artistName = request.artist;
+        copyForSeratoSearch(songTitle, artistName);
+      });
+    }
     
     // Add to container
     container.appendChild(requestCard);
@@ -615,6 +677,8 @@ function showTempMessage(message, type = 'info') {
 // Mark request as played
 async function markAsPlayed(requestId) {
   try {
+    console.log("Marking request as played:", requestId);
+    
     const { error } = await supabase
       .from('requests')
       .update({ 
@@ -625,8 +689,11 @@ async function markAsPlayed(requestId) {
     
     if (error) throw error;
     
-    // Re-fetch requests
-    fetchRequests();
+    console.log("Successfully marked as played");
+    
+    // Re-fetch requests to update both active and played lists
+    await fetchRequests();
+    
   } catch (error) {
     console.error('Error marking as played:', error);
   }
