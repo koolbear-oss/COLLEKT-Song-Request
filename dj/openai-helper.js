@@ -29,42 +29,48 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo-instruct",
-        prompt: `You are a music expert identifying and correcting song requests from a DJ event.
+        prompt: `You are a music metadata expert for a DJ request system.
 
         INPUT:
         Title: ${title}
         Artist: ${artist}
 
         TASK:
-        1. Identify if this is a real song (correct common typos, spelling errors, and word variations)
-        2. Return the OFFICIAL/CORRECT title and artist name as they appear on the actual release
-        3. Provide musical metadata (key, BPM) only if you're highly confident
-
-        CORRECTION EXAMPLES:
-        - "peach & cream" → "Peaches & Cream" (spelling error)
-        - "dont stop believing" → "Don't Stop Believin'" (punctuation)
-        - "Mr Brightside" → "Mr. Brightside" (proper punctuation)
-        - "Billie Jean" by "MJ" → "Billie Jean" by "Michael Jackson" (expand abbreviations)
+        Fix ONLY obvious spelling/capitalization errors. Do NOT change the artist to a different person.
 
         CRITICAL RULES:
-        ✓ CORRECT spelling errors, plurals, punctuation, and abbreviations
-        ✓ Use the OFFICIAL title/artist from the actual music release
-        ✓ For key: Use Camelot notation (e.g., "8A", "11B") - only if confident
-        ✓ For BPM: Use exact tempo - only if confident
-        ✗ Do NOT guess key/BPM if unsure - return null instead
-        ✗ Do NOT make up songs that don't exist
+        ✓ Fix spelling: "paulo pepstsy" → "Paulo Pepstsy" or best guess at correct spelling
+        ✓ Fix capitalization: "babylove" → "Baby Love"
+        ✓ Fix punctuation: "dont stop" → "Don't Stop"
+        ✗ DO NOT assume famous songs: If input is "Baby Love" by "Paulo Pepstsy", keep that artist
+        ✗ DO NOT replace artist with someone more famous
+        ✗ DO NOT change to a different song with the same title
 
-        Return ONLY valid JSON (no markdown, no explanations):
+        CONFIDENCE RULES:
+        - If the artist name seems real but you're unsure of exact spelling → Keep it close to original
+        - If you're not 100% confident this exact combination exists → Mark confidence as "low"
+        - Only return metadata (key/BPM) if you're certain about THIS specific track
+
+        EXAMPLES OF CORRECT BEHAVIOR:
+        Input: "babylove" by "paulo pepstsy"
+        Output: "Baby Love" by "Paulo Pepstasy" (fix spelling because artist and track match)
+
+        Input: "baby love" by "supremes"  
+        Output: "Baby Love" by "The Supremes" (this IS the famous one)
+
+        Input: "dont stop believing" by "journey"
+        Output: "Don't Stop Believin'" by "Journey"
+
+        Return ONLY valid JSON (no markdown):
         {
-          "title": "Official Song Title With Correct Spelling",
-          "artist": "Official Artist Name",
-          "key": "8A",
-          "bpm": 102,
+          "title": "Corrected Title",
+          "artist": "Corrected Artist Name (preserve identity)",
+          "key": null,
+          "bpm": null,
           "confidence": "high",
           "is_real_song": true
         }`,
-        max_tokens: 300,
-        temperature: 0.3
+        temperature: 0.1
       })
     });
 
