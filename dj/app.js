@@ -225,32 +225,33 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     
     // Show metadata for Pro users if available
     const isPro = localStorage.getItem('userRole') === 'Pro DJ' || localStorage.getItem('userRole') === 'Admin';
-    const metadataContainer = requestCard.querySelector('.metadata-container');
     const keyBadge = requestCard.querySelector('.key-badge');
     const bpmBadge = requestCard.querySelector('.bpm-badge');
+    const keyBadgeLarge = requestCard.querySelector('.key-badge-large');
+    const bpmBadgeLarge = requestCard.querySelector('.bpm-badge-large');
 
     if (isPro && !isPlayed) {
-      // Show key if available
+      // Show key if available (collapsed state)
       if (request.key) {
         keyBadge.textContent = request.key;
-        keyBadge.style.display = 'inline-block';
+        if (keyBadgeLarge) keyBadgeLarge.textContent = request.key;
       } else {
-        keyBadge.style.display = 'none';
+        keyBadge.textContent = '';
+        if (keyBadgeLarge) keyBadgeLarge.textContent = '';
       }
       
-      // Show BPM if available
+      // Show BPM if available (collapsed state)
       if (request.bpm) {
         bpmBadge.textContent = request.bpm;
-        bpmBadge.style.display = 'inline-block';
+        if (bpmBadgeLarge) bpmBadgeLarge.textContent = request.bpm;
       } else {
-        bpmBadge.style.display = 'none';
+        bpmBadge.textContent = '';
+        if (bpmBadgeLarge) bpmBadgeLarge.textContent = '';
       }
-      
-      // Only show container if we have data
-      metadataContainer.style.display = (request.key || request.bpm) ? 'flex' : 'none';
     } else {
-      // Hide metadata for non-Pro users
-      metadataContainer.style.display = 'none';
+      // Hide metadata for non-Pro users or played tracks
+      if (keyBadge) keyBadge.style.display = 'none';
+      if (bpmBadge) bpmBadge.style.display = 'none';
     }
 
     // Add title for tooltip on hover for long messages
@@ -259,15 +260,33 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     }
     
     // Format timestamp
-    const timestamp = new Date(isPlayed ? request.played_at : request.created_at);
-    requestCard.querySelector('.timestamp').textContent = formatDate(timestamp);
+    const timestampElement = requestCard.querySelector('.timestamp');
+    if (timestampElement) {
+      const timestamp = new Date(isPlayed ? request.played_at : request.created_at);
+      timestampElement.textContent = formatDate(timestamp);
+    }
     
     // Set up button actions
     if (!isPlayed) {
-      // For active requests
-      requestCard.querySelector('.star-button').addEventListener('click', () => starRequest(request.id));
-      requestCard.querySelector('.play-button').addEventListener('click', () => markAsPlayed(request.id));
-      requestCard.querySelector('.restore-button').style.display = 'none'; // Hide restore button
+      // For active requests - quick action buttons
+      const playButton = requestCard.querySelector('.quick-actions .play-button');
+      if (playButton) {
+        playButton.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent card expansion
+          markAsPlayed(request.id);
+        });
+      }
+      
+      // Expanded view buttons
+      const starButton = requestCard.querySelector('.star-button');
+      if (starButton) {
+        starButton.addEventListener('click', () => starRequest(request.id));
+      }
+      
+      const playButtonExpanded = requestCard.querySelector('.play-button-expanded');
+      if (playButtonExpanded) {
+        playButtonExpanded.addEventListener('click', () => markAsPlayed(request.id));
+      }
     } else {
       // For played requests
       requestCard.querySelector('.restore-button').addEventListener('click', () => restoreRequest(request.id));
@@ -277,39 +296,41 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     }
 
     // Add enhance button for debugging (Pro users only)
-    if (isPro && !isPlayed && !request.enhanced_by_ai) {
-      // Create enhance button
-      const enhanceButton = document.createElement('button');
-      enhanceButton.innerText = '🧠';
-      enhanceButton.title = 'Enhance with AI';
-      enhanceButton.className = 'enhance-button'; // Add this class
+    if (isPro && !isPlayed) {
+      const enhanceButton = requestCard.querySelector('.quick-actions .enhance-button');
+      const enhanceButtonExpanded = requestCard.querySelector('.enhance-button-expanded');
       
-      // Improve visibility
-      enhanceButton.style.fontSize = '16px'; // Make slightly larger
-      enhanceButton.style.padding = '0';
-      enhanceButton.style.width = '28px';
-      enhanceButton.style.height = '28px';
-      enhanceButton.style.borderRadius = '50%';
-      enhanceButton.style.backgroundColor = 'rgba(138, 43, 226, 0.2)'; // Add background color
-      enhanceButton.style.border = '1px solid rgba(138, 43, 226, 0.5)'; // Add border color
-      enhanceButton.style.color = '#8a2be2';
-      enhanceButton.style.display = 'flex';
-      enhanceButton.style.alignItems = 'center';
-      enhanceButton.style.justifyContent = 'center';
-      enhanceButton.style.marginLeft = '5px';
-      
-      // Add click event
-      enhanceButton.addEventListener('click', async () => {
-        console.log('Manually enhancing request:', request.title);
-        enhanceButton.disabled = true;
-        enhanceButton.innerText = '⏳';
-        const enhanced = await enhanceAndUpdateTrack(request);
-        console.log('Enhancement result:', enhanced);
-        fetchRequests(false); // Refresh display
-      });
-      
-      // Add to actions
-      requestCard.querySelector('.request-actions').appendChild(enhanceButton);
+      if (!request.enhanced_by_ai) {
+        // Show enhance buttons for unenhanced tracks
+        if (enhanceButton) {
+          enhanceButton.style.display = 'flex';
+          enhanceButton.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Prevent card expansion
+            console.log('Manually enhancing request:', request.title);
+            enhanceButton.disabled = true;
+            enhanceButton.innerText = '⏳';
+            const enhanced = await enhanceAndUpdateTrack(request);
+            console.log('Enhancement result:', enhanced);
+            fetchRequests(false);
+          });
+        }
+        
+        if (enhanceButtonExpanded) {
+          enhanceButtonExpanded.style.display = 'inline-block';
+          enhanceButtonExpanded.addEventListener('click', async () => {
+            console.log('Manually enhancing request:', request.title);
+            enhanceButtonExpanded.disabled = true;
+            enhanceButtonExpanded.innerText = '⏳';
+            const enhanced = await enhanceAndUpdateTrack(request);
+            console.log('Enhancement result:', enhanced);
+            fetchRequests(false);
+          });
+        }
+      } else {
+        // Hide enhance buttons for already enhanced tracks
+        if (enhanceButton) enhanceButton.style.display = 'none';
+        if (enhanceButtonExpanded) enhanceButtonExpanded.style.display = 'none';
+      }
     }
     
     requestCard.querySelector('.delete-button').addEventListener('click', () => deleteRequest(request.id));
