@@ -149,3 +149,57 @@ async function enhanceAndUpdateTrack(request) {
     return request;
   }
 }
+
+async function bulkEnhanceRequests(requests, progressCallback) {
+  const results = {
+    total: requests.length,
+    enhanced: 0,
+    failed: 0,
+    errors: []
+  };
+  
+  // Check for API key first
+  const apiKey = localStorage.getItem('openaiApiKey');
+  if (!apiKey) {
+    throw new Error('OpenAI API key not found. Please add it in Settings.');
+  }
+  
+  // Process sequentially with delay
+  for (let i = 0; i < requests.length; i++) {
+    const request = requests[i];
+    
+    // Update progress
+    if (progressCallback) {
+      progressCallback({
+        current: i + 1,
+        total: results.total,
+        currentTrack: `${request.title} - ${request.artist}`
+      });
+    }
+    
+    try {
+      // Enhance the track
+      await enhanceAndUpdateTrack(request);
+      results.enhanced++;
+      
+      // Rate limiting: 1 second delay between requests
+      // OpenAI free tier: 3 RPM (20 second intervals)
+      // Paid tier: 60+ RPM (1 second intervals is safe)
+      if (i < requests.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+    } catch (error) {
+      console.error(`Failed to enhance: ${request.title}`, error);
+      results.failed++;
+      results.errors.push({
+        track: `${request.title} - ${request.artist}`,
+        error: error.message
+      });
+      
+      // Continue processing even if one fails
+    }
+  }
+  
+  return results;
+}

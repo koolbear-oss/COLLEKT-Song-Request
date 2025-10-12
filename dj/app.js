@@ -141,6 +141,9 @@ async function fetchRequests(resetStarred = true) {
   } catch (error) {
     console.error('Error fetching requests:', error);
   }
+
+  // NEW: Update enhance button visibility
+  await updateEnhanceAllButton();
 }
 
 // Display requests in the specified container
@@ -965,6 +968,158 @@ settingsPopup.addEventListener('click', function(e) {
     e.stopPropagation();
 });
 
+// Show/hide Enhance All button based on unenhanced tracks
+async function updateEnhanceAllButton() {
+  // Only for Pro/Admin users
+  const isPro = localStorage.getItem('userRole') === 'Pro DJ' || 
+                localStorage.getItem('userRole') === 'Admin';
+  
+  if (!isPro) return;
+  
+  const enhanceAllButton = document.getElementById('enhanceAllButton');
+  if (!enhanceAllButton) return;
+  
+  try {
+    // Get count of unenhanced tracks
+    const unenhanced = await getUnenhancedTracks();
+    const count = unenhanced.length;
+    
+    if (count > 0) {
+      document.getElementById('enhanceCount').textContent = count;
+      enhanceAllButton.style.display = 'flex';
+    } else {
+      enhanceAllButton.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error updating enhance button:', error);
+    enhanceAllButton.style.display = 'none';
+  }
+}
+
+// Create and show progress modal
+function showEnhancementModal() {
+  const modal = document.createElement('div');
+  modal.className = 'enhancement-modal';
+  modal.id = 'enhancementModal';
+  modal.innerHTML = `
+    <div class="enhancement-modal-content">
+      <h2>Enhancing Tracks</h2>
+      <div class="enhancement-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <p id="progressText">Starting...</p>
+        <p class="current-track" id="currentTrack"></p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  return modal;
+}
+
+// Update progress modal
+function updateEnhancementProgress(progress) {
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const currentTrack = document.getElementById('currentTrack');
+  
+  if (progressFill && progressText && currentTrack) {
+    const percentage = Math.round((progress.current / progress.total) * 100);
+    progressFill.style.width = `${percentage}%`;
+    progressText.textContent = `Enhancing ${progress.current} of ${progress.total}`;
+    currentTrack.textContent = progress.currentTrack;
+  }
+}
+
+// Close progress modal
+function closeEnhancementModal() {
+  const modal = document.getElementById('enhancementModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// Main bulk enhancement handler
+async function handleBulkEnhancement() {
+  const enhanceAllButton = document.getElementById('enhanceAllButton');
+  
+  // STEP 1: Create processing flag for beforeunload
+  let isProcessing = false;
+  
+  // STEP 2: Define the beforeunload handler
+  const beforeUnloadHandler = (e) => {
+    if (isProcessing) {
+      e.preventDefault();
+      e.returnValue = 'Enhancement in progress. Are you sure you want to leave?';
+      return e.returnValue; // Some browsers need this
+    }
+  };
+  
+  try {
+    // Disable button
+    enhanceAllButton.disabled = true;
+    
+    // Get unenhanced tracks
+    const unenhanced = await getUnenhancedTracks();
+    
+    if (unenhanced.length === 0) {
+      showTempMessage('No tracks to enhance', 'info');
+      return;
+    }
+    
+    // Confirm with user
+    if (!confirm(`Enhance ${unenhanced.length} track(s)? This may take a few minutes.`)) {
+      return;
+    }
+    
+    // STEP 3: Set processing flag to TRUE and add listener BEFORE processing starts
+    isProcessing = true;
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+    
+    // Show progress modal
+    const modal = showEnhancementModal();
+    
+    // STEP 4: Process tracks (this is the part that takes time)
+    const results = await bulkEnhanceRequests(unenhanced, updateEnhancementProgress);
+    
+    // STEP 5: Set processing flag to FALSE and remove listener AFTER processing completes
+    isProcessing = false;
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+    
+    // Close modal
+    closeEnhancementModal();
+    
+    // Show results
+    let message = `Enhanced ${results.enhanced} track(s)`;
+    if (results.failed > 0) {
+      message += `, ${results.failed} failed`;
+      console.error('Enhancement errors:', results.errors);
+    }
+    
+    showTempMessage(message, results.failed > 0 ? 'warning' : 'success');
+    
+    // Refresh display
+    await fetchRequests(false);
+    
+  } catch (error) {
+    console.error('Bulk enhancement error:', error);
+    
+    // STEP 6: IMPORTANT - Clean up listener even if error occurs
+    isProcessing = false;
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+    
+    closeEnhancementModal();
+    showTempMessage(error.message || 'Enhancement failed', 'error');
+    
+  } finally {
+    // STEP 7: Always re-enable button
+    enhanceAllButton.disabled = false;
+    
+    // STEP 8: Extra safety - ensure listener is removed
+    window.removeEventListener('beforeunload', beforeUnloadHandler);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize filter elements
   filterInput = document.getElementById('requestFilter');
@@ -1033,7 +1188,26 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // NEW: Initialize Enhance All button
+  const enhanceAllButton = document.getElementById('enhanceAllButton');
+  if (enhanceAllButton) {
+    enhanceAllButton.addEventListener('click', handleBulkEnhancement);
+  }
+
   // Initialize the dashboard
   initializeDashboard();
 });
+
+async function getUnenhancedTracks() {
+  const { data, error } = await supabase
+    .from('requests')
+    .select('id, title, artist, original_title, original_artist, enhanced_by_ai')
+    .eq('event_id', eventId)
+    .eq('played', false)  // Only active requests
+    .or('enhanced_by_ai.is.null,enhanced_by_ai.eq.false')  // Not yet enhanced
+    .order('position', { ascending: true });  // Maintain queue order
+    
+  if (error) throw error;
+  return data || [];
+}
 
