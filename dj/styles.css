@@ -597,25 +597,43 @@ button:active {
 /* Action buttons in expanded view */
 .request-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  justify-content: flex-end;
   flex-wrap: wrap;
+  margin-top: 15px;
 }
 
 .request-actions button {
-  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
   border-radius: 4px;
-  font-size: 0.85em;
-  background: rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: var(--text-color);
-  cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .request-actions button:hover {
-  background: rgba(138, 43, 226, 0.3);
+  background-color: rgba(138, 43, 226, 0.2);
   transform: translateY(-1px);
 }
+
+.request-actions .action-icon {
+  font-size: 16px;
+}
+
+.request-actions .action-text {
+  display: inline-block; /* Ensures text is always visible */
+}
+
+/* Specific button styling */
+.request-actions .star-button .action-icon { color: var(--star-color); }
+.request-actions .play-button-expanded .action-icon { color: var(--success-color); }
+.request-actions .delete-button .action-icon { color: var(--danger-color); }
+.request-actions .copy-button .action-icon { color: #2196f3; }
 
 /* Starred card styling */
 .request-card.starred {
@@ -1067,4 +1085,26 @@ body.dragging .requests-container {
   opacity: 0.8;
   margin-top: 10px;
   font-style: italic;
+}
+
+/* Mobile optimization */
+@media (max-width: 480px) {
+  .request-actions {
+    justify-content: space-between;
+  }
+  
+  .request-actions button {
+    padding: 8px 10px;
+  }
+  
+  /* Optional: Hide text on very small screens */
+  @media (max-width: 360px) {
+    .request-actions .action-text {
+      display: none;
+    }
+    
+    .request-actions button {
+      padding: 8px;
+    }
+  }
 }
