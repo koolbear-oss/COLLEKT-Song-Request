@@ -326,6 +326,7 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       if (request.key) {
         if (keyBadge) {
           keyBadge.textContent = request.key;
+          keyBadge.setAttribute('data-value', request.key);
           // Apply Camelot colors with text contrast
           const keyColors = getCamelotColor(request.key);
           if (keyColors) {
@@ -348,6 +349,7 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       // Show BPM if available
       if (request.bpm) {
         if (bpmBadge) bpmBadge.textContent = request.bpm;
+        bpmBadge.setAttribute('data-value', request.bpm);
         if (bpmBadgeLarge) bpmBadgeLarge.textContent = request.bpm;
       } else {
         if (bpmBadge) bpmBadge.textContent = '';
@@ -1517,20 +1519,39 @@ function calculateKeyCompatibility(key1, key2) {
 
 // ADD to app.js - Apply visual filtering effects
 function applyFilterEffect(card, compatibilityScore) {
-  // Base opacity on compatibility (0.2 minimum opacity for all cards)
-  const opacity = 0.2 + (compatibilityScore * 0.8);
+  // More dramatic opacity range - 0.1 to 1
+  const opacity = 0.1 + (compatibilityScore * 0.9);
   
   // Apply visual effects
   card.style.opacity = opacity.toString();
   card.style.transition = 'all 0.3s ease-in-out';
   
-  if (compatibilityScore > 0.7) {
-    // Highly compatible cards get subtle highlight
-    card.style.transform = 'scale(1.02)';
-    card.style.boxShadow = '0 0 10px rgba(138, 43, 226, 0.5)';
-  } else {
+  // Scale effect based on compatibility
+  const scale = 1 + (compatibilityScore * 0.05); // 1.00 to 1.05 scale
+  
+  if (compatibilityScore > 0.8) {
+    // Highly compatible cards get highlight effect
+    card.style.transform = `scale(${scale})`;
+    card.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.7)';
+    card.style.zIndex = '5'; // Bring to front
+  } 
+  else if (compatibilityScore > 0.6) {
+    // Medium compatibility
+    card.style.transform = `scale(${scale * 0.99})`;
+    card.style.boxShadow = '0 0 10px rgba(138, 43, 226, 0.4)';
+    card.style.zIndex = '4';
+  }
+  else if (compatibilityScore > 0.4) {
+    // Low compatibility
+    card.style.transform = `scale(${scale * 0.98})`;
+    card.style.boxShadow = '0 0 5px rgba(138, 43, 226, 0.2)';
+    card.style.zIndex = '3';
+  }
+  else {
+    // Minimal compatibility
     card.style.transform = 'scale(1)';
-    card.style.boxShadow = '';
+    card.style.boxShadow = 'none';
+    card.style.zIndex = '2';
   }
 }
 
@@ -1547,6 +1568,21 @@ function filterByKey(selectedKey) {
     value: selectedKey
   };
   
+  // Find the selected card's BPM for secondary matching
+  const selectedKeyElement = document.querySelector(`.key-badge[data-value="${selectedKey}"]`);
+  let selectedBpm = null;
+  
+  if (selectedKeyElement) {
+    const selectedCard = selectedKeyElement.closest('.request-card');
+    if (selectedCard) {
+      const bpmElement = selectedCard.querySelector('.bpm-badge');
+      if (bpmElement && bpmElement.textContent) {
+        selectedBpm = parseInt(bpmElement.textContent.trim());
+      }
+    }
+  }
+  
+  // Process all cards
   document.querySelectorAll('.request-card').forEach(card => {
     const cardKeyElement = card.querySelector('.key-badge');
     if (!cardKeyElement) return;
@@ -1554,11 +1590,101 @@ function filterByKey(selectedKey) {
     const cardKey = cardKeyElement.textContent.trim();
     if (!cardKey) return;
     
-    const compatibility = calculateKeyCompatibility(selectedKey, cardKey);
-    applyFilterEffect(card, compatibility);
+    // Calculate key compatibility (0-1)
+    const keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
+    
+    // Calculate BPM compatibility if we have BPM data
+    let bpmCompatibility = 1; // Default if we can't calculate
+    
+    if (selectedBpm) {
+      const cardBpmElement = card.querySelector('.bpm-badge');
+      if (cardBpmElement && cardBpmElement.textContent) {
+        const cardBpm = parseInt(cardBpmElement.textContent.trim());
+        if (!isNaN(cardBpm)) {
+          // Calculate BPM difference percentage
+          const bpmDiff = Math.abs(selectedBpm - cardBpm) / selectedBpm;
+          
+          // Map to 0-1 scale (0% diff = 1, 8%+ diff = 0)
+          bpmCompatibility = bpmDiff <= 0.08 ? Math.max(0, 1 - (bpmDiff / 0.08)) : 0;
+        }
+      }
+    }
+    
+    // Create weighted compatibility score (70% key, 30% BPM)
+    const combinedCompatibility = (keyCompatibility * 0.7) + (bpmCompatibility * 0.3);
+    
+    // Apply visual effect based on combined score
+    applyFilterEffect(card, combinedCompatibility);
   });
   
-  // Show clear filter button if not already visible
+  // Show clear filter button
+  showClearFilterButton();
+}
+
+function filterByBpm(selectedBpm) {
+  if (!selectedBpm) return;
+  
+  // Set filtering state
+  document.body.classList.add('filtering-active');
+  
+  // Store the active filter for potential clear button
+  window.activeFilter = {
+    type: 'bpm',
+    value: selectedBpm
+  };
+  
+  // Find the selected card's key for secondary matching
+  const selectedBpmElement = document.querySelector(`.bpm-badge[data-value="${selectedBpm}"]`);
+  let selectedKey = null;
+  
+  if (selectedBpmElement) {
+    const selectedCard = selectedBpmElement.closest('.request-card');
+    if (selectedCard) {
+      const keyElement = selectedCard.querySelector('.key-badge');
+      if (keyElement && keyElement.textContent) {
+        selectedKey = keyElement.textContent.trim();
+      }
+    }
+  }
+  
+  // Process all cards
+  document.querySelectorAll('.request-card').forEach(card => {
+    const cardBpmElement = card.querySelector('.bpm-badge');
+    if (!cardBpmElement) return;
+    
+    const cardBpmText = cardBpmElement.textContent.trim();
+    if (!cardBpmText) return;
+    
+    const cardBpm = parseInt(cardBpmText);
+    if (isNaN(cardBpm)) return;
+    
+    // Calculate BPM compatibility (0-1)
+    const percentDifference = Math.abs(cardBpm - selectedBpm) / selectedBpm;
+    const bpmCompatibility = percentDifference <= 0.08 ? 
+                            Math.max(0, 1 - (percentDifference / 0.08)) : 0;
+    
+    // Calculate key compatibility if we have key data
+    let keyCompatibility = 1; // Default if we can't calculate
+    
+    if (selectedKey) {
+      const cardKeyElement = card.querySelector('.key-badge');
+      if (cardKeyElement && cardKeyElement.textContent) {
+        const cardKey = cardKeyElement.textContent.trim();
+        if (cardKey) {
+          keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
+        }
+      }
+    }
+    
+    // Create weighted compatibility score (30% key, 70% BPM)
+    // Note: For BPM filtering, we weight BPM higher than key
+    const combinedCompatibility = (keyCompatibility * 0.3) + (bpmCompatibility * 0.7);
+    
+    // Apply visual effect based on combined score
+    applyFilterEffect(card, combinedCompatibility);
+  });
+  
+  // Show clear filter button
   showClearFilterButton();
 }
 
@@ -1628,3 +1754,14 @@ function showClearFilterButton() {
   // Show the button
   clearButton.style.display = 'block';
 }
+
+// Global document-level event listener for keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+  // Check if ESC key (key code 27) is pressed
+  if (e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27) {
+    // Check if filtering is active before trying to clear
+    if (document.body.classList.contains('filtering-active')) {
+      clearFiltering();
+    }
+  }
+});
