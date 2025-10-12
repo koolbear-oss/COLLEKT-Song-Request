@@ -393,87 +393,251 @@ button:active {
   grid-template-columns: 1fr;
 }
 
-/* Request Card Base */
+/* ===== HYBRID COLLAPSIBLE CARD DESIGN ===== */
+
+/* Base card styles */
 .request-card {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr auto;
-  gap: 8px;
-  padding: 12px;
   background-color: var(--card-bg);
   border-radius: 6px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
-  cursor: grab;
-  height: 100%;
-  min-height: 120px;
+  position: relative;
+  border-left: 3px solid transparent;
+  padding: 12px;
+  cursor: pointer;
 }
 
-.request-card:active {
-  cursor: grabbing;
+.request-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
-/* Played Card Variations */
+/* Card header (always visible) */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.card-title-line {
+  flex: 1;
+  min-width: 0;
+}
+
+.song-title {
+  display: inline;
+  font-size: 0.95em;
+  color: var(--primary-color);
+  margin: 0;
+  font-weight: bold;
+}
+
+.artist-name {
+  display: inline;
+  font-size: 0.95em;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.artist-name::before {
+  content: " - ";
+  opacity: 0.6;
+}
+
+/* Quick actions (always visible) */
+.quick-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.quick-actions button {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-actions button:hover {
+  background: rgba(138, 43, 226, 0.3);
+  transform: scale(1.05);
+}
+
+.quick-actions .play-button {
+  color: var(--success-color);
+}
+
+.quick-actions .enhance-button {
+  color: var(--primary-color);
+}
+
+/* Metadata row (collapsed state) */
+.metadata-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85em;
+}
+
+.key-badge,
+.bpm-badge {
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  font-weight: 500;
+}
+
+.key-badge::before {
+  content: "Key: ";
+  opacity: 0.7;
+}
+
+.bpm-badge::before {
+  content: "BPM: ";
+  opacity: 0.7;
+}
+
+/* Expanded content (hidden by default) */
+.expanded-content {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.request-card.collapsed .expanded-content {
+  display: none;
+}
+
+.request-card.expanded .expanded-content {
+  display: block;
+}
+
+/* Expanded state adjustments */
+.request-card.expanded {
+  cursor: default;
+}
+
+.request-card.expanded .song-title {
+  display: block;
+  font-size: 1.1em;
+  margin-bottom: 3px;
+}
+
+.request-card.expanded .artist-name {
+  display: block;
+  font-size: 0.95em;
+}
+
+.request-card.expanded .artist-name::before {
+  content: none;
+}
+
+.request-card.expanded .metadata-row {
+  display: none;
+}
+
+/* Expanded metadata (large badges) */
+.expanded-metadata {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.key-badge-large,
+.bpm-badge-large {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 1em;
+}
+
+.key-badge-large {
+  background: rgba(138, 43, 226, 0.3);
+  color: var(--primary-color);
+}
+
+.bpm-badge-large {
+  background: rgba(138, 43, 226, 0.2);
+  color: var(--primary-color);
+}
+
+.expanded-metadata .timestamp {
+  margin-left: auto;
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+/* Message in expanded view */
+.message {
+  font-style: italic;
+  font-size: 0.9em;
+  opacity: 0.8;
+  margin: 10px 0 15px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.message:empty {
+  display: none;
+}
+
+/* Action buttons in expanded view */
+.request-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.request-actions button {
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.request-actions button:hover {
+  background: rgba(138, 43, 226, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Starred card styling */
+.request-card.starred {
+  border-left-color: var(--star-color) !important;
+  box-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+}
+
+/* New request highlight */
+.request-card.new-request {
+  border: 2px solid #4caf50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  animation: pulse-highlight 2s infinite;
+}
+
+/* Played section styling */
 .played-section .request-card {
-  grid-template-columns: 3fr 1fr;
-  grid-template-rows: 1fr auto;
-  min-height: 80px;
   opacity: 0.7;
   cursor: default;
 }
 
-/* Card Content */
-.card-header {
-  display: flex;
-  flex-direction: column;
-}
-
-.card-content {
-  overflow: hidden;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.song-title {
-  margin: 0;
-  font-size: 1em;
-  color: var(--primary-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.artist-name {
-  margin: 2px 0;
-  font-size: 0.9em;
-  font-weight: normal;
-}
-
-.message {
-  font-style: italic;
-  font-size: 0.85em;
-  opacity: 0.9;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  max-height: 2.4em;
-  line-height: 1.2;
-}
-
-.played-section .message {
+.played-section .request-card .quick-actions {
   display: none;
-}
-
-.timestamp {
-  font-size: 0.7em;
-  opacity: 0.7;
-  align-self: flex-start;
 }
 
 /* ===== ACTION BUTTONS ===== */

@@ -106,30 +106,46 @@
 
     <!-- Request template (hidden) -->
     <template id="requestTemplate">
-        <div class="request-card" data-id="">
-            <div class="card-header">
-                <h3 class="song-title"></h3>
-                <p class="artist-name"></p>
-            </div>
-            <div class="card-content">
-                <p class="message"></p>
-                <!-- Add this for metadata display -->
-                <div class="metadata-container" style="display: none;">
-                    <span class="key-badge"></span>
-                    <span class="bpm-badge"></span>
-                </div>
-            </div>
-            <div class="card-footer">
-                <div class="timestamp"></div>
-                <div class="request-actions">
-                    <button class="copy-button" title="Copy for Serato Search">📋</button>
-                    <button class="star-button" title="Star this request">★</button>
-                    <button class="play-button" title="Mark as played">▶</button>
-                    <button class="restore-button" title="Restore to queue">↩</button>
-                    <button class="delete-button" title="Delete">🗑️</button>
-                </div>
-            </div>
+    <div class="request-card collapsed" data-id="" data-key="">
+        <!-- Card Header: Always visible (title/artist) -->
+        <div class="card-header">
+        <div class="card-title-line">
+            <h3 class="song-title"></h3>
+            <span class="artist-name"></span>
         </div>
+        
+        <!-- Quick actions: Always visible -->
+        <div class="quick-actions">
+            <button class="play-button" title="Mark as played">✓</button>
+            <button class="enhance-button" title="Enhance with AI" style="display: none;">🧠</button>
+        </div>
+        </div>
+        
+        <!-- Metadata row: Always visible when collapsed -->
+        <div class="metadata-row">
+        <span class="key-badge"></span>
+        <span class="bpm-badge"></span>
+        </div>
+        
+        <!-- Expanded content: Hidden by default -->
+        <div class="expanded-content" style="display: none;">
+        <div class="expanded-metadata">
+            <span class="key-badge-large"></span>
+            <span class="bpm-badge-large"></span>
+            <span class="timestamp"></span>
+        </div>
+        
+        <p class="message"></p>
+        
+        <div class="request-actions">
+            <button class="copy-button">Copy</button>
+            <button class="star-button">★ Star</button>
+            <button class="play-button-expanded">✓ Played</button>
+            <button class="delete-button">✕ Delete</button>
+            <button class="enhance-button-expanded" style="display: none;">🧠 Enhance</button>
+        </div>
+        </div>
+    </div>
     </template>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
