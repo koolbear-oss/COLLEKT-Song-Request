@@ -569,50 +569,81 @@ async function deleteRequest(requestId) {
       .eq('id', requestId)
       .single();
     
-    if (fetchError) throw fetchError;
+    if (fetchError) {
+      console.error('Error fetching request:', fetchError);
+      throw fetchError;
+    }
     
-    // STEP 2: Insert into deleted_requests table
-    const { error: archiveError } = await supabase
+    console.log('Request to archive:', request); // DEBUG
+    
+    // STEP 2: Prepare archive data
+    const archiveData = {
+      original_request_id: request.id,
+      event_id: request.event_id,
+      title: request.title,
+      artist: request.artist,
+      message: request.message || null,
+      original_title: request.original_title || null,
+      original_artist: request.original_artist || null,
+      key: request.key || null,
+      bpm: request.bpm || null,
+      enhanced_by_ai: request.enhanced_by_ai || false,
+      is_starred: request.is_starred || false,
+      position: request.position || 0,
+      created_at: request.created_at,
+      played: request.played || false,
+      played_at: request.played_at || null,
+      deleted_by: localStorage.getItem('userEmail') || 'unknown',
+      deletion_reason: 'manual_delete'
+    };
+    
+    console.log('Archive data:', archiveData); // DEBUG
+    
+    // STEP 3: Insert into deleted_requests table
+    const { data: archiveResult, error: archiveError } = await supabase
       .from('deleted_requests')
-      .insert([{
-        original_request_id: request.id,
-        event_id: request.event_id,
-        title: request.title,
-        artist: request.artist,
-        message: request.message,
-        original_title: request.original_title,
-        original_artist: request.original_artist,
-        key: request.key,
-        bpm: request.bpm,
-        enhanced_by_ai: request.enhanced_by_ai,
-        is_starred: request.is_starred,
-        position: request.position,
-        created_at: request.created_at,
-        played: request.played,
-        played_at: request.played_at,
-        deleted_by: localStorage.getItem('userEmail'),
-        deletion_reason: 'manual_delete' // Can be made dynamic later
-      }]);
+      .insert([archiveData]);
     
-    if (archiveError) throw archiveError;
+    if (archiveError) {
+      console.error('Archive error details:', archiveError);
+      console.error('Archive error message:', archiveError.message);
+      console.error('Archive error hint:', archiveError.hint);
+      console.error('Archive error details:', archiveError.details);
+      throw archiveError;
+    }
     
-    // STEP 3: Now delete from requests table
+    console.log('Archive successful:', archiveResult); // DEBUG
+    
+    // STEP 4: Now delete from requests table
     const { error: deleteError } = await supabase
       .from('requests')
       .delete()
       .eq('id', requestId);
     
-    if (deleteError) throw deleteError;
+    if (deleteError) {
+      console.error('Delete error:', deleteError);
+      throw deleteError;
+    }
     
-    // STEP 4: Show success feedback
+    // STEP 5: Show success feedback
     showTempMessage('Request archived', 'success');
     
-    // STEP 5: Refresh display
+    // STEP 6: Refresh display
     fetchRequests();
     
   } catch (error) {
     console.error('Error archiving request:', error);
-    showTempMessage('Failed to delete request: ' + error.message, 'error');
+    
+    // Show detailed error to user
+    let errorMessage = 'Failed to delete request';
+    if (error.message) {
+      errorMessage += ': ' + error.message;
+    }
+    if (error.hint) {
+      errorMessage += ' (Hint: ' + error.hint + ')';
+    }
+    
+    showTempMessage(errorMessage, 'error');
   }
 }
 
