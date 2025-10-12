@@ -591,12 +591,10 @@ async function deleteRequest(requestId) {
       is_starred: request.is_starred || false,
       position: request.position || 0,
       
-      // FIX: Ensure created_at is a proper timestamp
+      // FIX: Ensure timestamps are in proper ISO format
       created_at: request.created_at ? new Date(request.created_at).toISOString() : new Date().toISOString(),
       
       played: request.played || false,
-      
-      // FIX: Ensure played_at is a proper timestamp or null
       played_at: request.played_at ? new Date(request.played_at).toISOString() : null,
       
       deleted_by: localStorage.getItem('userEmail') || 'unknown',
@@ -612,13 +610,10 @@ async function deleteRequest(requestId) {
     
     if (archiveError) {
       console.error('Archive error details:', archiveError);
-      console.error('Archive error message:', archiveError.message);
-      console.error('Archive error hint:', archiveError.hint);
-      console.error('Archive error details:', archiveError.details);
       throw archiveError;
     }
     
-    console.log('Archive successful:', archiveResult); // DEBUG
+    console.log('Archive successful'); // DEBUG
     
     // STEP 4: Now delete from requests table
     const { error: deleteError } = await supabase
@@ -644,9 +639,6 @@ async function deleteRequest(requestId) {
     let errorMessage = 'Failed to delete request';
     if (error.message) {
       errorMessage += ': ' + error.message;
-    }
-    if (error.hint) {
-      errorMessage += ' (Hint: ' + error.hint + ')';
     }
     
     showTempMessage(errorMessage, 'error');
