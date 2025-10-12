@@ -23,7 +23,18 @@ const CAMELOT_COLORS = {
 // Helper function to get Camelot color
 function getCamelotColor(key) {
   if (!key) return null;
-  return CAMELOT_COLORS[key.toUpperCase()] || null;
+  
+  const cssVarName = `--key-${key.toUpperCase()}-bg`;
+  const textVarName = `--key-${key.toUpperCase()}-text`;
+  
+  const rootStyles = getComputedStyle(document.documentElement);
+  const bgColor = rootStyles.getPropertyValue(cssVarName).trim() || null;
+  const textColor = rootStyles.getPropertyValue(textVarName).trim() || 'white';
+  
+  return { 
+    backgroundColor: bgColor, 
+    color: textColor 
+  };
 }
 
 // DOM elements
@@ -314,20 +325,23 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       if (request.key) {
         if (keyBadge) {
           keyBadge.textContent = request.key;
-          // Apply Camelot color to key badge
-          const keyColor = getCamelotColor(request.key);
-          if (keyColor) keyBadge.style.backgroundColor = keyColor;
+          // Apply Camelot colors with text contrast
+          const keyColors = getCamelotColor(request.key);
+          if (keyColors) {
+            keyBadge.style.backgroundColor = keyColors.backgroundColor;
+            keyBadge.style.color = keyColors.color;
+          }
         }
         
         if (keyBadgeLarge) {
           keyBadgeLarge.textContent = request.key;
-          // Apply Camelot color to large key badge
-          const keyColor = getCamelotColor(request.key);
-          if (keyColor) keyBadgeLarge.style.backgroundColor = keyColor;
+          // Apply Camelot colors with text contrast
+          const keyColors = getCamelotColor(request.key);
+          if (keyColors) {
+            keyBadgeLarge.style.backgroundColor = keyColors.backgroundColor;
+            keyBadgeLarge.style.color = keyColors.color;
+          }
         }
-      } else {
-        if (keyBadge) keyBadge.textContent = '';
-        if (keyBadgeLarge) keyBadgeLarge.textContent = '';
       }
       
       // Show BPM if available
