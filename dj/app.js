@@ -114,6 +114,41 @@ async function initializeDashboard() {
   initializeSortable();
 }
 
+function initializeCardExpansion() {
+  // Add click event to all request cards (delegated to the container for dynamic content)
+  document.getElementById('requestsList').addEventListener('click', function(e) {
+    // Find the closest request-card ancestor from the clicked element
+    const card = e.target.closest('.request-card');
+    
+    // Only proceed if we found a card and the click wasn't on a button
+    if (card && !e.target.closest('button')) {
+      // Toggle the expanded class
+      card.classList.toggle('collapsed');
+      card.classList.toggle('expanded');
+      
+      // Toggle display of expanded content
+      const expandedContent = card.querySelector('.expanded-content');
+      if (expandedContent) {
+        expandedContent.style.display = card.classList.contains('expanded') ? 'block' : 'none';
+      }
+    }
+  });
+
+  // Also add click handling for played cards
+  document.getElementById('playedList').addEventListener('click', function(e) {
+    const card = e.target.closest('.request-card');
+    if (card && !e.target.closest('button')) {
+      card.classList.toggle('collapsed');
+      card.classList.toggle('expanded');
+      
+      const expandedContent = card.querySelector('.expanded-content');
+      if (expandedContent) {
+        expandedContent.style.display = card.classList.contains('expanded') ? 'block' : 'none';
+      }
+    }
+  });
+}
+
 // Fetch requests from Supabase
 async function fetchRequests(resetStarred = true) {
   if (!eventId) return;
@@ -1317,6 +1352,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (enhanceAllButton) {
     enhanceAllButton.addEventListener('click', handleBulkEnhancement);
   }
+
+  // NEW: Initialize card expansion functionality
+  initializeCardExpansion();
 
   // Initialize the dashboard
   initializeDashboard();
