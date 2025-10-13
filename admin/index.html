@@ -547,7 +547,7 @@
             border-radius: 5px;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             min-width: 160px;
-            z-index: 100;
+            z-index: 1001;
             display: none;
             margin-top: 5px;
         }
@@ -1112,6 +1112,7 @@
             
             // Find the more button in the created card
             const moreButton = card.querySelector('[data-action="more"]');
+            console.log('Dropdown toggled:', dropdownMenu.classList.contains('show'));
             
             // Append dropdown to the more button
             moreButton.appendChild(dropdownMenu);
@@ -1142,6 +1143,12 @@
                 
                 // Toggle this dropdown
                 dropdownMenu.classList.toggle('show');
+
+                // Add these debug lines
+                console.log('Dropdown toggled:', dropdownMenu.classList.contains('show'));
+                const rect = moreButton.getBoundingClientRect();
+                console.log('Button position:', rect);
+                console.log('Dropdown position:', dropdownMenu.getBoundingClientRect());
             });
             
             // Dropdown actions
