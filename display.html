@@ -84,19 +84,19 @@
             align-items: center;
             width: 90%;
             max-width: 1200px; /* Wider for TV displays */
-            padding: 2vh 2vw;
+            padding: 1.5vh 2vw;
             z-index: 1;
             position: relative;
         }
         
         .brand {
-            margin-bottom: 3vh;
+            margin-bottom: 1.5vh;
             text-align: center;
             animation: fadeIn 1s ease-out;
         }
         
         .brand-logo {
-            font-size: calc(24px + 2.5vmin);
+            font-size: calc(20px + 2vmin);
             font-weight: 800;
             background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
             -webkit-background-clip: text;
@@ -110,27 +110,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 5vh;
+            margin-bottom: 2vh;
             position: relative;
             animation: fadeIn 1.2s ease-out;
         }
         
         .message-text {
-            font-size: calc(20px + 1.5vmin);
+            font-size: calc(18px + 1vmin);
             font-weight: 600;
-            margin-bottom: 3vh;
+            margin-bottom: 1.5vh;
             text-align: center;
             color: var(--primary-light);
         }
         
         .qr-wrapper {
             position: relative;
-            margin-bottom: 3vh;
+            margin-bottom: 1.5vh;
         }
         
         .qr-code-container {
             background-color: white;
-            padding: calc(10px + 1vmin);
+            padding: calc(8px + 0.5vmin);
             border-radius: 16px;
             box-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
             position: relative;
@@ -158,12 +158,12 @@
         }
         
         .scan-text {
-            font-size: calc(16px + 0.8vmin);
+            font-size: calc(14px + 0.6vmin);
             font-weight: 500;
-            margin-top: 2vh;
+            margin-top: 1vh;
             opacity: 0.9;
             text-align: center;
-            max-width: 80%;
+            max-width: 90%;
         }
         
         .feed-container {
@@ -177,11 +177,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2vh;
+            margin-bottom: 1vh;
         }
         
         .feed-title {
-            font-size: calc(18px + 1vmin);
+            font-size: calc(16px + 0.8vmin);
             font-weight: 600;
             color: var(--primary);
             margin: 0;
@@ -190,9 +190,9 @@
         .feed-count {
             background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
-            font-size: calc(14px + 0.5vmin);
+            font-size: calc(14px + 0.4vmin);
             font-weight: 600;
-            padding: 0.5vh 1.5vw;
+            padding: 0.4vh 1.2vw;
             border-radius: 50px;
             min-width: 3vw;
             text-align: center;
@@ -215,7 +215,7 @@
             background-color: rgba(30, 30, 30, 0.6);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: calc(15px + 0.5vmin);
+            padding: calc(12px + 0.3vmin);
             overflow: hidden;
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -225,11 +225,11 @@
             background: linear-gradient(90deg, rgba(50, 50, 50, 0.8) 0%, rgba(40, 40, 40, 0.8) 100%);
             border-left: 4px solid var(--primary);
             border-radius: 10px;
-            padding: calc(12px + 0.5vmin) calc(15px + 0.5vmin);
-            margin-bottom: calc(10px + 0.3vmin);
+            padding: calc(8px + 0.3vmin) calc(12px + 0.3vmin);
+            margin-bottom: calc(6px + 0.2vmin);
             transition: all 0.3s ease;
             position: relative;
-            min-height: calc(50px + 2vmin);
+            min-height: calc(40px + 1.5vmin);
             animation: slideIn 0.5s ease-out;
         }
         
@@ -265,14 +265,14 @@
         
         .request-title {
             font-weight: 700;
-            font-size: calc(16px + 0.7vmin);
-            margin: 0 0 0.5vh 0;
+            font-size: calc(14px + 0.6vmin);
+            margin: 0 0 0.3vh 0;
             color: white;
             padding-right: 6vw;
         }
         
         .request-artist {
-            font-size: calc(14px + 0.5vmin);
+            font-size: calc(12px + 0.4vmin);
             font-weight: 500;
             opacity: 0.9;
             margin: 0;
@@ -281,14 +281,14 @@
         }
         
         .request-time {
-            font-size: calc(12px + 0.3vmin);
+            font-size: calc(11px + 0.2vmin);
             color: var(--muted-text);
             position: absolute;
-            top: calc(10px + 0.3vmin);
-            right: calc(15px + 0.5vmin);
+            top: calc(8px + 0.2vmin);
+            right: calc(12px + 0.3vmin);
             margin: 0;
             font-weight: 500;
-            padding: 0.3vh 0.8vw;
+            padding: 0.2vh 0.6vw;
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 50px;
         }
@@ -296,7 +296,7 @@
         .upgrade-message {
             background: linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(40, 40, 40, 0.8) 100%);
             border-radius: 12px;
-            padding: calc(20px + 1vmin);
+            padding: calc(16px + 0.8vmin);
             text-align: center;
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
@@ -305,38 +305,38 @@
         .upgrade-message h3 {
             color: var(--primary);
             margin-top: 0;
-            font-size: calc(18px + 0.5vmin);
+            font-size: calc(16px + 0.4vmin);
         }
         
         .upgrade-message p {
-            font-size: calc(16px + 0.3vmin);
-            margin-top: 1vh;
+            font-size: calc(14px + 0.2vmin);
+            margin-top: 0.8vh;
         }
         
         .empty-feed {
             text-align: center;
-            padding: calc(20px + 1vmin) 0;
+            padding: calc(16px + 0.8vmin) 0;
             opacity: 0.7;
             font-style: italic;
-            font-size: calc(16px + 0.5vmin);
+            font-size: calc(14px + 0.4vmin);
         }
         
         .fullscreen-button {
             background-color: rgba(138, 43, 226, 0.2);
             border: 1px solid rgba(138, 43, 226, 0.5);
             color: var(--primary);
-            width: calc(40px + 1vmin);
-            height: calc(40px + 1vmin);
+            width: calc(36px + 0.8vmin);
+            height: calc(36px + 0.8vmin);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             position: absolute;
-            top: calc(20px + 1vmin);
-            right: calc(20px + 1vmin);
+            top: calc(16px + 0.8vmin);
+            right: calc(16px + 0.8vmin);
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: calc(18px + 0.5vmin);
+            font-size: calc(16px + 0.4vmin);
             z-index: 100;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
@@ -365,19 +365,43 @@
             }
             
             #qrcode {
-                width: 400px !important;
-                height: 400px !important;
+                width: 350px !important;
+                height: 350px !important;
             }
         }
         
         @media (max-aspect-ratio: 4/3) {
             /* For non-widescreen displays */
             .container {
-                padding: 3vh 3vw;
+                padding: 2vh 2vw;
             }
             
             .qr-section {
-                margin-bottom: 4vh;
+                margin-bottom: 2vh;
+            }
+        }
+        
+        /* Ensure all content fits on screen */
+        @media (max-height: 800px) {
+            .container {
+                transform: scale(0.9);
+                transform-origin: center center;
+            }
+            
+            #qrcode {
+                width: 300px !important;
+                height: 300px !important;
+            }
+        }
+        
+        @media (max-height: 700px) {
+            .container {
+                transform: scale(0.85);
+            }
+            
+            #qrcode {
+                width: 280px !important;
+                height: 280px !important;
             }
         }
     </style>
@@ -445,8 +469,8 @@
                 document.getElementById('qrcode'), 
                 requestUrl, 
                 {
-                    width: 350, // Larger for TV displays
-                    height: 350,
+                    width: 320, // Slightly smaller for better fit
+                    height: 320,
                     margin: 2,
                     color: {
                         dark: '#000000',
@@ -580,11 +604,23 @@
                 feed.insertBefore(requestItem, feed.firstChild);
             });
             
-            // CSS will handle showing only top 3
-            const items = feed.querySelectorAll('.request-item');
+            // Reorder all items to ensure correct display
+            // Get all items and keep them in newest-first order
+            const allItems = Array.from(feed.querySelectorAll('.request-item'));
+            
+            // Clear the feed to reinsert in correct order
+            if (allItems.length > 0) {
+                feed.innerHTML = '';
+                
+                // Only keep up to 3 items for display
+                const displayItems = allItems.slice(0, 3);
+                
+                // Add them in order (newest first)
+                displayItems.forEach(item => feed.appendChild(item));
+            }
             
             // If no items are visible, show empty message
-            if (items.length === 0) {
+            if (allItems.length === 0) {
                 feed.innerHTML = '<p class="empty-feed">No requests yet</p>';
             }
         }
