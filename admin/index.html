@@ -3,97 +3,1290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song Request QR Generator</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Event Manager - COLLEKT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8a2be2;
+            --primary-dark: #6a1cb2;
+            --primary-light: #a44df7;
+            --primary-transparent: rgba(138, 43, 226, 0.1);
+            --dark: #121212;
+            --dark-accent: #1e1e1e;
+            --card-bg: #222222;
+            --light-text: #ffffff;
+            --muted-text: rgba(255, 255, 255, 0.7);
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark);
+            color: var(--light-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .dashboard-header {
+            background-color: var(--dark-accent);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-role {
+            background-color: var(--primary-transparent);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--primary);
+        }
+        
+        .admin-role {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: #ff7875;
+        }
+        
+        .header-button {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .header-button:hover {
+            background-color: var(--primary);
+            color: var(--light-text);
+        }
+        
+        .logout-button {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        
+        .logout-button:hover {
+            background-color: var(--danger);
+            color: var(--light-text);
+        }
+        
+        /* Main Container */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        /* Create Event Section */
+        .create-section {
+            background-color: var(--dark-accent);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            font-size: 1.2rem;
+        }
+        
+        .create-form {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .input-group {
+            flex: 1;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+        }
+        
+        .create-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .create-button:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.3);
+        }
+        
+        .create-button:active {
+            transform: translateY(0);
+        }
+        
+        /* QR Result Section */
+        .qr-result {
+            margin-top: 25px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .qr-result.show {
+            display: block;
+        }
+        
+        .qr-container {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .qr-image {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .qr-details {
+            flex: 1;
+        }
+        
+        .qr-details h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .qr-details p {
+            margin-bottom: 8px;
+            color: var(--muted-text);
+        }
+        
+        .qr-details p strong {
+            color: var(--light-text);
+        }
+        
+        .qr-url-container {
+            display: flex;
+            margin: 15px 0;
+            gap: 10px;
+        }
+        
+        .qr-url-container input {
+            flex: 1;
+            padding: 10px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+        }
+        
+        .copy-button {
+            background-color: var(--dark-accent);
+            color: var(--light-text);
+            border: 1px solid var(--input-border);
+            padding: 0 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .copy-button:hover {
+            background-color: var(--primary-transparent);
+            border-color: var(--primary);
+        }
+        
+        .qr-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .qr-button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .print-button {
+            background-color: var(--dark-accent);
+            color: var(--light-text);
+            border: 1px solid var(--input-border);
+        }
+        
+        .print-button:hover {
+            background-color: var(--primary-transparent);
+            border-color: var(--primary);
+        }
+        
+        .dashboard-button {
+            background-color: var(--primary);
+            color: var(--light-text);
+            border: none;
+        }
+        
+        .dashboard-button:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(138, 43, 226, 0.2);
+        }
+        
+        /* Events Section */
+        .events-section {
+            background-color: var(--dark-accent);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .events-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .search-input {
+            padding: 10px 15px 10px 35px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-family: 'Montserrat', sans-serif;
+            width: 250px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted-text);
+        }
+        
+        .archive-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--input-bg);
+            transition: .4s;
+            border-radius: 20px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 2px;
+            background-color: var(--muted-text);
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--primary-transparent);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(18px);
+            background-color: var(--primary);
+        }
+        
+        /* Events Grid */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .event-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .event-card.archived {
+            opacity: 0.7;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .archived-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(255, 152, 0, 0.2);
+            color: var(--warning);
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .event-card-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .event-name {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            padding-right: 80px;
+        }
+        
+        .event-date {
+            font-size: 0.8rem;
+            color: var(--muted-text);
+        }
+        
+        .event-card-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+        }
+        
+        .event-card-action-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            flex: 1;
+            padding: 8px 5px;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+        }
+        
+        .action-button i {
+            font-size: 1rem;
+        }
+        
+        .action-dashboard {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+        
+        .action-dashboard:hover {
+            background-color: var(--primary-light);
+        }
+        
+        .action-qr {
+            background-color: rgba(138, 43, 226, 0.15);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        
+        .action-qr:hover {
+            background-color: var(--primary-transparent);
+        }
+        
+        .action-guest {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .action-guest:hover {
+            background-color: rgba(76, 175, 80, 0.2);
+        }
+        
+        .action-more {
+            width: 40px;
+            flex: none;
+            background-color: var(--dark-accent);
+            color: var(--light-text);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.2rem;
+            position: relative;
+        }
+        
+        .action-more:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Dropdown Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 5px);
+            right: 0;
+            background-color: var(--dark-accent);
+            border-radius: 5px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            min-width: 160px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .dropdown-item {
+            padding: 10px 15px;
+            color: var(--light-text);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .dropdown-item.danger {
+            color: var(--danger);
+        }
+        
+        .dropdown-item.warning {
+            color: var(--warning);
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin: 5px 0;
+        }
+        
+        /* Loading States */
+        .loading-events {
+            text-align: center;
+            padding: 30px;
+            color: var(--muted-text);
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(138, 43, 226, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+                text-align: center;
+            }
+            
+            .user-controls {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .create-form {
+                flex-direction: column;
+            }
+            
+            .qr-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .events-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filter-controls {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .search-container {
+                width: 100%;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .dashboard-container {
+                padding: 15px;
+            }
+            
+            .create-section, 
+            .events-section {
+                padding: 15px;
+            }
+            
+            .event-card-actions {
+                flex-direction: column;
+            }
+            
+            .event-card-action-row {
+                flex-direction: column;
+            }
+            
+            .action-more {
+                width: 100%;
+            }
+            
+            .dropdown-menu {
+                width: 100%;
+                left: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <button id="logoutButton" style="position: absolute; top: 20px; right: 20px;">Logout</button>
-        <button id="superAdminButton" style="position: absolute; top: 20px; right: 110px; display: none;">Super Admin</button>
-        <h1>Song Request QR Generator</h1>
-        
-        <div class="form-container">
-            <h2>Create New Event</h2>
-            <div class="form-group">
-                <label for="eventName">Event Name</label>
-                <input type="text" id="eventName" placeholder="Enter event name">
-            </div>
-            <button id="createButton">Create Event & Generate QR</button>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <a href="/" class="logo">COLLEKT</a>
+        <div class="user-controls">
+            <span class="user-role" id="userRole">Basic DJ</span>
+            <button id="superAdminButton" class="header-button">Super Admin</button>
+            <button id="logoutButton" class="header-button logout-button">Logout</button>
         </div>
-        
-        <div class="qr-container hidden" id="qrResult">
-            <h2>QR Code Generated</h2>
-            <canvas id="qrcode"></canvas>
-            <div class="qr-details">
-                <p>Event: <span id="displayEventName"></span></p>
-                <p>Event ID: <span id="eventId"></span></p>
-                <div class="link-container">
-                    <p>Request URL:</p>
-                    <input type="text" id="requestUrl" readonly>
-                    <button id="copyButton">Copy</button>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Create Event Section -->
+        <section class="create-section">
+            <h2 class="section-title">
+                <i>+</i> Create New Event
+            </h2>
+            <div class="create-form">
+                <div class="input-group">
+                    <input type="text" id="eventName" placeholder="Enter event name">
                 </div>
-                <div class="button-group">
-                    <button id="printButton">Print QR Code</button>
-                    <button id="dashboardButton">Open DJ Dashboard</button>
+                <button id="createButton" class="create-button">
+                    <i>✨</i> Create Event
+                </button>
+            </div>
+            
+            <!-- QR Result (hidden by default) -->
+            <div class="qr-result" id="qrResult">
+                <div class="qr-container">
+                    <div class="qr-image">
+                        <canvas id="qrcode" width="150" height="150"></canvas>
+                    </div>
+                    <div class="qr-details">
+                        <h3>QR Code Generated!</h3>
+                        <p>Event: <strong id="displayEventName">Summer Party</strong></p>
+                        <p>Event ID: <strong id="eventId">abc123</strong></p>
+                        
+                        <div class="qr-url-container">
+                            <input type="text" id="requestUrl" value="https://collekt.eu/guest?event=abc123" readonly>
+                            <button id="copyButton" class="copy-button">Copy</button>
+                        </div>
+                        
+                        <div class="qr-actions">
+                            <button id="printButton" class="qr-button print-button">
+                                <i>🖨️</i> Print QR
+                            </button>
+                            <button id="dashboardButton" class="qr-button dashboard-button">
+                                <i>📊</i> Open DJ Dashboard
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
         
-        <div class="events-container">
-            <h2>Your Events</h2>
-            <div class="archive-toggle">
-                <label>
-                    <input type="checkbox" id="showArchived"> Show archived events
-                </label>
+        <!-- Events List Section -->
+        <section class="events-section">
+            <div class="events-header">
+                <h2 class="section-title">
+                    <i>🎵</i> Your Events
+                </h2>
+                <div class="filter-controls">
+                    <div class="search-container">
+                        <i class="search-icon">🔍</i>
+                        <input type="text" id="eventSearch" class="search-input" placeholder="Search events...">
+                    </div>
+                    <label class="archive-toggle">
+                        <span>Show archived</span>
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="showArchived">
+                            <span class="toggle-slider"></span>
+                        </span>
+                    </label>
+                </div>
             </div>
+            
             <div id="eventsList">
-                <p class="loading">Loading events...</p>
+                <!-- Loading state -->
+                <div class="loading-events" id="eventsLoading">
+                    <div class="spinner"></div>
+                    <p>Loading your events...</p>
+                </div>
+                
+                <!-- Events grid - dynamically populated -->
+                <div class="events-grid" id="eventsGrid">
+                    <!-- Event cards will be populated here -->
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-
     <script>
-        // Simple authentication check
-        if (!localStorage.getItem('isLoggedIn')) {
-            // Not logged in, redirect to login page
-            window.location.replace('login.html');
-        } else {
-            // Flag to prevent app.js from doing its own auth checks
-            window.bypassAuthCheck = true;
+        // Initialize Supabase client
+        const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // DOM Elements
+        const createButton = document.getElementById('createButton');
+        const eventNameInput = document.getElementById('eventName');
+        const qrResult = document.getElementById('qrResult');
+        const displayEventName = document.getElementById('displayEventName');
+        const eventIdElement = document.getElementById('eventId');
+        const requestUrlElement = document.getElementById('requestUrl');
+        const copyButton = document.getElementById('copyButton');
+        const printButton = document.getElementById('printButton');
+        const dashboardButton = document.getElementById('dashboardButton');
+        const eventsGrid = document.getElementById('eventsGrid');
+        const eventsLoading = document.getElementById('eventsLoading');
+        const showArchivedToggle = document.getElementById('showArchived');
+        const eventSearch = document.getElementById('eventSearch');
+        const userRoleElement = document.getElementById('userRole');
+        const superAdminButton = document.getElementById('superAdminButton');
+        const logoutButton = document.getElementById('logoutButton');
+
+        // Base URLs for app
+        const baseUrl = window.location.origin;
+        const guestUrl = baseUrl + "/guest/";
+        const djUrl = baseUrl + "/dj/";
+        const displayUrl = baseUrl + "/display.html";
+
+        // Check authentication and user role
+        function checkAuth() {
+            // Simple check for now - will improve later
+            if (!localStorage.getItem('isLoggedIn')) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
         }
-    </script>
 
-    <script src="app.js"></script>
+        // Set up user role display
+        function setupUserRole() {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            const userRole = localStorage.getItem('userRole') || 'Basic DJ';
+            
+            userRoleElement.textContent = userRole;
+            
+            if (isAdmin) {
+                userRoleElement.classList.add('admin-role');
+                superAdminButton.style.display = 'block';
+            } else {
+                superAdminButton.style.display = 'none';
+            }
+        }
 
-    <script>
-        document.getElementById('logoutButton').addEventListener('click', function() {
-        localStorage.removeItem('isLoggedIn');
-        window.location.href = 'login.html';
+        // Create a new event
+        async function createEvent() {
+            const eventName = eventNameInput.value.trim();
+            
+            if (!eventName) {
+                alert('Please enter an event name');
+                eventNameInput.focus();
+                return;
+            }
+            
+            try {
+                createButton.disabled = true;
+                createButton.innerHTML = '<i>⏳</i> Creating...';
+                
+                const userEmail = localStorage.getItem('userEmail');
+                if (!userEmail) {
+                    throw new Error('User not logged in. Please login again.');
+                }
+                
+                // Insert new event
+                const { data, error } = await supabase
+                    .from('events')
+                    .insert([{ 
+                        name: eventName, 
+                        active: true,
+                        created_by: userEmail
+                    }])
+                    .select()
+                    .single();
+                
+                if (error) throw error;
+                
+                // Generate QR code
+                generateQR(data);
+                
+                // Refresh events list
+                loadEvents();
+                
+                // Clear the input
+                eventNameInput.value = '';
+                
+            } catch (error) {
+                console.error('Error creating event:', error);
+                alert('Failed to create event: ' + error.message);
+            } finally {
+                createButton.disabled = false;
+                createButton.innerHTML = '<i>✨</i> Create Event';
+            }
+        }
+
+        // Generate QR code
+        function generateQR(event) {
+            const eventId = event.id;
+            
+            // Use absolute URL for request
+            const requestUrl = guestUrl + "?event=" + eventId;
+            
+            // Display event details
+            displayEventName.textContent = event.name;
+            eventIdElement.textContent = eventId;
+            requestUrlElement.value = requestUrl;
+            
+            // Generate QR code
+            QRCode.toCanvas(document.getElementById('qrcode'), requestUrl, {
+                width: 150,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            }, function(error) {
+                if (error) {
+                    console.error(error);
+                    alert('Error generating QR code');
+                }
+            });
+            
+            // Show QR result section
+            qrResult.classList.add('show');
+            
+            // Set dashboard button URL
+            dashboardButton.onclick = function() {
+                window.open(djUrl + "?event=" + eventId, '_blank');
+            };
+        }
+
+        // Load events
+        async function loadEvents() {
+            try {
+                eventsLoading.style.display = 'block';
+                eventsGrid.style.display = 'none';
+                
+                // Get current user info
+                const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                const userEmail = localStorage.getItem('userEmail');
+                
+                // Check show archived status
+                const showArchived = showArchivedToggle.checked;
+                
+                // Get search term
+                const searchTerm = eventSearch.value.toLowerCase();
+                
+                // Start building query
+                let query = supabase
+                    .from('events')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                // Filter by user if not admin
+                if (!isAdmin) {
+                    query = query.eq('created_by', userEmail);
+                }
+                
+                // Filter active/archived events
+                if (!showArchived) {
+                    query = query.eq('active', true);
+                }
+                
+                const { data: events, error } = await query;
+                
+                if (error) throw error;
+                
+                // Filter by search term if provided
+                const filteredEvents = searchTerm 
+                    ? events.filter(event => event.name.toLowerCase().includes(searchTerm))
+                    : events;
+                
+                // Clear events grid
+                eventsGrid.innerHTML = '';
+                
+                if (!filteredEvents || filteredEvents.length === 0) {
+                    eventsGrid.innerHTML = `
+                        <div class="loading-events">
+                            <p>${searchTerm ? 'No events match your search' : (showArchived ? 'No events found' : 'No active events found')}</p>
+                            ${!showArchived ? '<p>Try enabling "Show archived" to see older events.</p>' : ''}
+                        </div>
+                    `;
+                } else {
+                    // Display events
+                    filteredEvents.forEach(event => renderEventCard(event));
+                }
+                
+            } catch (error) {
+                console.error('Error loading events:', error);
+                eventsGrid.innerHTML = `
+                    <div class="loading-events">
+                        <p>Error loading events: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                eventsLoading.style.display = 'none';
+                eventsGrid.style.display = 'grid';
+            }
+        }
+
+        // Render a single event card
+        function renderEventCard(event) {
+            const isArchived = !event.active;
+            const createdDate = new Date(event.created_at);
+            
+            const card = document.createElement('div');
+            card.className = `event-card ${isArchived ? 'archived' : ''}`;
+            card.dataset.id = event.id;
+            
+            card.innerHTML = `
+                ${isArchived ? '<div class="archived-badge">Archived</div>' : ''}
+                <div class="event-card-header">
+                    <h3 class="event-name">${event.name}</h3>
+                    <p class="event-date">Created: ${createdDate.toLocaleDateString()} ${createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+                <div class="event-card-actions">
+                    <div class="event-card-action-row">
+                        <button class="action-button action-dashboard" data-action="dashboard" data-id="${event.id}">
+                            <i>📊</i> DJ Dashboard
+                        </button>
+                    </div>
+                    <div class="event-card-action-row">
+                        <button class="action-button action-qr" data-action="qr" data-id="${event.id}">
+                            <i>🔍</i> QR Display
+                        </button>
+                        <button class="action-button action-guest" data-action="guest" data-id="${event.id}">
+                            <i>📝</i> Guest Form
+                        </button>
+                        <button class="action-button action-more" data-action="more" data-id="${event.id}">
+                            ⋮
+                            <div class="dropdown-menu" id="dropdown-${event.id}">
+                                ${isArchived ? 
+                                    `<div class="dropdown-item" data-action="unarchive" data-id="${event.id}">
+                                        <i>🔄</i> Unarchive
+                                    </div>` : 
+                                    `<div class="dropdown-item warning" data-action="archive" data-id="${event.id}">
+                                        <i>📦</i> Archive
+                                    </div>`
+                                }
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item" data-action="export" data-id="${event.id}">
+                                    <i>📋</i> Export Requests
+                                </div>
+                                <div class="dropdown-item danger" data-action="delete" data-id="${event.id}">
+                                    <i>🗑️</i> Delete Event
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            eventsGrid.appendChild(card);
+            
+            // Add action button listeners
+            card.querySelector('[data-action="dashboard"]').addEventListener('click', () => {
+                window.open(`${djUrl}?event=${event.id}`, '_blank');
+            });
+            
+            card.querySelector('[data-action="qr"]').addEventListener('click', () => {
+                window.open(`${displayUrl}?event=${event.id}&message=Request%20Your%20Song`, '_blank');
+            });
+            
+            card.querySelector('[data-action="guest"]').addEventListener('click', () => {
+                window.open(`${guestUrl}?event=${event.id}`, '_blank');
+            });
+            
+            // More button dropdown toggle
+            const moreButton = card.querySelector('[data-action="more"]');
+            const dropdown = card.querySelector(`#dropdown-${event.id}`);
+            
+            moreButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    if (menu !== dropdown) {
+                        menu.classList.remove('show');
+                    }
+                });
+                
+                dropdown.classList.toggle('show');
+            });
+            
+            // Dropdown actions
+            if (isArchived) {
+                card.querySelector('[data-action="unarchive"]').addEventListener('click', () => {
+                    toggleArchiveEvent(event.id, false);
+                });
+            } else {
+                card.querySelector('[data-action="archive"]').addEventListener('click', () => {
+                    toggleArchiveEvent(event.id, true);
+                });
+            }
+            
+            card.querySelector('[data-action="export"]').addEventListener('click', () => {
+                exportEventRequests(event.id, event.name);
+            });
+            
+            card.querySelector('[data-action="delete"]').addEventListener('click', () => {
+                deleteEvent(event.id, event.name);
+            });
+        }
+
+        // Toggle event archive status
+        async function toggleArchiveEvent(eventId, archive) {
+            const actionText = archive ? 'archive' : 'unarchive';
+            
+            if (!confirm(`Are you sure you want to ${actionText} this event?`)) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('events')
+                    .update({ active: !archive })
+                    .eq('id', eventId);
+                
+                if (error) throw error;
+                
+                showTempMessage(`Event ${actionText}d successfully`, 'success');
+                loadEvents();
+                
+            } catch (error) {
+                console.error(`Error ${actionText}ing event:`, error);
+                showTempMessage(`Failed to ${actionText} event: ${error.message}`, 'error');
+            }
+        }
+
+        // Export event requests
+        async function exportEventRequests(eventId, eventName) {
+            try {
+                const { data: requests, error } = await supabase
+                    .from('requests')
+                    .select('*')
+                    .eq('event_id', eventId)
+                    .order('played', { ascending: false })
+                    .order('position', { ascending: true });
+                
+                if (error) throw error;
+                
+                // Create text content
+                let exportText = `DJ PLAYLIST - ${eventName}\n\n`;
+                
+                // Active requests
+                exportText += "PENDING REQUESTS:\n";
+                const activeRequests = requests.filter(req => !req.played);
+                if (activeRequests.length === 0) {
+                    exportText += "- None\n";
+                } else {
+                    activeRequests.forEach((req, index) => {
+                        exportText += `${index + 1}. "${req.title}" by ${req.artist}\n`;
+                    });
+                }
+                
+                exportText += "\nPLAYED SONGS:\n";
+                const playedRequests = requests.filter(req => req.played);
+                if (playedRequests.length === 0) {
+                    exportText += "- None\n";
+                } else {
+                    playedRequests.forEach((req, index) => {
+                        exportText += `${index + 1}. "${req.title}" by ${req.artist}\n`;
+                    });
+                }
+                
+                // Create and download file
+                const blob = new Blob([exportText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${eventName.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-playlist.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showTempMessage('Playlist exported successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error exporting requests:', error);
+                showTempMessage(`Failed to export playlist: ${error.message}`, 'error');
+            }
+        }
+
+        // Delete event
+        async function deleteEvent(eventId, eventName) {
+            if (!confirm(`Are you sure you want to delete "${eventName}"? This cannot be undone!`)) {
+                return;
+            }
+            
+            try {
+                // First delete all requests for this event
+                const { error: requestsError } = await supabase
+                    .from('requests')
+                    .delete()
+                    .eq('event_id', eventId);
+                
+                if (requestsError) throw requestsError;
+                
+                // Then delete the event
+                const { error: eventError } = await supabase
+                    .from('events')
+                    .delete()
+                    .eq('id', eventId);
+                
+                if (eventError) throw eventError;
+                
+                showTempMessage('Event deleted successfully', 'success');
+                loadEvents();
+                
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                showTempMessage(`Failed to delete event: ${error.message}`, 'error');
+            }
+        }
+
+        // Show temporary message
+        function showTempMessage(message, type = 'success') {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.bottom = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.padding = '12px 20px';
+            messageDiv.style.borderRadius = '5px';
+            messageDiv.style.backgroundColor = type === 'success' ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)';
+            messageDiv.style.color = 'white';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            messageDiv.style.transition = 'all 0.3s ease';
+            messageDiv.style.animation = 'fadeIn 0.3s ease';
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(messageDiv);
+                }, 300);
+            }, 3000);
+        }
+
+        // Copy button functionality
+        copyButton.addEventListener('click', () => {
+            requestUrlElement.select();
+            document.execCommand('copy');
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => {
+                copyButton.textContent = 'Copy';
+            }, 2000);
         });
-    </script>    
 
-    <script>
-    // Show Super Admin button only for admin users
-    document.addEventListener('DOMContentLoaded', function() {
-        // Check if the user is logged in
-        if (localStorage.getItem('isLoggedIn')) {
-        // Check if it's an admin user
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
-        
-        if (isAdmin) {
-            document.getElementById('superAdminButton').style.display = 'block';
-        }
-        }
-        
-        // Add click event to navigate to super admin
-        document.getElementById('superAdminButton').addEventListener('click', function() {
-        window.location.href = '../super-admin.html';
+        // Print button functionality
+        printButton.addEventListener('click', () => {
+            window.print();
         });
-    });
+
+        // Event search functionality
+        eventSearch.addEventListener('input', () => {
+            loadEvents();
+        });
+
+        // Archive toggle functionality
+        showArchivedToggle.addEventListener('change', () => {
+            loadEvents();
+        });
+
+        // Super Admin button
+        superAdminButton.addEventListener('click', () => {
+            window.location.href = '../super-admin.html';
+        });
+
+        // Logout button
+        logoutButton.addEventListener('click', () => {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'login.html';
+        });
+
+        // Create button event listener
+        createButton.addEventListener('click', createEvent);
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                setupUserRole();
+                loadEvents();
+            }
+        });
     </script>
-    
 </body>
 </html>
