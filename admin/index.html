@@ -1059,6 +1059,7 @@
             card.dataset.id = event.id;
             card.dataset.creator = event.created_by || '';
             
+            // Fix character encoding issues
             card.innerHTML = `
                 ${isArchived ? '<div class="archived-badge">Archived</div>' : ''}
                 <div class="event-card-header">
@@ -1086,11 +1087,21 @@
                 </div>
             `;
             
-            // Append dropdown separately (to avoid nesting issues)
+            // Create dropdown separately and add it directly to body
+            const dropdownId = `dropdown-${event.id}`;
+            
+            // Remove any existing dropdown with the same ID
+            const existingDropdown = document.getElementById(dropdownId);
+            if (existingDropdown) {
+                existingDropdown.remove();
+            }
+            
+            // Create new dropdown
             const dropdownMenu = document.createElement('div');
             dropdownMenu.className = 'dropdown-menu';
-            dropdownMenu.id = `dropdown-${event.id}`;
+            dropdownMenu.id = dropdownId;
             
+            // Fix character encoding issues in dropdown
             dropdownMenu.innerHTML = `
                 ${isArchived ? 
                     `<div class="dropdown-item" data-action="unarchive" data-id="${event.id}">
@@ -1109,22 +1120,47 @@
                 </div>
             `;
             
+            // Add to document body
+            document.body.appendChild(dropdownMenu);
+            
             // Add card to grid
             eventsGrid.appendChild(card);
             
             // Find the more button in the created card
             const moreButton = card.querySelector('[data-action="more"]');
-            console.log('Dropdown toggled:', dropdownMenu.classList.contains('show'));
             
-            // Append dropdown to the more button
-            document.body.appendChild(dropdownMenu);
-            // Position it manually
-            const rect = moreButton.getBoundingClientRect();
-            dropdownMenu.style.position = 'absolute';
-            dropdownMenu.style.top = (rect.bottom + window.scrollY) + 'px';
-            dropdownMenu.style.left = (rect.left + window.scrollX) + 'px';
+            // More button dropdown toggle - improved event handling
+            moreButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent bubbling
+                
+                // Hide all other dropdowns first
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    if (menu.id !== dropdownId) {
+                        menu.classList.remove('show');
+                    }
+                });
+                
+                // Get button position for dropdown placement
+                const rect = moreButton.getBoundingClientRect();
+                
+                // Position dropdown
+                dropdownMenu.style.position = 'fixed'; // Use fixed instead of absolute
+                dropdownMenu.style.top = (rect.bottom + 5) + 'px';
+                dropdownMenu.style.left = (rect.left) + 'px';
+                dropdownMenu.style.zIndex = '9999';
+                
+                // Toggle visibility
+                dropdownMenu.classList.toggle('show');
+                
+                // Apply additional styles when shown
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.style.display = 'block';
+                    dropdownMenu.style.visibility = 'visible';
+                    dropdownMenu.style.opacity = '1';
+                }
+            });
             
-            // Add action button listeners
+            // Action button listeners
             card.querySelector('[data-action="dashboard"]').addEventListener('click', () => {
                 window.open(`${djUrl}?event=${event.id}`, '_blank');
             });
@@ -1137,66 +1173,33 @@
                 window.open(`${guestUrl}?event=${event.id}`, '_blank');
             });
             
-            // More button dropdown toggle
-            moreButton.addEventListener('click', (e) => {
-                e.stopPropagation(); // Very important to stop event propagation
-                
-                // Close all other dropdowns first
-                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                    if (menu !== dropdownMenu) {
-                        menu.classList.remove('show');
-                    }
-                });
-                
-                // Toggle this dropdown
-                dropdownMenu.classList.toggle('show');
-                
-                // Debug and force visibility if needed
-                if (dropdownMenu.classList.contains('show')) {
-                    // Apply multiple styles to force visibility
-                    dropdownMenu.style.display = 'block';
-                    dropdownMenu.style.zIndex = '9999';
-                    dropdownMenu.style.visibility = 'visible';
-                    dropdownMenu.style.opacity = '1';
-                    
-                    // Check if dropdown has content
-                    console.log('Dropdown content:', dropdownMenu.innerHTML.trim().length > 0);
-                    
-                    // Verify dropdown is in viewport
-                    const rect = dropdownMenu.getBoundingClientRect();
-                    const inViewport = rect.top >= 0 && 
-                                    rect.left >= 0 && 
-                                    rect.bottom <= window.innerHeight &&
-                                    rect.right <= window.innerWidth;
-                                    
-                    console.log('Dropdown in viewport:', inViewport);
-                }
-            });
-            
-            // Dropdown actions
+            // Dropdown action listeners - Add event handlers to dropdown items
             if (isArchived) {
-                dropdownMenu.querySelector('[data-action="unarchive"]').addEventListener('click', () => {
+                dropdownMenu.querySelector('[data-action="unarchive"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
                     toggleArchiveEvent(event.id, false);
+                    dropdownMenu.classList.remove('show');
                 });
             } else {
-                dropdownMenu.querySelector('[data-action="archive"]').addEventListener('click', () => {
+                dropdownMenu.querySelector('[data-action="archive"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
                     toggleArchiveEvent(event.id, true);
+                    dropdownMenu.classList.remove('show');
                 });
             }
             
-            dropdownMenu.querySelector('[data-action="export"]').addEventListener('click', () => {
+            dropdownMenu.querySelector('[data-action="export"]').addEventListener('click', (e) => {
+                e.stopPropagation();
                 exportEventRequests(event.id, event.name);
+                dropdownMenu.classList.remove('show');
             });
             
-            dropdownMenu.querySelector('[data-action="delete"]').addEventListener('click', () => {
+            dropdownMenu.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+                e.stopPropagation();
                 deleteEvent(event.id, event.name);
+                dropdownMenu.classList.remove('show');
             });
-
-            console.log('Event card created with dropdown:', card.innerHTML);
-            console.log('Dropdown menu found:', !!dropdownMenu, dropdownMenu);
         }
-
-
         // Toggle event archive status
         async function toggleArchiveEvent(eventId, archive) {
             const actionText = archive ? 'archive' : 'unarchive';
@@ -1375,7 +1378,13 @@
         createButton.addEventListener('click', createEvent);
 
         // Close dropdowns when clicking outside
-        document.addEventListener('click', () => {
+        document.addEventListener('click', (e) => {
+            // Don't close if clicking inside a dropdown
+            if (e.target.closest('.dropdown-menu') || e.target.closest('.action-more')) {
+                return;
+            }
+            
+            // Close all dropdowns
             document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
                 menu.classList.remove('show');
             });

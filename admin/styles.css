@@ -289,3 +289,32 @@ button:active {
   z-index: 9999 !important;
   pointer-events: auto !important;
 }
+
+/* Dropdown menu extra fixes */
+.dropdown-menu {
+    position: fixed;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 5px;
+    min-width: 160px;
+    z-index: 9999;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.dropdown-menu.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    color: white;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255,255,255,0.1);
+}
