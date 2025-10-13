@@ -1117,7 +1117,12 @@
             console.log('Dropdown toggled:', dropdownMenu.classList.contains('show'));
             
             // Append dropdown to the more button
-            moreButton.appendChild(dropdownMenu);
+            document.body.appendChild(dropdownMenu);
+            // Position it manually
+            const rect = moreButton.getBoundingClientRect();
+            dropdownMenu.style.position = 'absolute';
+            dropdownMenu.style.top = (rect.bottom + window.scrollY) + 'px';
+            dropdownMenu.style.left = (rect.left + window.scrollX) + 'px';
             
             // Add action button listeners
             card.querySelector('[data-action="dashboard"]').addEventListener('click', () => {
