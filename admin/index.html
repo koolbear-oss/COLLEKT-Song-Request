@@ -541,7 +541,7 @@
         /* Dropdown Menu */
         .dropdown-menu {
             position: absolute;
-            top: calc(100% + 5px);
+            top: 100%;
             right: 0;
             background-color: var(--dark-accent);
             border-radius: 5px;
@@ -549,11 +549,17 @@
             min-width: 160px;
             z-index: 100;
             display: none;
+            margin-top: 5px;
         }
-        
+
         .dropdown-menu.show {
             display: block;
             animation: fadeIn 0.2s ease;
+        }
+
+        /* Ensure the dropdown appears above other elements */
+        .dropdown-menu {
+            z-index: 1000;
         }
         
         .dropdown-item {
@@ -1071,31 +1077,44 @@
                         <button class="action-button action-guest" data-action="guest" data-id="${event.id}">
                             <i>📝</i> Guest Form
                         </button>
-                        <button class="action-button action-more" data-action="more" data-id="${event.id}">
+                        <div class="action-button action-more" data-action="more" data-id="${event.id}">
                             ⋮
-                            <div class="dropdown-menu" id="dropdown-${event.id}">
-                                ${isArchived ? 
-                                    `<div class="dropdown-item" data-action="unarchive" data-id="${event.id}">
-                                        <i>🔄</i> Unarchive
-                                    </div>` : 
-                                    `<div class="dropdown-item warning" data-action="archive" data-id="${event.id}">
-                                        <i>📦</i> Archive
-                                    </div>`
-                                }
-                                <div class="dropdown-divider"></div>
-                                <div class="dropdown-item" data-action="export" data-id="${event.id}">
-                                    <i>📋</i> Export Requests
-                                </div>
-                                <div class="dropdown-item danger" data-action="delete" data-id="${event.id}">
-                                    <i>🗑️</i> Delete Event
-                                </div>
-                            </div>
-                        </button>
+                        </div>
                     </div>
                 </div>
             `;
             
+            // Append dropdown separately (to avoid nesting issues)
+            const dropdownMenu = document.createElement('div');
+            dropdownMenu.className = 'dropdown-menu';
+            dropdownMenu.id = `dropdown-${event.id}`;
+            
+            dropdownMenu.innerHTML = `
+                ${isArchived ? 
+                    `<div class="dropdown-item" data-action="unarchive" data-id="${event.id}">
+                        <i>🔄</i> Unarchive
+                    </div>` : 
+                    `<div class="dropdown-item warning" data-action="archive" data-id="${event.id}">
+                        <i>📦</i> Archive
+                    </div>`
+                }
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" data-action="export" data-id="${event.id}">
+                    <i>📋</i> Export Requests
+                </div>
+                <div class="dropdown-item danger" data-action="delete" data-id="${event.id}">
+                    <i>🗑️</i> Delete Event
+                </div>
+            `;
+            
+            // Add card to grid
             eventsGrid.appendChild(card);
+            
+            // Find the more button in the created card
+            const moreButton = card.querySelector('[data-action="more"]');
+            
+            // Append dropdown to the more button
+            moreButton.appendChild(dropdownMenu);
             
             // Add action button listeners
             card.querySelector('[data-action="dashboard"]').addEventListener('click', () => {
@@ -1111,41 +1130,40 @@
             });
             
             // More button dropdown toggle
-            const moreButton = card.querySelector('[data-action="more"]');
-            const dropdown = card.querySelector(`#dropdown-${event.id}`);
-            
             moreButton.addEventListener('click', (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // Very important to stop event propagation
                 
                 // Close all other dropdowns first
                 document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                    if (menu !== dropdown) {
+                    if (menu !== dropdownMenu) {
                         menu.classList.remove('show');
                     }
                 });
                 
-                dropdown.classList.toggle('show');
+                // Toggle this dropdown
+                dropdownMenu.classList.toggle('show');
             });
             
             // Dropdown actions
             if (isArchived) {
-                card.querySelector('[data-action="unarchive"]').addEventListener('click', () => {
+                dropdownMenu.querySelector('[data-action="unarchive"]').addEventListener('click', () => {
                     toggleArchiveEvent(event.id, false);
                 });
             } else {
-                card.querySelector('[data-action="archive"]').addEventListener('click', () => {
+                dropdownMenu.querySelector('[data-action="archive"]').addEventListener('click', () => {
                     toggleArchiveEvent(event.id, true);
                 });
             }
             
-            card.querySelector('[data-action="export"]').addEventListener('click', () => {
+            dropdownMenu.querySelector('[data-action="export"]').addEventListener('click', () => {
                 exportEventRequests(event.id, event.name);
             });
             
-            card.querySelector('[data-action="delete"]').addEventListener('click', () => {
+            dropdownMenu.querySelector('[data-action="delete"]').addEventListener('click', () => {
                 deleteEvent(event.id, event.name);
             });
         }
+
 
         // Toggle event archive status
         async function toggleArchiveEvent(eventId, archive) {
