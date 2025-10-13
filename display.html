@@ -3,12 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song Request QR Code</title>
+    <title>COLLEKT Song Requests</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #8a2be2;
+            --primary-dark: #6a1cb2;
+            --primary-glow: rgba(138, 43, 226, 0.7);
+            --primary-light: #a44df7;
+            --dark: #121212;
+            --dark-accent: #1e1e1e;
+            --light-text: #ffffff;
+            --muted-text: rgba(255, 255, 255, 0.7);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #121212;
-            color: white;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%);
+            color: var(--light-text);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -16,200 +36,376 @@
             min-height: 100vh;
             margin: 0;
             overflow: hidden;
+            position: relative;
         }
+        
+        /* Background ambient effects */
+        .ambient-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        
+        .glow-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            opacity: 0.15;
+        }
+        
+        .glow-circle.one {
+            width: 40vw;
+            height: 40vw;
+            top: -10vw;
+            right: -10vw;
+            animation: float 15s ease-in-out infinite;
+        }
+        
+        .glow-circle.two {
+            width: 30vw;
+            height: 30vw;
+            bottom: -10vw;
+            left: -5vw;
+            animation: float 20s ease-in-out infinite reverse;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-5vw, 5vw); }
+        }
+        
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
-            max-width: 800px; /* Slightly wider */
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .qr-container {
-            margin-bottom: 50px; /* Increased margin */
+            width: 90%;
+            max-width: 1200px; /* Wider for TV displays */
+            padding: 2vh 2vw;
+            z-index: 1;
             position: relative;
         }
-        .qr-container:after {
-            content: "";
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 1px;
-            background: rgba(138, 43, 226, 0.3); /* Very subtle purple line */
+        
+        .brand {
+            margin-bottom: 3vh;
+            text-align: center;
+            animation: fadeIn 1s ease-out;
         }
-        h1 {
-            color: #8a2be2;
-            margin-bottom: 30px;
-            font-size: 36px;
+        
+        .brand-logo {
+            font-size: calc(24px + 2.5vmin);
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+            letter-spacing: 1px;
         }
-        #qrcode {
+        
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 5vh;
+            position: relative;
+            animation: fadeIn 1.2s ease-out;
+        }
+        
+        .message-text {
+            font-size: calc(20px + 1.5vmin);
+            font-weight: 600;
+            margin-bottom: 3vh;
+            text-align: center;
+            color: var(--primary-light);
+        }
+        
+        .qr-wrapper {
+            position: relative;
+            margin-bottom: 3vh;
+        }
+        
+        .qr-code-container {
             background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 0 auto 30px;
-            display: inline-block;
+            padding: calc(10px + 1vmin);
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.3);
+            position: relative;
+            z-index: 2;
         }
-        p {
-            font-size: 18px;
-            margin-top: 15px;
+        
+        /* Pulsing effect behind QR */
+        .qr-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            background-color: rgba(138, 43, 226, 0.4);
+            border-radius: 16px;
+            z-index: 1;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+            70% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.3; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
+        }
+        
+        .scan-text {
+            font-size: calc(16px + 0.8vmin);
+            font-weight: 500;
+            margin-top: 2vh;
             opacity: 0.9;
+            text-align: center;
+            max-width: 80%;
         }
-        /* Request Feed Styles */
+        
         .feed-container {
-            width: 90%;
-            max-width: 500px; /* Consistent width */
-            margin-top: 40px;
-            display: none;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 2vh;
+            animation: fadeIn 1.5s ease-out;
         }
+        
         .feed-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 2vh;
         }
+        
         .feed-title {
-            font-size: 24px;
-            color: #8a2be2;
+            font-size: calc(18px + 1vmin);
+            font-weight: 600;
+            color: var(--primary);
             margin: 0;
         }
+        
         .feed-count {
-            background-color: #8a2be2;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
-            font-size: 14px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            transition: transform 0.2s ease;
+            font-size: calc(14px + 0.5vmin);
+            font-weight: 600;
+            padding: 0.5vh 1.5vw;
+            border-radius: 50px;
+            min-width: 3vw;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(138, 43, 226, 0.3);
         }
+        
         .feed-count.pulse {
-            animation: pulse-count 0.6s ease-out;
+            animation: countPulse 0.6s ease-out;
         }
-        @keyframes pulse-count {
+        
+        @keyframes countPulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
+            50% { transform: scale(1.2); box-shadow: 0 4px 15px rgba(138, 43, 226, 0.5); }
             100% { transform: scale(1); }
         }
+        
         #requestFeed {
             width: 100%;
-            border-radius: 10px;
-            background-color: rgba(30, 30, 30, 0.5);
-            padding: 15px;
-            /* Remove max-height and overflow to eliminate scrollbar */
+            border-radius: 16px;
+            background-color: rgba(30, 30, 30, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: calc(15px + 0.5vmin);
             overflow: hidden;
             position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
+        
         .request-item {
-            background-color: rgba(50, 50, 50, 0.6);
-            border-radius: 8px;
-            padding: 10px 15px; /* Reduced padding */
-            margin-bottom: 8px; /* Reduced margin */
-            animation: fadeIn 0.5s ease-out;
-            transition: opacity 0.3s ease;
-            position: relative; /* For absolute positioning of timestamp */
-            min-height: 50px; /* Minimum height to ensure consistent spacing */
+            background: linear-gradient(90deg, rgba(50, 50, 50, 0.8) 0%, rgba(40, 40, 40, 0.8) 100%);
+            border-left: 4px solid var(--primary);
+            border-radius: 10px;
+            padding: calc(12px + 0.5vmin) calc(15px + 0.5vmin);
+            margin-bottom: calc(10px + 0.3vmin);
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: calc(50px + 2vmin);
+            animation: slideIn 0.5s ease-out;
         }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
         /* Default opacity for all items */
         .request-item {
             opacity: 1;
+            transform: scale(1);
         }
+        
         /* Fading effect for 2nd and 3rd items */
         .request-item:nth-child(2) {
-            opacity: 0.6;
+            opacity: 0.7;
+            transform: scale(0.98);
         }
+        
         .request-item:nth-child(3) {
-            opacity: 0.2;
+            opacity: 0.4;
+            transform: scale(0.96);
         }
+        
         .request-item:nth-child(n+4) {
             display: none;
         }
+        
         .request-item:last-child {
             margin-bottom: 0;
         }
+        
         .request-title {
-            font-weight: bold;
-            font-size: 16px; /* Slightly smaller */
-            margin: 0 0 4px 0; /* Reduced margin */
+            font-weight: 700;
+            font-size: calc(16px + 0.7vmin);
+            margin: 0 0 0.5vh 0;
             color: white;
-            padding-right: 60px; /* Make space for timestamp */
+            padding-right: 6vw;
         }
+        
         .request-artist {
-            font-size: 14px; /* Slightly smaller */
-            opacity: 0.8;
+            font-size: calc(14px + 0.5vmin);
+            font-weight: 500;
+            opacity: 0.9;
             margin: 0;
-            padding-right: 60px; /* Make space for timestamp */
+            padding-right: 6vw;
+            color: var(--primary-light);
         }
+        
         .request-time {
-            font-size: 12px;
-            color: #aaa;
+            font-size: calc(12px + 0.3vmin);
+            color: var(--muted-text);
             position: absolute;
-            top: 10px;
-            right: 15px;
+            top: calc(10px + 0.3vmin);
+            right: calc(15px + 0.5vmin);
             margin: 0;
+            font-weight: 500;
+            padding: 0.3vh 0.8vw;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 50px;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        
         .upgrade-message {
-            background-color: rgba(30, 30, 30, 0.7);
-            border-radius: 8px;
-            padding: 20px;
+            background: linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(40, 40, 40, 0.8) 100%);
+            border-radius: 12px;
+            padding: calc(20px + 1vmin);
             text-align: center;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
         }
+        
         .upgrade-message h3 {
-            color: #8a2be2;
+            color: var(--primary);
             margin-top: 0;
+            font-size: calc(18px + 0.5vmin);
         }
-        /* New empty state style */
+        
+        .upgrade-message p {
+            font-size: calc(16px + 0.3vmin);
+            margin-top: 1vh;
+        }
+        
         .empty-feed {
             text-align: center;
-            padding: 20px 0;
+            padding: calc(20px + 1vmin) 0;
             opacity: 0.7;
             font-style: italic;
+            font-size: calc(16px + 0.5vmin);
         }
+        
         .fullscreen-button {
             background-color: rgba(138, 43, 226, 0.2);
             border: 1px solid rgba(138, 43, 226, 0.5);
-            color: #8a2be2;
-            width: 40px;
-            height: 40px;
+            color: var(--primary);
+            width: calc(40px + 1vmin);
+            height: calc(40px + 1vmin);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: calc(20px + 1vmin);
+            right: calc(20px + 1vmin);
             cursor: pointer;
             transition: all 0.2s ease;
-            font-size: 18px;
+            font-size: calc(18px + 0.5vmin);
             z-index: 100;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         .fullscreen-button:hover {
             background-color: rgba(138, 43, 226, 0.3);
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
         }
 
         body.is-fullscreen .fullscreen-button {
             position: fixed;
+            top: 20px;
+            right: 20px;
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive optimizations */
+        @media (min-width: 1400px) {
+            /* For very large TVs */
+            .container {
+                max-width: 1400px;
+            }
+            
+            #qrcode {
+                width: 400px !important;
+                height: 400px !important;
+            }
+        }
+        
+        @media (max-aspect-ratio: 4/3) {
+            /* For non-widescreen displays */
+            .container {
+                padding: 3vh 3vw;
+            }
+            
+            .qr-section {
+                margin-bottom: 4vh;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Ambient background effect -->
+    <div class="ambient-bg">
+        <div class="glow-circle one"></div>
+        <div class="glow-circle two"></div>
+    </div>
+    
     <div class="container">
-        <div class="qr-container">
-            <h1 id="customMessage">Collekt</h1>
-            <canvas id="qrcode"></canvas>
-            <p>Scan this QR code to send a song request</p>
+        <div class="brand">
+            <h1 class="brand-logo">COLLEKT</h1>
         </div>
-        <button id="fullscreenButton" class="fullscreen-button">
-            <span class="fullscreen-icon">⤢</span>
-        </button>
         
-        <!-- Request Feed Section - Only visible for Pro/Admin users -->
+        <div class="qr-section">
+            <div class="message-text" id="customMessage">Request Your Song</div>
+            <div class="qr-wrapper">
+                <div class="qr-pulse"></div>
+                <div class="qr-code-container">
+                    <canvas id="qrcode"></canvas>
+                </div>
+            </div>
+            <div class="scan-text">Scan this QR code with your phone to send a song request to the DJ</div>
+        </div>
+        
+        <!-- Request Feed Section -->
         <div class="feed-container" id="feedContainer">
             <div class="feed-header">
                 <h2 class="feed-title">Recent Requests</h2>
@@ -223,6 +419,10 @@
                 </div>
             </div>
         </div>
+        
+        <button id="fullscreenButton" class="fullscreen-button">
+            <span class="fullscreen-icon">⤢</span>
+        </button>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
@@ -235,7 +435,7 @@
         
         // Set custom message
         document.getElementById('customMessage').textContent = message;
-        document.title = message;
+        document.title = 'COLLEKT · ' + message;
         
         // Generate QR code
         if (eventId) {
@@ -245,7 +445,8 @@
                 document.getElementById('qrcode'), 
                 requestUrl, 
                 {
-                    width: 300,
+                    width: 350, // Larger for TV displays
+                    height: 350,
                     margin: 2,
                     color: {
                         dark: '#000000',
@@ -255,32 +456,27 @@
                 function(error) {
                     if (error) {
                         console.error(error);
-                        document.body.innerHTML = '<div class="qr-container"><h1>Error Loading QR Code</h1></div>';
+                        document.querySelector('.qr-wrapper').innerHTML = '<div class="qr-code-container" style="padding: 30px;"><h2>Error Loading QR Code</h2></div>';
                     }
                 }
             );
         } else {
-            document.body.innerHTML = '<div class="qr-container"><h1>No Event ID Provided</h1></div>';
+            document.querySelector('.qr-wrapper').innerHTML = '<div class="qr-code-container" style="padding: 30px;"><h2>No Event ID Provided</h2></div>';
         }
 
-        // Initialize Supabase client (will be used for request feed)
+        // Initialize Supabase client
         const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         
-        // Role-based access control for request feed
-        // We'll check if the logged-in user has access to the feature
-        // and initialize the feed accordingly
+        // Check user access and initialize feed
         function checkAccessAndInitialize() {
-            // First, check if we have a valid eventId
             if (!eventId) return;
             
-            // Get user role from localStorage 
-            // If user is not logged in, we won't show the feed
             const isLoggedIn = localStorage.getItem('isLoggedIn');
             const userRole = localStorage.getItem('userRole');
             
-            // Show feed container whether user has access or not (we'll show appropriate content)
+            // Always show feed container
             document.getElementById('feedContainer').style.display = 'block';
             
             // Check if user has Pro or Admin access
@@ -296,46 +492,40 @@
             }
         }
         
-        // Call the function to check access and initialize the feed
-        // We'll implement the initRequestFeed function in the next step
         checkAccessAndInitialize();
 
-        // Request feed functionality
+        // Request feed variables
         let lastFetchTime = new Date().getTime();
-        let displayedRequestIds = new Set(); // Keep track of already displayed requests
+        let displayedRequestIds = new Set();
 
         // Initialize request feed
         function initRequestFeed() {
-            // Initial fetch of requests
+            // Initial fetch
             fetchLatestRequests();
             
-            // Set up polling every 10 seconds
-            setInterval(fetchLatestRequests, 10000);
+            // Set up polling every 8 seconds
+            setInterval(fetchLatestRequests, 8000);
         }
 
-        // Fetch latest requests from Supabase
+        // Fetch latest requests
         async function fetchLatestRequests() {
             try {
                 if (!eventId) return;
                 
-                // Fetch the 10 most recent requests for this event
+                // Fetch most recent requests
                 const { data: requests, error } = await supabase
                     .from('requests')
                     .select('*')
                     .eq('event_id', eventId)
-                    .order('created_at', { ascending: false }) // Most recent first
+                    .order('created_at', { ascending: false })
                     .limit(10);
                 
                 if (error) throw error;
                 
-                // Log the returned requests
-                console.log("QR Display - Fetched requests:", requests);
-                
-                // Update the feed count
-                const feedCount = document.getElementById('feedCount');
+                // Update feed count with animation if needed
                 updateFeedCount(requests ? requests.length : 0);
                 
-                // Display the requests
+                // Display requests with animations
                 if (requests && requests.length > 0) {
                     displayRequests(requests);
                 } else {
@@ -346,24 +536,24 @@
             }
         }
 
-        // Display requests in the feed
+        // Display requests with visual effects
         function displayRequests(requests) {
             const feed = document.getElementById('requestFeed');
             
-            // If this is the first load, clear the feed
+            // If first load, clear feed
             if (displayedRequestIds.size === 0) {
                 feed.innerHTML = '';
             }
             
-            // Process requests in reverse order (oldest first) for better animation
+            // Get new requests only
             const newRequests = requests.filter(req => !displayedRequestIds.has(req.id));
             
-            // Add new requests to the feed
+            // Add new requests with animations
             newRequests.forEach(request => {
-                // Add to tracked IDs
+                // Track this request
                 displayedRequestIds.add(request.id);
                 
-                // Create request item
+                // Create request item with enhanced styling
                 const requestItem = document.createElement('div');
                 requestItem.className = 'request-item';
                 
@@ -371,56 +561,53 @@
                 const timestamp = new Date(request.created_at);
                 let timeString = '';
                 
-                // Check if date is valid before formatting
                 if (!isNaN(timestamp.getTime())) {
                     timeString = timestamp.toLocaleTimeString([], { 
                         hour: '2-digit', 
                         minute: '2-digit',
-                        hour12: true // Use 12-hour format with AM/PM
+                        hour12: true
                     });
                 }
 
-                // Set content
+                // Enhanced HTML content
                 requestItem.innerHTML = `
                     <h3 class="request-title">${request.title}</h3>
                     <p class="request-artist">${request.artist}</p>
                     <p class="request-time">${timeString}</p>
                 `;
                 
-                // Insert at the beginning (most recent on top)
+                // Insert at beginning (most recent first)
                 feed.insertBefore(requestItem, feed.firstChild);
             });
             
-            // Keep only 3 most recent items visible (CSS will handle opacity)
+            // CSS will handle showing only top 3
             const items = feed.querySelectorAll('.request-item');
-            if (items.length > 3) {
-                // We'll still keep extra items in the DOM, but they'll be hidden by CSS
-                // This approach allows for smoother transitions when new items arrive
-            }
             
-            // If no requests and feed is empty, show message
+            // If no items are visible, show empty message
             if (items.length === 0) {
                 feed.innerHTML = '<p class="empty-feed">No requests yet</p>';
             }
         }
+        
+        // Update count with animation if increased
         function updateFeedCount(count) {
             const feedCount = document.getElementById('feedCount');
             const currentCount = parseInt(feedCount.textContent) || 0;
             
-            // Update the count
+            // Update count
             feedCount.textContent = count;
             
-            // Add animation if the count increased
+            // Animate if count increased
             if (count > currentCount) {
-                // Add the pulse class
                 feedCount.classList.add('pulse');
                 
-                // Remove it after animation completes
                 setTimeout(() => {
                     feedCount.classList.remove('pulse');
                 }, 600);
             }
         }
+        
+        // Fullscreen functionality
         document.getElementById('fullscreenButton').addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
@@ -431,7 +618,7 @@
             }
         });
 
-        // Listen for fullscreen changes
+        // Update class on fullscreen change
         document.addEventListener('fullscreenchange', () => {
             document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement);
         });
