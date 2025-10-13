@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Same styles as before */
         :root {
             --primary: #8a2be2;
             --primary-dark: #6a1cb2;
@@ -250,8 +251,8 @@
                 <button class="auth-tab active" id="registerTab">Register</button>
             </div>
             
-            <!-- Registration Form -->
-            <div class="auth-form" id="registerForm">
+            <!-- Registration Form - Now using FORM element instead of DIV -->
+            <form class="auth-form" id="registerForm">
                 <div class="form-header">
                     <h2>DJ Registration</h2>
                     <p>Create your account to start managing song requests</p>
@@ -280,7 +281,7 @@
                     <input type="password" id="confirmPassword" required>
                 </div>
                 
-                <button type="submit" class="submit-btn" id="registerButton">Register</button>
+                <button type="button" class="submit-btn" id="registerButton">Register</button>
                 
                 <div style="text-align: center; margin-top: 20px;">
                     <span style="color: var(--muted-text);">Already have an account?</span>
@@ -288,7 +289,7 @@
                 </div>
                 
                 <a href="/" class="back-to-home">← Back to home</a>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -317,7 +318,7 @@
         });
 
         // Registration functionality
-        document.getElementById('registerButton').addEventListener('click', async function() {
+        document.getElementById('registerButton').addEventListener('click', async function(e) {
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value.trim().toLowerCase(); // Normalize email
             const password = document.getElementById('password').value;
@@ -338,11 +339,14 @@
                 console.log("Starting registration process for:", email);
                 
                 // STEP 1: Check if email already exists in auth system
-                const { data: { users }, error: existingUserError } = await supabase.auth.admin.listUsers();
-                
-                if (existingUserError) {
-                    console.log("Could not check for existing users - proceeding with caution");
-                } else {
+                // Note: This will likely fail with 403 as expected, but we handle it gracefully
+                try {
+                    const { data: { users }, error: existingUserError } = await supabase.auth.admin.listUsers();
+                    
+                    if (existingUserError) {
+                        throw existingUserError;
+                    }
+                    
                     // Check if email exists
                     const existingAuthUser = users?.find(u => u.email.toLowerCase() === email.toLowerCase());
                     
@@ -350,18 +354,30 @@
                         console.warn("User already exists in Auth system:", existingAuthUser.id);
                         throw new Error("An account with this email already exists. Please login instead.");
                     }
+                } catch (authCheckError) {
+                    console.log("Could not check for existing users - proceeding with caution");
                 }
                 
                 // STEP 2: Check if email exists in dj_users table
-                const { data: existingDjUser, error: djUserError } = await supabase
-                    .from('dj_users')
-                    .select('id, auth_id, email')
-                    .ilike('email', email)
-                    .single();
-                    
-                if (existingDjUser) {
-                    console.warn("User already exists in dj_users table:", existingDjUser);
-                    throw new Error("An account with this email already exists. Please login instead.");
+                // Fix the ilike query format
+                try {
+                    const { data: existingDjUser, error: djUserError } = await supabase
+                        .from('dj_users')
+                        .select('id, auth_id, email')
+                        .eq('email', email)
+                        .single();
+                        
+                    if (!djUserError && existingDjUser) {
+                        console.warn("User already exists in dj_users table:", existingDjUser);
+                        throw new Error("An account with this email already exists. Please login instead.");
+                    }
+                } catch (djCheckError) {
+                    // Continue if it's a "not found" error, otherwise throw
+                    if (djCheckError.message !== "An account with this email already exists. Please login instead.") {
+                        console.log("User not found in dj_users, proceeding with registration");
+                    } else {
+                        throw djCheckError;
+                    }
                 }
                 
                 // STEP 3: Create auth user
@@ -431,7 +447,7 @@
                 
                 console.log("Registration successful");
                 
-                // Show success message
+                // Show success message and reset form - now this will work!
                 document.getElementById('successMessage').style.display = 'block';
                 document.getElementById('registerForm').reset();
                 
