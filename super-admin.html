@@ -3,183 +3,606 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Admin Dashboard - DJ Request System</title>
-    <link rel="stylesheet" href="admin/styles.css">
+    <title>Super Admin - COLLEKT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .admin-panel {
-            padding: 30px;
-            background-color: #1e1e1e;
-            border-radius: 8px;
-            margin-bottom: 30px;
+        :root {
+            --primary: #8a2be2;
+            --primary-dark: #6a1cb2;
+            --primary-light: #a44df7;
+            --primary-transparent: rgba(138, 43, 226, 0.1);
+            --dark: #121212;
+            --dark-accent: #1e1e1e;
+            --card-bg: #222222;
+            --light-text: #ffffff;
+            --muted-text: rgba(255, 255, 255, 0.7);
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
         }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark);
+            color: var(--light-text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        .dashboard-header {
+            background-color: var(--dark-accent);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .admin-badge {
+            background-color: rgba(244, 67, 54, 0.15);
+            color: #ff7875;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .header-button {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .header-button:hover {
+            background-color: var(--primary);
+            color: var(--light-text);
+        }
+        
+        .logout-button {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        
+        .logout-button:hover {
+            background-color: var(--danger);
+            color: var(--light-text);
+        }
+        
+        /* Main Container */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        /* Admin Panel Section */
+        .admin-panel {
+            background-color: var(--dark-accent);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title i {
+            font-size: 1.2rem;
+        }
+        
+        /* Filter and search */
+        .admin-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .search-input {
+            padding: 10px 15px 10px 35px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-family: 'Montserrat', sans-serif;
+            width: 250px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted-text);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--input-bg);
+            transition: .4s;
+            border-radius: 20px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 2px;
+            background-color: var(--muted-text);
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--primary-transparent);
+        }
+        
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(18px);
+            background-color: var(--primary);
+        }
+        
+        /* Users Table */
         .users-table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 5px;
+            overflow: hidden;
         }
-        .users-table th, .users-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
+        
         .users-table th {
-            background-color: rgba(138, 43, 226, 0.2);
+            background-color: rgba(138, 43, 226, 0.1);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .status-inactive {
-            color: #ff6b6b;
+        
+        .users-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        .users-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+        
+        .users-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* User Status and Role Styles */
         .status-active {
-            color: #4caf50;
+            color: var(--success);
         }
+        
+        .status-inactive {
+            color: var(--warning);
+        }
+        
         .role-badge {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
         }
+        
         .role-admin {
-            background-color: #8a2be2;
+            background-color: rgba(244, 67, 54, 0.15);
+            color: #ff7875;
         }
+        
         .role-pro {
-            background-color: #2e8b57;
+            background-color: rgba(138, 43, 226, 0.15);
+            color: var(--primary-light);
         }
+        
         .role-basic {
-            background-color: #4169e1;
+            background-color: rgba(33, 150, 243, 0.15);
+            color: #42a5f5;
         }
+        
+        /* Action Buttons */
         .action-button {
-            padding: 6px 10px;
-            font-size: 14px;
+            background-color: transparent;
+            color: var(--light-text);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 5px;
         }
+        
+        .action-button:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .edit-button {
+            color: var(--primary);
+            border-color: var(--primary-transparent);
+        }
+        
+        .edit-button:hover {
+            background-color: var(--primary-transparent);
+        }
+        
+        .activate-button {
+            color: var(--success);
+            border-color: rgba(76, 175, 80, 0.2);
+        }
+        
+        .activate-button:hover {
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        
+        /* Add New User Button */
+        .add-user-button {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .add-user-button:hover {
+            background-color: rgba(76, 175, 80, 0.85);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Modal Styles */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
         }
-
+        
         .modal-content {
-            background-color: #1e1e1e;
-            border-radius: 8px;
-            padding: 20px;
+            background-color: var(--dark-accent);
+            border-radius: 10px;
+            padding: 30px;
             width: 90%;
             max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-
-        select {
+        
+        .modal-content h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select {
             width: 100%;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-color);
-            font-size: 16px;
+            padding: 12px 15px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
         }
-
-        input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-color);
-            font-size: 16px;
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+            outline: none;
         }
-
+        
         .button-group {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            position: fixed;
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 5px;
+            width: 180px !important;
+            max-width: 180px !important;
+            z-index: 9999;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            left: auto !important;
+            right: auto !important;
+        }
+        
+        .dropdown-menu.show {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 9999 !important;
+            pointer-events: auto !important;
+        }
+        
+        .dropdown-item {
+            padding: 10px 15px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .dropdown-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(138, 43, 226, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+                text-align: center;
+            }
+            
+            .user-controls {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filter-controls {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .search-container {
+                width: 100%;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .users-table {
+                display: block;
+                overflow-x: auto;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="admin-panel">
-            <h1>Super Admin Dashboard</h1>
-            <h2>User Management</h2>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <a href="/" class="logo">COLLEKT</a>
+        <div class="user-controls">
+            <span class="admin-badge">Super Admin</span>
+            <button id="eventsButton" class="header-button">Events Dashboard</button>
+            <button id="logoutButton" class="header-button logout-button">Logout</button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Admin Panel Section -->
+        <section class="admin-panel">
+            <div class="admin-controls">
+                <h2 class="section-title">
+                    <i>👥</i> User Management
+                </h2>
+                <button id="createUserButton" class="add-user-button">
+                    <i>➕</i> Create New DJ
+                </button>
+            </div>
+            
+            <div class="filter-controls">
+                <div class="search-container">
+                    <i class="search-icon">🔍</i>
+                    <input type="text" id="userSearch" class="search-input" placeholder="Search users...">
+                </div>
+                <label class="archive-toggle">
+                    <span>Show inactive users</span>
+                    <span class="toggle-switch">
+                        <input type="checkbox" id="showInactive">
+                        <span class="toggle-slider"></span>
+                    </span>
+                </label>
+            </div>
             
             <div id="usersList">
-                <table class="users-table">
+                <!-- Loading spinner -->
+                <div class="spinner" id="loadingSpinner"></div>
+                
+                <!-- Users table - dynamically populated -->
+                <table class="users-table" id="usersTable" style="display: none;">
                     <thead>
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
                             <th>Status</th>
-                            <th>Subscription End</th>
+                            <th>Subscription Ends</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="usersTableBody">
-                        <tr>
-                            <td colspan="6">Loading users...</td>
-                        </tr>
+                        <!-- User rows will be populated here -->
                     </tbody>
                 </table>
             </div>
-        </div>
-        
-        <!-- Logout Button -->
-        <button id="logoutButton" style="position: fixed; top: 20px; right: 20px;">Logout</button>
+        </section>
+    </div>
 
-        <div id="editUserModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <h3>Edit User</h3>
-                <div id="editForm">
-                    <input type="hidden" id="editUserId">
-                    <input type="hidden" id="editAuthId">
-                    
-                    <div class="form-group">
-                        <label for="editName">Name</label>
-                        <input type="text" id="editName">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editEmail">Email</label>
-                        <input type="email" id="editEmail" readonly>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editRole">Role</label>
-                        <select id="editRole">
-                            <option value="">Loading roles...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editStatus">Status</label>
-                        <select id="editStatus">
-                            <option value="true">Active</option>
-                            <option value="false">Inactive</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editSubscription">Subscription End Date</label>
-                        <input type="date" id="editSubscription">
-                    </div>
-                    
-                    <div class="button-group">
-                        <button id="saveUserButton">Save Changes</button>
-                        <button id="cancelEditButton">Cancel</button>
-                    </div>
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Edit User</h3>
+            <form id="editForm">
+                <input type="hidden" id="editUserId">
+                <input type="hidden" id="editAuthId">
+                
+                <div class="form-group">
+                    <label for="editName">Name</label>
+                    <input type="text" id="editName">
                 </div>
-            </div>
+                
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editRole">Role</label>
+                    <select id="editRole">
+                        <option value="">Loading roles...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editStatus">Status</label>
+                    <select id="editStatus">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editSubscription">Subscription End Date</label>
+                    <input type="date" id="editSubscription">
+                </div>
+                
+                <div class="button-group">
+                    <button type="button" id="cancelEditButton" class="header-button">Cancel</button>
+                    <button type="button" id="saveUserButton" class="add-user-button">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- ADD to super-admin.html - Create new user modal -->
+    <!-- Create User Modal -->
     <div id="createUserModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h3>Create New DJ Account</h3>
-            <div id="createForm">
+            <form id="createForm">
                 <div class="form-group">
                     <label for="createName">Full Name</label>
                     <input type="text" id="createName" required>
@@ -211,13 +634,13 @@
                 </div>
                 
                 <div class="button-group">
-                    <button id="saveNewUserButton">Create Account</button>
-                    <button id="cancelCreateButton">Cancel</button>
+                    <button type="button" id="cancelCreateButton" class="header-button">Cancel</button>
+                    <button type="button" id="saveNewUserButton" class="add-user-button">Create Account</button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
         // Initialize Supabase client
@@ -225,21 +648,38 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         
+        // DOM Elements
+        const usersTable = document.getElementById('usersTable');
+        const usersTableBody = document.getElementById('usersTableBody');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const showInactiveToggle = document.getElementById('showInactive');
+        const userSearch = document.getElementById('userSearch');
+        const createUserButton = document.getElementById('createUserButton');
+        const editUserModal = document.getElementById('editUserModal');
+        const createUserModal = document.getElementById('createUserModal');
+        const eventsButton = document.getElementById('eventsButton');
+        const logoutButton = document.getElementById('logoutButton');
+        
         // Check if admin is logged in
-        if (!localStorage.getItem('isLoggedIn') || localStorage.getItem('isAdmin') !== 'true') {
-            window.location.href = 'admin/login.html';
+        function checkAuth() {
+            if (!localStorage.getItem('isLoggedIn') || localStorage.getItem('isAdmin') !== 'true') {
+                window.location.href = 'admin/login.html';
+                return false;
+            }
+            return true;
         }
         
-        // Format date
+        // Format date for display
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
             const date = new Date(dateString);
             return date.toLocaleDateString();
         }
         
-        // Get role badge HTML
+        // Create role badge HTML
         function getRoleBadge(roleName) {
-            let className = '';
+            let className = 'role-basic';
+            
             switch (roleName) {
                 case 'Admin':
                     className = 'role-admin';
@@ -247,116 +687,81 @@
                 case 'Pro DJ':
                     className = 'role-pro';
                     break;
-                case 'Basic DJ':
-                    className = 'role-basic';
-                    break;
             }
+            
             return `<span class="role-badge ${className}">${roleName}</span>`;
         }
         
-        // Load users
+        // Load user list from database
         async function loadUsers() {
             try {
-                console.log('Loading users...');
+                // Show loading spinner
+                loadingSpinner.style.display = 'block';
+                usersTable.style.display = 'none';
                 
-                // Get all dj_users, including inactive ones
+                // Get filter status
+                const showInactive = showInactiveToggle.checked;
+                const searchTerm = userSearch.value.toLowerCase();
+                
+                // Get all dj_users, including inactive ones if needed
                 const { data: djUsers, error: djError } = await supabase
                     .from('dj_users')
                     .select('*, roles(name)')
                     .order('created_at', { ascending: false });
                 
-                if (djError) {
-                    console.error("Error fetching DJ users:", djError);
-                    throw djError;
-                }
+                if (djError) throw djError;
                 
-                console.log('DJ users found:', djUsers ? djUsers.length : 0);
+                // Apply filters
+                const filteredUsers = djUsers.filter(user => {
+                    // Filter by active status
+                    if (!showInactive && !user.active) return false;
+                    
+                    // Filter by search term if provided
+                    if (searchTerm && !(
+                        user.name?.toLowerCase().includes(searchTerm) ||
+                        user.email?.toLowerCase().includes(searchTerm) ||
+                        user.roles?.name?.toLowerCase().includes(searchTerm)
+                    )) return false;
+                    
+                    return true;
+                });
                 
-                const tableBody = document.getElementById('usersTableBody');
-                tableBody.innerHTML = '';
+                // Clear table body
+                usersTableBody.innerHTML = '';
                 
                 // If no users found
-                if (!djUsers || djUsers.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
-                    return;
-                }
-                
-                const tableContainer = document.getElementById('usersList');
-                
-                // Add a "Create New User" button above the table - FIXED ORDER
-                if (!document.getElementById('createUserButton')) {
-                    const createButtonContainer = document.createElement('div');
-                    createButtonContainer.style.marginBottom = '20px';
-                    createButtonContainer.innerHTML = `
-                        <button id="createUserButton" class="action-button" style="padding: 10px 20px; background-color: #4caf50;">
-                            Create New DJ Account
-                        </button>
+                if (!filteredUsers || filteredUsers.length === 0) {
+                    usersTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 20px;">
+                                No users found matching your criteria
+                            </td>
+                        </tr>
                     `;
-                    
-                    // Insert at the beginning of the container
-                    tableContainer.insertBefore(createButtonContainer, tableContainer.firstChild);
-                    
-                    // Add event listener for create button
-                    document.getElementById('createUserButton').addEventListener('click', () => {
-                        openCreateUserModal();
+                } else {
+                    // Display users
+                    filteredUsers.forEach(user => {
+                        const isActive = user.active;
+                        const roleName = user.roles?.name || 'Basic DJ';
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.name || 'N/A'}</td>
+                            <td>${user.email || 'N/A'}</td>
+                            <td>${getRoleBadge(roleName)}</td>
+                            <td class="${isActive ? 'status-active' : 'status-inactive'}">
+                                ${isActive ? 'Active' : 'Inactive'}
+                            </td>
+                            <td>${formatDate(user.subscription_ends)}</td>
+                            <td>
+                                ${!isActive ? `<button class="action-button activate-button" data-action="activate" data-id="${user.id}">Activate</button>` : ''}
+                                <button class="action-button edit-button" data-action="edit" data-id="${user.id}">Edit</button>
+                            </td>
+                        `;
+                        
+                        usersTableBody.appendChild(row);
                     });
                 }
-                
-                // Add a filter toggle for inactive users - FIXED ORDER
-                if (!document.getElementById('showInactiveToggle')) {
-                    const filterContainer = document.createElement('div');
-                    filterContainer.style.marginBottom = '20px';
-                    filterContainer.innerHTML = `
-                        <label style="margin-right: 10px;">
-                            <input type="checkbox" id="showInactiveToggle" checked> 
-                            Show inactive (pending) users
-                        </label>
-                    `;
-                    
-                    // Insert after create button
-                    const createButton = document.getElementById('createUserButton');
-                    if (createButton && createButton.parentNode) {
-                        tableContainer.insertBefore(filterContainer, createButton.parentNode.nextSibling);
-                    } else {
-                        // Fallback - insert at beginning
-                        tableContainer.insertBefore(filterContainer, tableContainer.firstChild);
-                    }
-                    
-                    // Add event listener for the toggle
-                    document.getElementById('showInactiveToggle').addEventListener('change', function() {
-                        loadUsers(); // Reload with current filter setting
-                    });
-                }
-                
-                // Apply inactive filter if unchecked
-                const showInactive = document.getElementById('showInactiveToggle').checked;
-                const filteredUsers = showInactive ? djUsers : djUsers.filter(user => user.active);
-                
-                console.log('Users after filtering:', filteredUsers.length);
-                
-                // Process and display all dj users
-                filteredUsers.forEach(user => {
-                    const tr = document.createElement('tr');
-                    
-                    // Determine user status and role
-                    const isActive = user.active;
-                    const roleName = user.roles?.name || 'Not Set';
-                    
-                    // Create table row
-                    tr.innerHTML = `
-                        <td>${user.name || 'N/A'}</td>
-                        <td>${user.email || 'N/A'}</td>
-                        <td>${getRoleBadge(roleName)}</td>
-                        <td class="${isActive ? 'status-active' : 'status-inactive'}">${isActive ? 'Active' : 'Inactive (Pending)'}</td>
-                        <td>${formatDate(user.subscription_ends)}</td>
-                        <td>
-                            ${!isActive ? `<button class="action-button" data-action="activate" data-id="${user.id}">Activate</button>` : ''}
-                            <button class="action-button" data-action="edit" data-id="${user.id}">Edit</button>
-                        </td>
-                    `;
-                    
-                    tableBody.appendChild(tr);
-                });
                 
                 // Add event listeners for action buttons
                 document.querySelectorAll('[data-action="activate"]').forEach(button => {
@@ -369,141 +774,46 @@
                 
             } catch (error) {
                 console.error('Error loading users:', error);
-                document.getElementById('usersTableBody').innerHTML = `<tr><td colspan="6">Error loading users: ${error.message}</td></tr>`;
-            }
-        }
-
-        // ADD to super-admin.html - Function to create a new DJ user
-        async function createDjUser(authId, email, name) {
-            try {
-                // Open the edit user modal with creation mode
-                await openEditUserModal(null, true, { authId, email, name });
-            } catch (error) {
-                console.error('Error creating DJ user:', error);
-                alert('Failed to create DJ user: ' + error.message);
+                usersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px; color: var(--danger);">
+                            Error loading users: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            } finally {
+                // Hide loading spinner, show table
+                loadingSpinner.style.display = 'none';
+                usersTable.style.display = 'table';
             }
         }
         
-        // Activate user
+        // Activate a user
         async function activateUser(userId) {
             try {
-                // Log the activation attempt
-                console.log('Activating user:', userId);
-                
                 // Update the user in the database
                 const { error } = await supabase
                     .from('dj_users')
                     .update({ active: true })
                     .eq('id', userId);
                 
-                if (error) {
-                    throw error;
-                }
+                if (error) throw error;
                 
-                // Show success message
-                alert('User activated successfully!');
+                showMessage('User activated successfully!', 'success');
                 
-                // Find the row in the table and update it visually
-                const userRow = document.querySelector(`button[data-action="activate"][data-id="${userId}"]`).closest('tr');
-                const statusCell = userRow.querySelector('td:nth-child(4)'); // The status column
-                
-                // Update the status cell
-                statusCell.className = 'status-active';
-                statusCell.textContent = 'Active';
-                
-                // Remove the activate button
-                userRow.querySelector('button[data-action="activate"]').remove();
-                
-                // Refresh the list to ensure everything is in sync
-                setTimeout(loadUsers, 1000); // Reload after a short delay
+                // Refresh the list
+                await loadUsers();
                 
             } catch (error) {
                 console.error('Error activating user:', error);
-                alert('Failed to activate user: ' + error.message);
+                showMessage(`Failed to activate user: ${error.message}`, 'error');
             }
         }
         
-        // Edit user (placeholder for now)
-        function editUser(userId) {
-            openEditUserModal(userId);
-        }
-
-        // Open the edit user modal
-        function openEditUserModal(userId) {
-            editUser(userId);
-        }
-        
-        // Logout
-        document.getElementById('logoutButton').addEventListener('click', function() {
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('userEmail');
-            window.location.href = 'admin/login.html';
-        });
-        
-        // Load users when page loads
-        document.addEventListener('DOMContentLoaded', loadUsers);
-
-        // Load roles for select dropdown
-        async function loadRoles() {
+        // Edit user - open modal with user data
+        async function editUser(userId) {
             try {
-                const { data: roles, error } = await supabase
-                    .from('roles')
-                    .select('*');
-                
-                if (error) throw error;
-                
-                const roleSelect = document.getElementById('editRole');
-                roleSelect.innerHTML = '';
-                
-                if (roles && roles.length > 0) {
-                    roles.forEach(role => {
-                        const option = document.createElement('option');
-                        option.value = role.id;
-                        option.textContent = role.name;
-                        roleSelect.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading roles:', error);
-            }
-        }
-
-        // Open edit user modal
-        async function openEditUserModal(userId, isNew = false, newUserData = null) {
-            try {
-                // Load roles for dropdown
-                await loadRoles();
-                
-                // If this is a new user (creating DJ user for existing Auth user)
-                if (isNew && newUserData) {
-                    document.getElementById('editUserId').value = '';
-                    document.getElementById('editAuthId').value = newUserData.authId;
-                    document.getElementById('editName').value = newUserData.name || '';
-                    document.getElementById('editEmail').value = newUserData.email || '';
-                    document.getElementById('editStatus').value = 'false'; // Inactive by default
-                    
-                    // Set default role to Basic DJ
-                    const basicDjOption = Array.from(document.getElementById('editRole').options)
-                        .find(option => option.text === 'Basic DJ');
-                        
-                    if (basicDjOption) {
-                        document.getElementById('editRole').value = basicDjOption.value;
-                    }
-                    
-                    // Default to 30 days subscription
-                    const date = new Date();
-                    date.setMonth(date.getMonth() + 1);
-                    document.getElementById('editSubscription').value = date.toISOString().split('T')[0];
-                    
-                    // Update modal title
-                    document.querySelector('#editUserModal h3').textContent = 'Create DJ User';
-                    
-                    // Show modal
-                    document.getElementById('editUserModal').style.display = 'flex';
-                    return;
-                }
-                
-                // For existing users, get their details
+                // Get user data
                 const { data: user, error } = await supabase
                     .from('dj_users')
                     .select('*, roles(id, name)')
@@ -511,6 +821,9 @@
                     .single();
                 
                 if (error) throw error;
+                
+                // Load roles dropdown
+                await loadRoles('editRole');
                 
                 // Populate form
                 document.getElementById('editUserId').value = user.id;
@@ -535,81 +848,64 @@
                     document.getElementById('editSubscription').value = date.toISOString().split('T')[0];
                 }
                 
-                // Update modal title
-                document.querySelector('#editUserModal h3').textContent = 'Edit User';
-                
                 // Show modal
-                document.getElementById('editUserModal').style.display = 'flex';
+                editUserModal.style.display = 'flex';
                 
             } catch (error) {
-                console.error('Error opening edit form:', error);
-                alert('Failed to load user details: ' + error.message);
+                console.error('Error loading user data:', error);
+                showMessage(`Failed to load user details: ${error.message}`, 'error');
             }
         }
-
+        
         // Save user changes
         async function saveUserChanges() {
             try {
                 const userId = document.getElementById('editUserId').value;
-                const authId = document.getElementById('editAuthId').value;
                 const name = document.getElementById('editName').value;
-                const email = document.getElementById('editEmail').value;
                 const roleId = document.getElementById('editRole').value;
                 const active = document.getElementById('editStatus').value === 'true';
                 const subscriptionEnd = document.getElementById('editSubscription').value;
                 
+                if (!name || !roleId) {
+                    throw new Error('Please fill in all required fields');
+                }
+                
                 // Create subscription date
                 const subscriptionDate = new Date(subscriptionEnd);
                 
-                // Check if this is a new user (creating) or existing (updating)
-                if (!userId) {
-                    // Creating a new DJ user for an existing Auth user
-                    const { data, error } = await supabase
-                        .from('dj_users')
-                        .insert([{
-                            auth_id: authId,
-                            name: name,
-                            email: email,
-                            role_id: roleId,
-                            active: active,
-                            subscription_ends: subscriptionDate.toISOString()
-                        }]);
-                    
-                    if (error) throw error;
-                    
-                    alert('DJ user account created successfully!');
-                } else {
-                    // Updating an existing user
-                    const { error } = await supabase
-                        .from('dj_users')
-                        .update({
-                            name: name,
-                            role_id: roleId,
-                            active: active,
-                            subscription_ends: subscriptionDate.toISOString()
-                        })
-                        .eq('id', userId);
-                    
-                    if (error) throw error;
-                    
-                    alert('User updated successfully!');
-                }
+                // Update the user
+                const { error } = await supabase
+                    .from('dj_users')
+                    .update({
+                        name: name,
+                        role_id: roleId,
+                        active: active,
+                        subscription_ends: subscriptionDate.toISOString()
+                    })
+                    .eq('id', userId);
                 
-                document.getElementById('editUserModal').style.display = 'none';
-                loadUsers(); // Refresh the list
+                if (error) throw error;
+                
+                showMessage('User updated successfully!', 'success');
+                
+                // Close modal
+                editUserModal.style.display = 'none';
+                
+                // Refresh the list
+                await loadUsers();
                 
             } catch (error) {
                 console.error('Error saving user changes:', error);
-                alert('Failed to update user: ' + error.message);
+                showMessage(`Failed to update user: ${error.message}`, 'error');
             }
         }
-
-        // ADD to super-admin.html - Functions for creating new users
+        
+        // Open create user modal
         function openCreateUserModal() {
             // Load roles for dropdown
             loadRoles('createRole');
             
-            // Default values
+            // Set default values
             document.getElementById('createName').value = '';
             document.getElementById('createEmail').value = '';
             document.getElementById('createStatus').value = 'false'; // Inactive by default
@@ -620,10 +916,10 @@
             document.getElementById('createSubscription').value = date.toISOString().split('T')[0];
             
             // Show modal
-            document.getElementById('createUserModal').style.display = 'flex';
+            createUserModal.style.display = 'flex';
         }
-
-        // Updated loadRoles function to work with different select elements
+        
+        // Load roles for select dropdown
         async function loadRoles(selectId = 'editRole') {
             try {
                 const { data: roles, error } = await supabase
@@ -653,9 +949,11 @@
                 }
             } catch (error) {
                 console.error('Error loading roles:', error);
+                showMessage(`Failed to load roles: ${error.message}`, 'error');
             }
         }
-
+        
+        // Create new user
         async function createNewUser() {
             try {
                 const name = document.getElementById('createName').value;
@@ -665,8 +963,7 @@
                 const subscriptionEnd = document.getElementById('createSubscription').value;
                 
                 if (!name || !email || !roleId) {
-                    alert('Please fill in all required fields');
-                    return;
+                    throw new Error('Please fill in all required fields');
                 }
                 
                 // Create subscription date
@@ -681,25 +978,42 @@
                 if (checkError) throw checkError;
                 
                 if (existingUsers && existingUsers.length > 0) {
-                    alert('A user with this email already exists');
-                    return;
+                    throw new Error('A user with this email already exists');
                 }
                 
-                // Create a new auth user in Supabase to get auth_id
-                // Note: This uses passwordless login since we're creating from admin side
+                // Create auth user and DJ user
                 const tempPassword = Math.random().toString(36).slice(-8);
-                const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-                    email: email,
-                    password: tempPassword,
-                    email_confirm: true
-                });
                 
-                if (authError) {
-                    // If we can't create auth user (need service role), we can still create dj_user
+                // Try to create auth user with password
+                try {
+                    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+                        email: email,
+                        password: tempPassword,
+                        email_confirm: true
+                    });
+                    
+                    if (authError) throw authError;
+                    
+                    // Create DJ user with auth_id
+                    const { error: insertError } = await supabase
+                        .from('dj_users')
+                        .insert([{
+                            auth_id: authUser.user.id,
+                            name: name,
+                            email: email,
+                            role_id: roleId,
+                            active: active,
+                            subscription_ends: subscriptionDate.toISOString()
+                        }]);
+                        
+                    if (insertError) throw insertError;
+                    
+                    showMessage('User created successfully with Auth account!', 'success');
+                    
+                } catch (authError) {
                     console.warn("Could not create auth user:", authError);
-                    console.warn("Creating dj_user without auth_id - user will need to register");
                     
-                    // Create dj_user without auth_id
+                    // Fallback: Create DJ user without auth_id
                     const { error: insertError } = await supabase
                         .from('dj_users')
                         .insert([{
@@ -712,53 +1026,90 @@
                         
                     if (insertError) throw insertError;
                     
-                    alert('DJ User created successfully! The user will need to register to link their account.');
-                } else {
-                    // We were able to create auth user, now create dj_user with auth_id
-                    const auth_id = authUser.user.id;
-                    
-                    const { error: insertError } = await supabase
-                        .from('dj_users')
-                        .insert([{
-                            auth_id: auth_id,
-                            name: name,
-                            email: email,
-                            role_id: roleId,
-                            active: active,
-                            subscription_ends: subscriptionDate.toISOString()
-                        }]);
-                        
-                    if (insertError) throw insertError;
-                    
-                    alert('DJ User created successfully with linked Auth account!');
+                    showMessage('DJ user created. The user will need to register to link their account.', 'success');
                 }
                 
                 // Close modal and reload users
-                document.getElementById('createUserModal').style.display = 'none';
-                loadUsers();
+                createUserModal.style.display = 'none';
+                await loadUsers();
                 
             } catch (error) {
                 console.error('Error creating user:', error);
-                alert('Failed to create user: ' + error.message);
+                showMessage(`Failed to create user: ${error.message}`, 'error');
             }
         }
-
-        function closeCreateModal() {
-            document.getElementById('createUserModal').style.display = 'none';
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('saveUserButton').addEventListener('click', saveUserChanges);
-            document.getElementById('cancelEditButton').addEventListener('click', closeEditModal);
+        
+        // Show toast message
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.padding = '12px 20px';
+            messageDiv.style.borderRadius = '5px';
+            messageDiv.style.backgroundColor = type === 'success' ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)';
+            messageDiv.style.color = 'white';
+            messageDiv.style.zIndex = '1000';
+            messageDiv.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            messageDiv.style.animation = 'fadeIn 0.3s ease';
             
-            // Add listeners for create user modal
-            document.getElementById('saveNewUserButton').addEventListener('click', createNewUser);
-            document.getElementById('cancelCreateButton').addEventListener('click', closeCreateModal);
-        });
-
-        function closeEditModal() {
-            document.getElementById('editUserModal').style.display = 'none';
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transition = 'opacity 0.3s ease';
+                
+                setTimeout(() => {
+                    document.body.removeChild(messageDiv);
+                }, 300);
+            }, 3000);
         }
+        
+        // Event listeners
+        createUserButton.addEventListener('click', openCreateUserModal);
+        
+        showInactiveToggle.addEventListener('change', loadUsers);
+        
+        userSearch.addEventListener('input', loadUsers);
+        
+        document.getElementById('saveUserButton').addEventListener('click', saveUserChanges);
+        
+        document.getElementById('cancelEditButton').addEventListener('click', () => {
+            editUserModal.style.display = 'none';
+        });
+        
+        document.getElementById('saveNewUserButton').addEventListener('click', createNewUser);
+        
+        document.getElementById('cancelCreateButton').addEventListener('click', () => {
+            createUserModal.style.display = 'none';
+        });
+        
+        eventsButton.addEventListener('click', () => {
+            window.location.href = 'admin/index.html';
+        });
+        
+        logoutButton.addEventListener('click', () => {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'admin/login.html';
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === editUserModal) {
+                editUserModal.style.display = 'none';
+            }
+            if (e.target === createUserModal) {
+                createUserModal.style.display = 'none';
+            }
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                loadUsers();
+            }
+        });
     </script>
 </body>
 </html>
