@@ -1145,23 +1145,27 @@
                 
                 // Toggle this dropdown
                 dropdownMenu.classList.toggle('show');
-
-                // Force the dropdown to be visible
+                
+                // Debug and force visibility if needed
                 if (dropdownMenu.classList.contains('show')) {
+                    // Apply multiple styles to force visibility
                     dropdownMenu.style.display = 'block';
-                    dropdownMenu.style.zIndex = '2000';
+                    dropdownMenu.style.zIndex = '9999';
+                    dropdownMenu.style.visibility = 'visible';
+                    dropdownMenu.style.opacity = '1';
                     
-                    // Check if styles are applied
-                    console.log('Dropdown styles:', 
-                        'Display:', window.getComputedStyle(dropdownMenu).display,
-                        'Z-index:', window.getComputedStyle(dropdownMenu).zIndex);
+                    // Check if dropdown has content
+                    console.log('Dropdown content:', dropdownMenu.innerHTML.trim().length > 0);
+                    
+                    // Verify dropdown is in viewport
+                    const rect = dropdownMenu.getBoundingClientRect();
+                    const inViewport = rect.top >= 0 && 
+                                    rect.left >= 0 && 
+                                    rect.bottom <= window.innerHeight &&
+                                    rect.right <= window.innerWidth;
+                                    
+                    console.log('Dropdown in viewport:', inViewport);
                 }
-
-                // Add these debug lines
-                console.log('Dropdown toggled:', dropdownMenu.classList.contains('show'));
-                const rect = moreButton.getBoundingClientRect();
-                console.log('Button position:', rect);
-                console.log('Dropdown position:', dropdownMenu.getBoundingClientRect());
             });
             
             // Dropdown actions
@@ -1182,6 +1186,9 @@
             dropdownMenu.querySelector('[data-action="delete"]').addEventListener('click', () => {
                 deleteEvent(event.id, event.name);
             });
+
+            console.log('Event card created with dropdown:', card.innerHTML);
+            console.log('Dropdown menu found:', !!dropdownMenu, dropdownMenu);
         }
 
 
