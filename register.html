@@ -3,70 +3,321 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - DJ Request System</title>
-    <link rel="stylesheet" href="admin/styles.css">
+    <title>Register - COLLEKT DJ System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        .register-form {
-            max-width: 500px;
-            margin: 100px auto;
-            padding: 30px;
-            background-color: #1e1e1e;
-            border-radius: 8px;
+        :root {
+            --primary: #8a2be2;
+            --primary-dark: #6a1cb2;
+            --primary-light: #a44df7;
+            --dark: #121212;
+            --dark-accent: #1e1e1e;
+            --light-text: #ffffff;
+            --muted-text: rgba(255, 255, 255, 0.7);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
         }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark);
+            color: var(--light-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        header {
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        
+        .auth-container {
+            background-color: var(--dark-accent);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+        
+        /* Tabs Navigation */
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 20px 0;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--muted-text);
+            background-color: transparent;
+            border: none;
+            position: relative;
+        }
+        
+        .auth-tab.active {
+            color: var(--light-text);
+        }
+        
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary);
+        }
+        
+        /* Form Styles */
+        .auth-form {
+            padding: 40px;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-header h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: var(--muted-text);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+            outline: none;
+        }
+        
         .error-message {
-            color: #ff6b6b;
-            margin-top: 15px;
+            background-color: rgba(255, 77, 79, 0.1);
+            border-left: 3px solid #ff4d4f;
+            color: #ff4d4f;
+            padding: 10px 15px;
+            border-radius: 0 5px 5px 0;
+            margin-bottom: 20px;
             display: none;
         }
+        
         .success-message {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 3px solid #4caf50;
             color: #4caf50;
-            margin-top: 15px;
+            padding: 10px 15px;
+            border-radius: 0 5px 5px 0;
+            margin-bottom: 20px;
             display: none;
+        }
+        
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .back-to-home {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--muted-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .back-to-home:hover {
+            color: var(--primary);
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--dark-accent);
+            color: var(--muted-text);
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 480px) {
+            .auth-form {
+                padding: 30px 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="register-form">
-            <h1>DJ Registration</h1>
-            <form id="registerForm">
+    <!-- Header -->
+    <header>
+        <div class="navbar">
+            <a href="/" class="logo">COLLEKT</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="auth-container">
+            <!-- Tabs Navigation -->
+            <div class="auth-tabs">
+                <button class="auth-tab" id="loginTab">Login</button>
+                <button class="auth-tab active" id="registerTab">Register</button>
+            </div>
+            
+            <!-- Registration Form -->
+            <div class="auth-form" id="registerForm">
+                <div class="form-header">
+                    <h2>DJ Registration</h2>
+                    <p>Create your account to start managing song requests</p>
+                </div>
+                
+                <div class="error-message" id="errorMessage">Error occurred during registration</div>
+                <div class="success-message" id="successMessage">Registration successful! You'll be contacted once your account is approved.</div>
+                
                 <div class="form-group">
                     <label for="name">Full Name</label>
                     <input type="text" id="name" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
                     <input type="password" id="confirmPassword" required>
                 </div>
-                <p id="errorMessage" class="error-message">Error occurred during registration</p>
-                <p id="successMessage" class="success-message">Registration successful! You'll be contacted once your account is approved.</p>
-                <button type="submit">Register</button>
-            </form>
-            <p style="margin-top: 20px; text-align: center;">
-                Already have an account? <a href="admin/login.html" style="color: #8a2be2;">Login here</a>
-            </p>
+                
+                <button type="submit" class="submit-btn" id="registerButton">Register</button>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <span style="color: var(--muted-text);">Already have an account?</span>
+                    <a href="admin/login.html" style="color: var(--primary); text-decoration: none; margin-left: 5px;">Login here</a>
+                </div>
+                
+                <a href="/" class="back-to-home">← Back to home</a>
+            </div>
         </div>
     </div>
-    
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 COLLEKT. All rights reserved.</p>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
         // Initialize Supabase client
         const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Tab switching functionality
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        
+        loginTab.addEventListener('click', () => {
+            window.location.href = 'admin/login.html';
+        });
+        
+        registerTab.addEventListener('click', () => {
+            // Already on register page - do nothing
+        });
 
-        // REPLACE in register.html - No email confirmation registration
-        document.getElementById('registerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
+        // Registration functionality
+        document.getElementById('registerButton').addEventListener('click', async function() {
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value.trim().toLowerCase(); // Normalize email
             const password = document.getElementById('password').value;
@@ -188,6 +439,13 @@
                 console.error('Error registering:', error);
                 document.getElementById('errorMessage').textContent = error.message || 'Error during registration';
                 document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+
+        // Also submit form when pressing Enter in confirm password field
+        document.getElementById('confirmPassword').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('registerButton').click();
             }
         });
     </script>
