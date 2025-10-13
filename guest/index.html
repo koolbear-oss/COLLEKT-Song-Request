@@ -5,41 +5,568 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#121212">
-    <title>DJ Song Request</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>COLLEKT • Request a Song</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8a2be2;
+            --primary-dark: #6a1cb2;
+            --primary-light: #a44df7;
+            --primary-transparent: rgba(138, 43, 226, 0.1);
+            --primary-glow: rgba(138, 43, 226, 0.5);
+            --dark: #121212;
+            --dark-accent: #1e1e1e;
+            --light-text: #ffffff;
+            --muted-text: rgba(255, 255, 255, 0.7);
+            --success: #4caf50;
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus-border: rgba(138, 43, 226, 0.5);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark);
+            color: var(--light-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            background-color: var(--dark-accent);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+            opacity: 0.2;
+            z-index: 0;
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            font-size: 1rem;
+            color: var(--muted-text);
+            font-weight: 500;
+        }
+        
+        .form-container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--light-text);
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 12px;
+            color: var(--light-text);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 4px rgba(138, 43, 226, 0.1);
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: none;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+        }
+        
+        .submit-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.3);
+        }
+        
+        .submit-btn:hover::after {
+            animation: shimmer 1.5s infinite;
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .error-message {
+            color: #ff5252;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        /* Confirmation screen */
+        .confirmation {
+            text-align: center;
+            display: none;
+        }
+        
+        .confirmation-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--success);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .confirmation-icon::before {
+            content: '✓';
+            font-size: 3rem;
+            color: white;
+            line-height: 0;
+        }
+        
+        .confirmation-icon::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            top: 50%;
+            left: 50%;
+        }
+        
+        .confirmation h2 {
+            font-size: 1.8rem;
+            margin-bottom: 16px;
+            color: var(--success);
+        }
+        
+        .confirmation p {
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+            color: var(--muted-text);
+        }
+        
+        .song-details {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .song-title {
+            font-weight: 700;
+            color: var(--primary-light);
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .artist-name {
+            color: var(--light-text);
+            font-size: 1.1rem;
+        }
+        
+        .new-request-btn {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .new-request-btn:hover {
+            background-color: var(--primary-transparent);
+            transform: translateY(-2px);
+        }
+        
+        .new-request-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Loading state */
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(30, 30, 30, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(138, 43, 226, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .loading-text {
+            margin-top: 16px;
+            font-weight: 500;
+            color: var(--muted-text);
+        }
+        
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        .show-confirmation .confirmation-icon {
+            animation: scaleIn 0.5s ease-out forwards;
+        }
+        
+        .show-confirmation .confirmation-icon::after {
+            animation: pulse 1s ease-out;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 380px) {
+            .container {
+                padding: 25px 20px;
+            }
+            
+            .logo h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-group input,
+            .form-group textarea {
+                padding: 14px;
+            }
+            
+            .submit-btn {
+                padding: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Request a Song</h1>
-        <form id="requestForm">
+        <div class="logo">
+            <h1>COLLEKT</h1>
+            <p>Request your song</p>
+        </div>
+        
+        <div class="form-container" id="requestForm">
             <div class="form-group">
                 <label for="songTitle">Song Title*</label>
-                <input type="text" id="songTitle" required maxlength="50" autocomplete="off">
+                <input type="text" id="songTitle" required placeholder="Enter song title" maxlength="50" autocomplete="off">
+                <div class="error-message" id="songTitleError">Please enter a song title (2+ characters)</div>
             </div>
+            
             <div class="form-group">
                 <label for="artistName">Artist Name*</label>
-                <input type="text" id="artistName" required maxlength="50" autocomplete="off">
+                <input type="text" id="artistName" required placeholder="Enter artist name" maxlength="50" autocomplete="off">
+                <div class="error-message" id="artistNameError">Please enter an artist name (2+ characters)</div>
             </div>
+            
             <div class="form-group">
                 <label for="message">Message (Optional)</label>
-                <textarea id="message" maxlength="100"></textarea>
+                <textarea id="message" placeholder="Add a message or note for the DJ..." maxlength="100"></textarea>
+                <div class="error-message" id="messageError">Message must be less than 100 characters</div>
             </div>
-            <button type="submit" id="submitButton">Submit Request</button>
-        </form>
-        <div id="confirmation" class="hidden">
-            <div class="success-icon">✓</div>
-            <h2>Thank You!</h2>
-            <p>Your song request has been submitted.</p>
-            <p class="song-details">
-                <span id="confirmedSong"></span> by <span id="confirmedArtist"></span>
-            </p>
-            <button id="newRequestButton">Request Another Song</button>
+            
+            <button type="submit" id="submitButton" class="submit-btn">Submit Request</button>
         </div>
-
+        
+        <div class="confirmation" id="confirmation">
+            <div class="confirmation-icon"></div>
+            <h2>Thank You!</h2>
+            <p>Your song has been added to the playlist</p>
+            
+            <div class="song-details">
+                <div class="song-title" id="confirmedSong">Song Title</div>
+                <div class="artist-name" id="confirmedArtist">Artist Name</div>
+            </div>
+            
+            <button id="newRequestButton" class="new-request-btn">Request Another Song</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Submitting request...</div>
+        </div>
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="utils.js"></script>
-    <script src="app.js"></script>
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Get event ID from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+
+        // Handle event ID validation
+        if (!eventId) {
+            document.body.innerHTML = `
+                <div class="container" style="text-align: center;">
+                    <div class="logo">
+                        <h1>COLLEKT</h1>
+                    </div>
+                    <h2 style="margin-bottom: 20px;">Invalid QR Code</h2>
+                    <p style="color: var(--muted-text);">Please scan a valid COLLEKT QR code to request a song.</p>
+                </div>
+            `;
+        }
+
+        // DOM elements
+        const formContainer = document.getElementById('requestForm');
+        const confirmationScreen = document.getElementById('confirmation');
+        const loadingOverlay = document.getElementById('loading');
+        const submitButton = document.getElementById('submitButton');
+        const newRequestButton = document.getElementById('newRequestButton');
+        
+        // Error elements
+        const songTitleError = document.getElementById('songTitleError');
+        const artistNameError = document.getElementById('artistNameError');
+        const messageError = document.getElementById('messageError');
+
+        // Form submission handler
+        submitButton.addEventListener('click', async () => {
+            // Get form values
+            const songTitle = document.getElementById('songTitle').value.trim();
+            const artistName = document.getElementById('artistName').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            // Reset error messages
+            songTitleError.style.display = 'none';
+            artistNameError.style.display = 'none';
+            messageError.style.display = 'none';
+            
+            // Validate inputs
+            let isValid = true;
+            
+            if (!songTitle || songTitle.length < 2) {
+                songTitleError.style.display = 'block';
+                isValid = false;
+            }
+            
+            if (!artistName || artistName.length < 2) {
+                artistNameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            if (message.length > 100) {
+                messageError.style.display = 'block';
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+            
+            try {
+                // Format inputs (assuming utils.js has these functions)
+                const formattedTitle = formatSongTitle(songTitle);
+                const formattedArtist = formatArtistName(artistName);
+                
+                // Check if event exists and is active
+                const { data: eventData, error: eventError } = await supabase
+                    .from('events')
+                    .select('active')
+                    .eq('id', eventId)
+                    .single();
+                
+                if (eventError) throw new Error('Event not found');
+                if (!eventData.active) throw new Error('This event has ended');
+                
+                // Get position in queue
+                const { data: existingRequests, error: countError } = await supabase
+                    .from('requests')
+                    .select('id')
+                    .eq('event_id', eventId)
+                    .eq('played', false);
+                    
+                const position = existingRequests ? existingRequests.length * 100 : 0;
+                
+                // Submit request to database
+                const { data, error } = await supabase
+                    .from('requests')
+                    .insert([
+                        {
+                            event_id: eventId,
+                            title: formattedTitle,
+                            artist: formattedArtist,
+                            message: message,
+                            position: position,
+                            original_title: songTitle,
+                            original_artist: artistName
+                        }
+                    ]);
+                
+                if (error) throw error;
+                
+                // Update confirmation screen
+                document.getElementById('confirmedSong').textContent = formattedTitle;
+                document.getElementById('confirmedArtist').textContent = formattedArtist;
+                
+                // Show confirmation screen
+                formContainer.style.display = 'none';
+                confirmationScreen.style.display = 'block';
+                confirmationScreen.classList.add('show-confirmation');
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+                console.error('Submission error:', error);
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        // Request another song button
+        newRequestButton.addEventListener('click', () => {
+            // Reset form
+            document.getElementById('songTitle').value = '';
+            document.getElementById('artistName').value = '';
+            document.getElementById('message').value = '';
+            
+            // Switch back to form view
+            confirmationScreen.style.display = 'none';
+            confirmationScreen.classList.remove('show-confirmation');
+            formContainer.style.display = 'block';
+            
+            // Focus on first field
+            document.getElementById('songTitle').focus();
+        });
+
+        // Add focus states to inputs for visual feedback
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', () => {
+                input.parentElement.classList.remove('focused');
+            });
+        });
+    </script>
 </body>
 </html>
