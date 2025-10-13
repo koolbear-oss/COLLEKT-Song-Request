@@ -3,100 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - DJ Request Admin</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Login - COLLEKT DJ System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-      .login-form {
-        max-width: 400px;
-        margin: 100px auto;
-        padding: 30px;
-        background-color: #1e1e1e;
-        border-radius: 8px;
-      }
-      .error-message {
-        color: #ff6b6b;
-        margin-top: 15px;
-        display: none;
-      }
+        :root {
+            --primary: #8a2be2;
+            --primary-dark: #6a1cb2;
+            --primary-light: #a44df7;
+            --dark: #121212;
+            --dark-accent: #1e1e1e;
+            --light-text: #ffffff;
+            --muted-text: rgba(255, 255, 255, 0.7);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark);
+            color: var(--light-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        header {
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        
+        .auth-container {
+            background-color: var(--dark-accent);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+        }
+        
+        /* Tabs Navigation */
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 20px 0;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--muted-text);
+            background-color: transparent;
+            border: none;
+            position: relative;
+        }
+        
+        .auth-tab.active {
+            color: var(--light-text);
+        }
+        
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary);
+        }
+        
+        /* Form Styles */
+        .auth-form {
+            padding: 40px;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-header h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .form-header p {
+            color: var(--muted-text);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 5px;
+            color: var(--light-text);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+            outline: none;
+        }
+        
+        .error-message {
+            background-color: rgba(255, 77, 79, 0.1);
+            border-left: 3px solid #ff4d4f;
+            color: #ff4d4f;
+            padding: 10px 15px;
+            border-radius: 0 5px 5px 0;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+        }
+        
+        .forgot-password {
+            color: var(--muted-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .forgot-password:hover {
+            color: var(--primary);
+        }
+        
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .back-to-home {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--muted-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .back-to-home:hover {
+            color: var(--primary);
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--dark-accent);
+            color: var(--muted-text);
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 480px) {
+            .auth-form {
+                padding: 30px 20px;
+            }
+            
+            .form-footer {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="login-form">
-            <h1>DJ Request Admin</h1>
-            <form id="loginForm">
+    <!-- Header -->
+    <header>
+        <div class="navbar">
+            <a href="/" class="logo">COLLEKT</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="auth-container">
+            <!-- Tabs Navigation -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab">Login</button>
+                <button class="auth-tab" id="registerTab">Register</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm">
+                <div class="form-header">
+                    <h2>Welcome Back</h2>
+                    <p>Log in to manage your events and song requests</p>
+                </div>
+                
+                <div class="error-message" id="errorMessage">Invalid email or password</div>
+                
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" id="password" required>
                 </div>
-                <p id="errorMessage" class="error-message">Invalid email or password</p>
-                <button type="submit">Login</button>
-            </form>
-            <p style="margin-top: 20px; text-align: center;">
-                Need an account? <a href="../register.html" style="color: #8a2be2;">Register here</a>
-            </p>
-            <p style="text-align: center;">
-                <a href="../forgot-password.html" style="color: #8a2be2;">Forgot your password?</a>
-            </p>
+                
+                <button type="submit" class="submit-btn" id="loginButton">Login</button>
+                
+                <div class="form-footer">
+                    <a href="../forgot-password.html" class="forgot-password">Forgot your password?</a>
+                </div>
+                
+                <a href="/" class="back-to-home">← Back to home</a>
+            </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 COLLEKT. All rights reserved.</p>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script>
         // Initialize Supabase client
         const supabaseUrl = 'https://ljekmnuflfotwznxeexc.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqZWttbnVmbGZvdHd6bnhlZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk5MjU1NzksImV4cCI6MjA3NTUwMTU3OX0.S6yzIIKRv1YlKPHstMpTFqqSpAQOuFUOqC0G27zE4FE';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        async function troubleshootLogin(email, password) {
-            try {
-                console.log("Testing login for:", email);
-                
-                // Check if user exists in Auth
-                const { data: user, error: userError } = await supabase.auth.getUser();
-                console.log("Current user state:", user, userError);
-                
-                // Try sign in
-                const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-                });
-                
-                console.log("Sign in result:", data, error);
-                
-                if (data?.user) {
-                // Check dj_users table
-                const { data: djUser, error: djError } = await supabase
-                    .from('dj_users')
-                    .select('*')
-                    .eq('auth_id', data.user.id)
-                    .single();
-                    
-                console.log("DJ user record:", djUser, djError);
-                }
-                
-                return { data, error };
-            } catch (e) {
-                console.error("Login troubleshooting error:", e);
-                return { data: null, error: e };
-            }
-        }
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
+        
+        // Tab switching functionality
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            // Stay on current page - no redirect needed
+        });
+        
+        registerTab.addEventListener('click', () => {
+            // Redirect to registration page
+            window.location.href = '../register.html';
+        });
+
+        // Login functionality
+        document.getElementById('loginButton').addEventListener('click', async function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            console.log("Login attempt for:", email); // Debug
+            console.log("Login attempt for:", email);
             
             // Hide error message initially
             document.getElementById('errorMessage').style.display = 'none';
             
             try {
-                
-                console.log("Attempting Supabase auth..."); // Debug
+                console.log("Attempting Supabase auth...");
                 
                 // For all users, use Supabase Auth
                 const { data, error } = await supabase.auth.signInWithPassword({
@@ -104,11 +340,11 @@
                     password: password
                 });
                 
-                console.log("Auth result:", data, error); // Debug
+                console.log("Auth result:", data, error);
                 
                 if (error) throw error;
                 
-                console.log("Auth successful, checking user data..."); // Debug
+                console.log("Auth successful, checking user data...");
                 
                 // Check if user is active in dj_users table
                 const { data: user, error: userError } = await supabase
@@ -121,13 +357,13 @@
 
                 // Add this debug code to check role data directly
                 if (user && user.role_id) {
-                const { data: roleData, error: roleError } = await supabase
-                    .from('roles')
-                    .select('*')
-                    .eq('id', user.role_id)
-                    .single();
-                    
-                console.log("Direct role lookup:", roleData, roleError);
+                    const { data: roleData, error: roleError } = await supabase
+                        .from('roles')
+                        .select('*')
+                        .eq('id', user.role_id)
+                        .single();
+                        
+                    console.log("Direct role lookup:", roleData, roleError);
                 }
 
                 if (userError) {
@@ -172,6 +408,7 @@
                 localStorage.setItem('userName', user.name);
                 localStorage.setItem('userRole', roleName);
                 localStorage.setItem('userRoleId', roleId);
+                
                 // Set isAdmin based on role name
                 if (roleName === 'Admin') {
                     localStorage.setItem('isAdmin', 'true');
@@ -189,13 +426,22 @@
 
                 localStorage.setItem('userPermissions', JSON.stringify(defaultPermissions));
                 console.log("Login successful, redirecting to dashboard...");
+                
                 // Redirect to admin dashboard
                 window.location.href = 'index.html';
-                console.log("If you see this, the redirect didn't happen immediately");
+                
             } catch (error) {
                 console.error('Login error:', error);
-                document.getElementById('errorMessage').textContent = error.message || 'Invalid email or password';
-                document.getElementById('errorMessage').style.display = 'block';
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = error.message || 'Invalid email or password';
+                errorMessage.style.display = 'block';
+            }
+        });
+
+        // Also submit form when pressing Enter in password field
+        document.getElementById('password').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginButton').click();
             }
         });
     </script>
