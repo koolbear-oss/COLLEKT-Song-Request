@@ -232,6 +232,10 @@
             min-height: calc(40px + 1.5vmin);
             animation: slideIn 0.5s ease-out;
         }
+
+        .request-item.animate-in {
+            animation: slideIn 0.5s ease-out;
+        }               
         
         @keyframes slideIn {
             from { transform: translateX(-10px); opacity: 0; }
@@ -531,6 +535,9 @@
             setInterval(fetchLatestRequests, 8000);
         }
 
+        // Tracking variables for smoother updates
+        let currentDisplayedRequests = [];
+
         // Fetch latest requests
         async function fetchLatestRequests() {
             try {
@@ -546,13 +553,33 @@
                 
                 if (error) throw error;
                 
-                // Update feed count with animation if needed
-                updateFeedCount(requests ? requests.length : 0);
-                
-                // Display requests with animations
+                // Only update UI if there's an actual change
                 if (requests && requests.length > 0) {
-                    displayRequests(requests);
+                    // Check if anything changed before updating the display
+                    const requestIds = requests.map(r => r.id);
+                    const currentIds = currentDisplayedRequests.map(r => r.id);
+                    
+                    // Check if arrays are different
+                    const hasChanges = requestIds.length !== currentIds.length || 
+                                    requestIds.some((id, index) => id !== currentIds[index]);
+                    
+                    if (hasChanges) {
+                        // Update count with animation only on changes
+                        updateFeedCount(requests.length);
+                        
+                        // Store the current state
+                        currentDisplayedRequests = [...requests];
+                        
+                        // Only display with animation if there are actual changes
+                        displayRequests(requests, true);
+                    }
+                } else if (currentDisplayedRequests.length > 0) {
+                    // Handle case where all requests were removed
+                    document.getElementById('requestFeed').innerHTML = '<p class="empty-feed">No requests yet</p>';
+                    currentDisplayedRequests = [];
+                    updateFeedCount(0);
                 } else {
+                    // No requests, no change
                     document.getElementById('requestFeed').innerHTML = '<p class="empty-feed">No requests yet</p>';
                 }
             } catch (error) {
@@ -561,25 +588,34 @@
         }
 
         // Display requests with visual effects
-        function displayRequests(requests) {
+        function displayRequests(requests, animate = false) {
             const feed = document.getElementById('requestFeed');
             
-            // If first load, clear feed
-            if (displayedRequestIds.size === 0) {
-                feed.innerHTML = '';
-            }
+            // Only really new requests (not in our displayed set) get the animation
+            const existingIds = new Set(displayedRequestIds);
+            const trulyNew = requests.filter(req => !existingIds.has(req.id));
             
-            // Get new requests only
-            const newRequests = requests.filter(req => !displayedRequestIds.has(req.id));
+            // Update our tracking set with all request IDs
+            requests.forEach(req => displayedRequestIds.add(req.id));
             
-            // Add new requests with animations
-            newRequests.forEach(request => {
-                // Track this request
-                displayedRequestIds.add(request.id);
-                
-                // Create request item with enhanced styling
+            // Clear feed 
+            feed.innerHTML = '';
+            
+            // Only show top 3 requests
+            const displayRequests = requests.slice(0, 3);
+            
+            // Create and add items to the feed
+            displayRequests.forEach((request, index) => {
                 const requestItem = document.createElement('div');
+                
+                // Only apply animation class to truly new items
+                const isNew = trulyNew.some(r => r.id === request.id);
                 requestItem.className = 'request-item';
+                
+                // Add animation class only to truly new items and only when we want animation
+                if (animate && isNew) {
+                    requestItem.classList.add('animate-in');
+                }
                 
                 // Format timestamp
                 const timestamp = new Date(request.created_at);
@@ -600,28 +636,11 @@
                     <p class="request-time">${timeString}</p>
                 `;
                 
-                // Insert at beginning (most recent first)
-                // This ensures newest requests are at the top
-                feed.insertBefore(requestItem, feed.firstChild);
+                feed.appendChild(requestItem);
             });
             
-            // Reorder all items to ensure correct display
-            // Get all items and sort them by newest first
-            const allItems = Array.from(feed.querySelectorAll('.request-item'));
-            
-            // Clear the feed to reinsert in correct order
-            if (allItems.length > 0) {
-                feed.innerHTML = '';
-                
-                // Only keep up to 3 items for display
-                const displayItems = allItems.slice(0, 3);
-                
-                // Add them in reverse order (newest first)
-                displayItems.forEach(item => feed.appendChild(item));
-            }
-            
             // If no items are visible, show empty message
-            if (allItems.length === 0) {
+            if (displayRequests.length === 0) {
                 feed.innerHTML = '<p class="empty-feed">No requests yet</p>';
             }
         }
