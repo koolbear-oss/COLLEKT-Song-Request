@@ -601,11 +601,12 @@
                 `;
                 
                 // Insert at beginning (most recent first)
+                // This ensures newest requests are at the top
                 feed.insertBefore(requestItem, feed.firstChild);
             });
             
             // Reorder all items to ensure correct display
-            // Get all items and keep them in newest-first order
+            // Get all items and sort them by newest first
             const allItems = Array.from(feed.querySelectorAll('.request-item'));
             
             // Clear the feed to reinsert in correct order
@@ -615,7 +616,7 @@
                 // Only keep up to 3 items for display
                 const displayItems = allItems.slice(0, 3);
                 
-                // Add them in order (newest first)
+                // Add them in reverse order (newest first)
                 displayItems.forEach(item => feed.appendChild(item));
             }
             
