@@ -296,9 +296,12 @@ button:active {
     background-color: #1e1e1e;
     border: 1px solid #333;
     border-radius: 5px;
-    min-width: 160px;
+    width: 180px !important; /* Force fixed width */
+    max-width: 180px !important;
     z-index: 9999;
     box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    left: auto !important; /* Prevent full-width stretching */
+    right: auto !important;
 }
 
 .dropdown-menu.show {

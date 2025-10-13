@@ -1100,6 +1100,7 @@
             const dropdownMenu = document.createElement('div');
             dropdownMenu.className = 'dropdown-menu';
             dropdownMenu.id = dropdownId;
+            dropdownMenu.style.width = '180px';
             
             // Fix character encoding issues in dropdown
             dropdownMenu.innerHTML = `
@@ -1379,15 +1380,14 @@
 
         // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
-            // Don't close if clicking inside a dropdown
-            if (e.target.closest('.dropdown-menu') || e.target.closest('.action-more')) {
-                return;
+            // Only close dropdowns if clicking outside both the dropdown and the three-dots button
+            if (!e.target.closest('.dropdown-menu') && !e.target.closest('.action-more')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                    // Also hide with display property to ensure it's gone
+                    menu.style.display = 'none';
+                });
             }
-            
-            // Close all dropdowns
-            document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                menu.classList.remove('show');
-            });
         });
 
         // Initialize page
