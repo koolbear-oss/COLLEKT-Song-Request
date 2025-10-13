@@ -555,6 +555,8 @@
         .dropdown-menu.show {
             display: block;
             animation: fadeIn 0.2s ease;
+            display: block !important; /* Force display */
+            z-index: 2000 !important; /* Ensure it's on top */
         }
 
         /* Ensure the dropdown appears above other elements */
@@ -1143,6 +1145,17 @@
                 
                 // Toggle this dropdown
                 dropdownMenu.classList.toggle('show');
+
+                // Force the dropdown to be visible
+                if (dropdownMenu.classList.contains('show')) {
+                    dropdownMenu.style.display = 'block';
+                    dropdownMenu.style.zIndex = '2000';
+                    
+                    // Check if styles are applied
+                    console.log('Dropdown styles:', 
+                        'Display:', window.getComputedStyle(dropdownMenu).display,
+                        'Z-index:', window.getComputedStyle(dropdownMenu).zIndex);
+                }
 
                 // Add these debug lines
                 console.log('Dropdown toggled:', dropdownMenu.classList.contains('show'));
