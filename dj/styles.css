@@ -1616,3 +1616,21 @@ body.dragging .requests-container {
     margin-top: 8px;
   }
 }
+
+/* Add to styles.css - Minimal visual differentiation */
+/* Unenhanced track style - subtle gray border */
+.request-card:not(.enhanced) .metadata-row {
+  opacity: 0.7;
+}
+
+/* Enhanced track with no data found - subtle orange indicator */
+.request-card.enhanced-no-data {
+  border-left-color: rgba(255, 152, 0, 0.7);
+}
+
+/* Badge styling for unknown data - subtle dashed border */
+.key-badge:empty, .bpm-badge:empty {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  min-width: 40px;
+}

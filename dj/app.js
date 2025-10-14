@@ -507,6 +507,18 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
         if (enhanceButtonExpanded) enhanceButtonExpanded.style.display = 'none';
       }
     }
+
+    // Add enhancement status classes without changing visuals
+    if (request.enhanced_by_ai) {
+      requestCard.classList.add('enhanced');
+      
+      // Check if it actually has data
+      if (request.key || request.bpm) {
+        requestCard.classList.add('enhanced-with-data');
+      } else {
+        requestCard.classList.add('enhanced-no-data');
+      }
+    }
     
     const deleteButton = requestCard.querySelector('.delete-button');
     if (deleteButton) {
@@ -1705,132 +1717,141 @@ function applyFilterEffect(card, compatibilityScore) {
 function filterByKey(selectedKey) {
   if (!selectedKey) return;
   
-  // Set filtering state
   document.body.classList.add('filtering-active');
+  window.activeFilter = { type: 'key', value: selectedKey };
   
-  // Store the active filter for potential clear button
-  window.activeFilter = {
-    type: 'key',
-    value: selectedKey
-  };
+  // Add a minimal filter toggle
+  let filterToggle = document.getElementById('includeUnknownToggle');
   
-  // Find the selected card's BPM for secondary matching
-  const selectedKeyElement = document.querySelector(`.key-badge[data-value="${selectedKey}"]`);
-  let selectedBpm = null;
-  
-  if (selectedKeyElement) {
-    const selectedCard = selectedKeyElement.closest('.request-card');
-    if (selectedCard) {
-      const bpmElement = selectedCard.querySelector('.bpm-badge');
-      if (bpmElement && bpmElement.textContent) {
-        selectedBpm = parseInt(bpmElement.textContent.trim());
-      }
+  if (!filterToggle) {
+    filterToggle = document.createElement('div');
+    filterToggle.id = 'includeUnknownToggle';
+    filterToggle.className = 'filter-toggle';
+    filterToggle.innerHTML = `
+      <label style="font-size: 0.8rem; opacity: 0.8; display: flex; align-items: center; gap: 5px;">
+        <input type="checkbox" id="includeUnknown" checked style="margin: 0;">
+        <span>Include unknown</span>
+      </label>
+    `;
+    
+    // Add next to clear filter button
+    const clearButton = document.getElementById('clearFilterButton');
+    if (clearButton && clearButton.parentNode) {
+      clearButton.parentNode.insertBefore(filterToggle, clearButton);
     }
   }
   
-  // Process all cards
-  document.querySelectorAll('.request-card').forEach(card => {
-    const cardKeyElement = card.querySelector('.key-badge');
-    if (!cardKeyElement) return;
-    
-    const cardKey = cardKeyElement.textContent.trim();
-    if (!cardKey) return;
-    
-    // Calculate key compatibility (0-1)
-    const keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
-    
-    // Calculate BPM compatibility if we have BPM data
-    let bpmCompatibility = 1; // Default if we can't calculate
-    
-    if (selectedBpm) {
-      const cardBpmElement = card.querySelector('.bpm-badge');
-      if (cardBpmElement && cardBpmElement.textContent) {
-        const cardBpm = parseInt(cardBpmElement.textContent.trim());
-        if (!isNaN(cardBpm)) {
-          // Calculate BPM difference percentage
-          const bpmDiff = Math.abs(selectedBpm - cardBpm) / selectedBpm;
-          
-          // Map to 0-1 scale (0% diff = 1, 8%+ diff = 0)
-          bpmCompatibility = bpmDiff <= 0.08 ? Math.max(0, 1 - (bpmDiff / 0.08)) : 0;
+  // Function to process the cards based on filter settings
+  function applyKeyFilter(includeUnknown = true) {
+    document.querySelectorAll('.request-card').forEach(card => {
+      const cardKeyElement = card.querySelector('.key-badge');
+      if (!cardKeyElement) return;
+      
+      const cardKey = cardKeyElement.textContent.trim();
+      
+      // Handle cards with key data
+      if (cardKey) {
+        const keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
+        applyFilterEffect(card, keyCompatibility);
+      } 
+      // Handle cards without key data
+      else {
+        if (includeUnknown) {
+          // Show with reduced visibility
+          card.style.opacity = '0.4';
+          card.style.transform = 'scale(0.96)';
+        } else {
+          // Hide completely
+          card.style.display = 'none';
         }
       }
-    }
-    
-    // Create weighted compatibility score (70% key, 30% BPM)
-    const combinedCompatibility = (keyCompatibility * 0.7) + (bpmCompatibility * 0.3);
-    
-    // Apply visual effect based on combined score
-    applyFilterEffect(card, combinedCompatibility);
+    });
+  }
+  
+  // Initial filter application
+  applyKeyFilter(true);
+  
+  // Setup toggle listener
+  document.getElementById('includeUnknown').addEventListener('change', function() {
+    applyKeyFilter(this.checked);
   });
   
-  // Show clear filter button
   showClearFilterButton();
 }
 
 function filterByBpm(selectedBpm) {
   if (!selectedBpm) return;
   
+  // Parse as integer
+  selectedBpm = parseInt(selectedBpm);
+  
   // Set filtering state
   document.body.classList.add('filtering-active');
+  window.activeFilter = { type: 'bpm', value: selectedBpm };
   
-  // Store the active filter for potential clear button
-  window.activeFilter = {
-    type: 'bpm',
-    value: selectedBpm
-  };
+  // Create minimal range control
+  let rangeControl = document.getElementById('bpmRangeControl');
   
-  // Find the selected card's key for secondary matching
-  const selectedBpmElement = document.querySelector(`.bpm-badge[data-value="${selectedBpm}"]`);
-  let selectedKey = null;
-  
-  if (selectedBpmElement) {
-    const selectedCard = selectedBpmElement.closest('.request-card');
-    if (selectedCard) {
-      const keyElement = selectedCard.querySelector('.key-badge');
-      if (keyElement && keyElement.textContent) {
-        selectedKey = keyElement.textContent.trim();
-      }
+  if (!rangeControl) {
+    rangeControl = document.createElement('div');
+    rangeControl.id = 'bpmRangeControl';
+    rangeControl.className = 'filter-range-control';
+    rangeControl.innerHTML = `
+      <label style="font-size: 0.8rem; opacity: 0.8; display: flex; align-items: center; gap: 8px;">
+        <span>Range: ±<span id="bpmRange">3</span></span>
+        <input type="range" id="bpmRangeSlider" min="0" max="10" value="3" 
+               style="width: 80px; margin: 0;">
+      </label>
+    `;
+    
+    // Add next to clear filter button
+    const clearButton = document.getElementById('clearFilterButton');
+    if (clearButton && clearButton.parentNode) {
+      clearButton.parentNode.insertBefore(rangeControl, clearButton);
     }
   }
   
-  // Process all cards
-  document.querySelectorAll('.request-card').forEach(card => {
-    const cardBpmElement = card.querySelector('.bpm-badge');
-    if (!cardBpmElement) return;
-    
-    const cardBpmText = cardBpmElement.textContent.trim();
-    if (!cardBpmText) return;
-    
-    const cardBpm = parseInt(cardBpmText);
-    if (isNaN(cardBpm)) return;
-    
-    // Calculate BPM compatibility (0-1)
-    const percentDifference = Math.abs(cardBpm - selectedBpm) / selectedBpm;
-    const bpmCompatibility = percentDifference <= 0.05 ? 
-                            Math.max(0, 1 - (percentDifference / 0.05)) : 0;
-    
-    // Calculate key compatibility if we have key data
-    let keyCompatibility = 1; // Default if we can't calculate
-    
-    if (selectedKey) {
-      const cardKeyElement = card.querySelector('.key-badge');
-      if (cardKeyElement && cardKeyElement.textContent) {
-        const cardKey = cardKeyElement.textContent.trim();
-        if (cardKey) {
-          keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
+  // Function to apply the BPM filtering with range
+  function applyBpmFilter(range) {
+    document.querySelectorAll('.request-card').forEach(card => {
+      const bpmElement = card.querySelector('.bpm-badge');
+      if (!bpmElement) return;
+      
+      const bpmText = bpmElement.textContent.trim();
+      
+      if (bpmText) {
+        const cardBpm = parseInt(bpmText);
+        if (isNaN(cardBpm)) return;
+        
+        // Calculate how close the BPM is to our target
+        const bpmDifference = Math.abs(cardBpm - selectedBpm);
+        
+        if (bpmDifference <= range) {
+          // Within range - calculate compatibility score (0-1)
+          const compatibilityScore = 1 - (bpmDifference / (range + 1));
+          applyFilterEffect(card, compatibilityScore);
+        } else {
+          // Outside range - reduce visibility
+          card.style.opacity = '0.2';
+          card.style.transform = 'scale(0.96)';
         }
+      } else {
+        // No BPM data
+        card.style.opacity = '0.3';
+        card.style.transform = 'scale(0.95)';
       }
-    }
-    
-    // Create weighted compatibility score (70% BPM, 30% key)
-    // Note: For BPM filtering, we weight BPM higher than key
-    const combinedCompatibility = (keyCompatibility * 0.3) + (bpmCompatibility * 0.7);
-    
-    // Apply visual effect based on combined score
-    applyFilterEffect(card, combinedCompatibility);
+    });
+  }
+  
+  // Initial application with default range
+  applyBpmFilter(3);
+  
+  // Setup range slider listener
+  document.getElementById('bpmRangeSlider').addEventListener('input', function() {
+    document.getElementById('bpmRange').textContent = this.value;
+    applyBpmFilter(parseInt(this.value));
   });
   
-  // Show clear filter button
   showClearFilterButton();
 }
 
@@ -1892,6 +1913,7 @@ function clearFiltering() {
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
     card.style.boxShadow = '';
+    card.style.display = ''; // Make sure hidden cards are shown again
   });
   
   // Hide clear button
@@ -1899,6 +1921,16 @@ function clearFiltering() {
   if (clearButton) {
     clearButton.style.display = 'none';
   }
+  
+  // Remove temporary filter controls
+  const tempControls = [
+    document.getElementById('includeUnknownToggle'),
+    document.getElementById('bpmRangeControl')
+  ];
+  
+  tempControls.forEach(control => {
+    if (control) control.remove();
+  });
 }
 
 function showClearFilterButton() {
