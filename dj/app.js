@@ -1853,20 +1853,30 @@ function applyFilterEffect(card, compatibilityScore, bpmProximity = null) {
     return;
   }
   
+  // Calculate order value - key compatibility is PRIMARY, BPM is subtle tiebreaker
+  let orderValue;
+  
   if (compatibilityScore >= 0.9) {
+    // Perfect/near-perfect matches: use narrow range -1000 to -999
     card.classList.add('high-compatibility');
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
     
+    // BPM tiebreaker range: 0-1 (keeps perfect matches together)
     const tiebreaker = bpmProximity !== null ? bpmProximity : 0.5;
-    card.style.order = (-100 - tiebreaker).toString();
+    orderValue = -1000 - tiebreaker;
   } else {
+    // Imperfect matches: key dominates, BPM is minor tiebreaker
     card.style.opacity = Math.max(0.3, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
     
-    const tiebreaker = bpmProximity !== null ? bpmProximity * 10 : 0;
-    card.style.order = Math.floor(-compatibilityScore * 50 - tiebreaker).toString();
+    // Primary: key * 100 (range -70 to -10)
+    // Tiebreaker: BPM * 0.5 (range -0.5 to 0, minimal impact)
+    const tiebreaker = bpmProximity !== null ? bpmProximity * 0.5 : 0;
+    orderValue = Math.floor(-compatibilityScore * 100 - tiebreaker);
   }
+  
+  card.style.order = orderValue.toString();
 }
 
 
