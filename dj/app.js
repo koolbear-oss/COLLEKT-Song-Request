@@ -556,7 +556,7 @@ function copyForSeratoSearch(songTitle, artistName) {
   document.body.removeChild(textarea);
   
   // Show feedback
-  showTempMessage('Copied for Serato search', 'info');
+  showTempMessage('Copied to Clipboard', 'info');
 }
 
 // Function to truncate comments to specified length
