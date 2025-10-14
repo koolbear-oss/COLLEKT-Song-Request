@@ -126,6 +126,7 @@ async function initializeDashboard() {
   initializeSortable();
 }
 
+// REPLACE the initializeCardExpansion function with this enhanced version
 function initializeCardExpansion() {
   // Add click event to all request cards (delegated to the container for dynamic content)
   document.getElementById('requestsList').addEventListener('click', function(e) {
@@ -135,13 +136,43 @@ function initializeCardExpansion() {
     // Only proceed if we found a card and the click wasn't on a button
     if (card && !e.target.closest('button')) {
       // Toggle the expanded class
-      card.classList.toggle('collapsed');
-      card.classList.toggle('expanded');
+      const wasCollapsed = card.classList.contains('collapsed');
       
-      // Toggle display of expanded content
-      const expandedContent = card.querySelector('.expanded-content');
-      if (expandedContent) {
-        expandedContent.style.display = card.classList.contains('expanded') ? 'block' : 'none';
+      // Toggle classes with a smooth transition
+      if (wasCollapsed) {
+        card.classList.remove('collapsed');
+        card.classList.add('expanded');
+        
+        // Show expanded content with animation
+        const expandedContent = card.querySelector('.expanded-content');
+        if (expandedContent) {
+          expandedContent.style.display = 'block';
+          expandedContent.style.opacity = '0';
+          expandedContent.style.transform = 'scaleY(0.95)';
+          
+          // Trigger animation after display change
+          setTimeout(() => {
+            expandedContent.style.opacity = '1';
+            expandedContent.style.transform = 'scaleY(1)';
+          }, 10);
+        }
+      } else {
+        // Start collapsing animation
+        const expandedContent = card.querySelector('.expanded-content');
+        if (expandedContent) {
+          expandedContent.style.opacity = '0';
+          expandedContent.style.transform = 'scaleY(0.95)';
+          
+          // Wait for animation to finish before hiding
+          setTimeout(() => {
+            expandedContent.style.display = 'none';
+            card.classList.add('collapsed');
+            card.classList.remove('expanded');
+          }, 200);
+        } else {
+          card.classList.add('collapsed');
+          card.classList.remove('expanded');
+        }
       }
     }
   });
@@ -150,12 +181,38 @@ function initializeCardExpansion() {
   document.getElementById('playedList').addEventListener('click', function(e) {
     const card = e.target.closest('.request-card');
     if (card && !e.target.closest('button')) {
-      card.classList.toggle('collapsed');
-      card.classList.toggle('expanded');
+      const wasCollapsed = card.classList.contains('collapsed');
       
-      const expandedContent = card.querySelector('.expanded-content');
-      if (expandedContent) {
-        expandedContent.style.display = card.classList.contains('expanded') ? 'block' : 'none';
+      if (wasCollapsed) {
+        card.classList.remove('collapsed');
+        card.classList.add('expanded');
+        
+        const expandedContent = card.querySelector('.expanded-content');
+        if (expandedContent) {
+          expandedContent.style.display = 'block';
+          expandedContent.style.opacity = '0';
+          expandedContent.style.transform = 'scaleY(0.95)';
+          
+          setTimeout(() => {
+            expandedContent.style.opacity = '1';
+            expandedContent.style.transform = 'scaleY(1)';
+          }, 10);
+        }
+      } else {
+        const expandedContent = card.querySelector('.expanded-content');
+        if (expandedContent) {
+          expandedContent.style.opacity = '0';
+          expandedContent.style.transform = 'scaleY(0.95)';
+          
+          setTimeout(() => {
+            expandedContent.style.display = 'none';
+            card.classList.add('collapsed');
+            card.classList.remove('expanded');
+          }, 200);
+        } else {
+          card.classList.add('collapsed');
+          card.classList.remove('expanded');
+        }
       }
     }
   });
@@ -673,21 +730,41 @@ function showTempMessage(message, type = 'info') {
   messageEl.textContent = message;
   messageEl.style.cssText = `
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
     padding: 12px 20px;
-    background: ${type === 'error' ? '#f44336' : '#4caf50'};
+    background: ${type === 'error' ? 'linear-gradient(135deg, #f44336, #d32f2f)' : 
+                 type === 'warning' ? 'linear-gradient(135deg, #ff9800, #f57c00)' : 
+                 'linear-gradient(135deg, #4caf50, #2e7d32)'};
     color: white;
-    border-radius: 4px;
+    border-radius: 8px;
     z-index: 10000;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    font-weight: bold;
+    font-weight: 500;
+    font-family: 'Montserrat', sans-serif;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
   `;
   
   document.body.appendChild(messageEl);
   
+  // Trigger animation
   setTimeout(() => {
-    document.body.removeChild(messageEl);
+    messageEl.style.transform = 'translateY(0)';
+    messageEl.style.opacity = '1';
+  }, 10);
+  
+  setTimeout(() => {
+    messageEl.style.transform = 'translateY(20px)';
+    messageEl.style.opacity = '0';
+    
+    // Remove element after fade out
+    setTimeout(() => {
+      if (document.body.contains(messageEl)) {
+        document.body.removeChild(messageEl);
+      }
+    }, 300);
   }, 3000);
 }
 
@@ -1029,16 +1106,21 @@ async function starRequest(requestId) {
       
       if (error) throw error;
     } else {
-      // Star the item
+      // Star the item with animation
       requestCard.classList.add('starred');
       
+      // Animate the star button
       const starButton = requestCard.querySelector('.star-button');
-      starButton.classList.add('animate');
-      
-      // Remove animation class after it completes
-      setTimeout(() => {
-        starButton.classList.remove('animate');
-      }, 300);
+      if (starButton) {
+        starButton.classList.add('animate');
+        
+        // Add a visual pulse to the card
+        requestCard.style.boxShadow = '0 0 15px rgba(255, 235, 59, 0.5)';
+        setTimeout(() => {
+          requestCard.style.boxShadow = '';
+          starButton.classList.remove('animate');
+        }, 300);
+      }
       
       // Get all starred requests to find lowest position
       const { data: starredRequests, error: starredError } = await supabase
@@ -1103,15 +1185,31 @@ const sidebarToggle = document.getElementById('sidebarToggle');
 const dashboardContent = document.querySelector('.dashboard-content');
 
 sidebarToggle.addEventListener('click', function() {
+  // Toggle the class
   dashboardContent.classList.toggle('sidebar-collapsed');
+  
+  // Add animation to the toggle button
+  sidebarToggle.classList.add('toggling');
+  setTimeout(() => {
+    sidebarToggle.classList.remove('toggling');
+  }, 300);
   
   // Re-fetch requests when sidebar is toggled to ensure proper layout
   setTimeout(() => {
-    fetchRequests();
+    fetchRequests(false); // Pass false to prevent resetting starred items
   }, 300); // Wait for transition to complete
+  
+  // Add this class to the CSS
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .sidebar-toggle.toggling {
+      box-shadow: 0 0 15px rgba(138, 43, 226, 0.6);
+      transition: all 0.3s ease;
+    }
+  `;
+  document.head.appendChild(style);
 });
 
-// Start with sidebar expanded by default
 // To start collapsed, uncomment the next line:
 dashboardContent.classList.add('sidebar-collapsed');
 
@@ -1239,8 +1337,16 @@ async function updateEnhanceAllButton() {
   }
 }
 
-// Create and show progress modal
 function showEnhancementModal() {
+  // Get the template and clone it
+  const template = document.getElementById('enhancementModalTemplate');
+  if (template) {
+    const modalClone = document.importNode(template.content, true);
+    document.body.appendChild(modalClone);
+    return document.querySelector('.enhancement-modal');
+  }
+  
+  // Fallback to creating the modal manually if template is not available
   const modal = document.createElement('div');
   modal.className = 'enhancement-modal';
   modal.id = 'enhancementModal';
@@ -1520,7 +1626,6 @@ function calculateKeyCompatibility(key1, key2) {
   return 0.1;
 }
 
-// ADD to app.js - Apply visual filtering effects
 function applyFilterEffect(card, compatibilityScore) {
   // More dramatic opacity range - 0.1 to 1
   const opacity = 0.1 + (compatibilityScore * 0.9);
@@ -1537,24 +1642,28 @@ function applyFilterEffect(card, compatibilityScore) {
     card.style.transform = `scale(${scale})`;
     card.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.7)';
     card.style.zIndex = '5'; // Bring to front
+    card.style.borderLeftColor = 'rgba(138, 43, 226, 0.8)';
   } 
   else if (compatibilityScore > 0.6) {
     // Medium compatibility
     card.style.transform = `scale(${scale * 0.99})`;
     card.style.boxShadow = '0 0 10px rgba(138, 43, 226, 0.4)';
     card.style.zIndex = '4';
+    card.style.borderLeftColor = 'rgba(138, 43, 226, 0.6)';
   }
   else if (compatibilityScore > 0.4) {
     // Low compatibility
     card.style.transform = `scale(${scale * 0.98})`;
     card.style.boxShadow = '0 0 5px rgba(138, 43, 226, 0.2)';
     card.style.zIndex = '3';
+    card.style.borderLeftColor = 'rgba(138, 43, 226, 0.3)';
   }
   else {
     // Minimal compatibility
     card.style.transform = 'scale(1)';
     card.style.boxShadow = 'none';
     card.style.zIndex = '2';
+    card.style.borderLeftColor = 'transparent';
   }
 }
 
