@@ -1802,10 +1802,10 @@ function applyKeyFilter() {
 }
 
 // ADD to app.js - Key filtering implementation
-function filterByKey(selectedKey, referenceBpm = null) {
+function filterByKey(selectedKey, referenceBpm = null, sourceCardId = null) {
   if (!selectedKey) return;
   
-  console.log("Filtering by key:", selectedKey, "Reference BPM:", referenceBpm);
+  console.log("Filtering by key:", selectedKey, "Reference BPM:", referenceBpm, "Source Card ID:", sourceCardId);
   
   // Save scroll position if not already filtering
   if (!document.body.classList.contains('filtering-active')) {
@@ -1821,14 +1821,16 @@ function filterByKey(selectedKey, referenceBpm = null) {
       key: selectedKey, 
       bpm: window.activeFilter.value,
       bpmRange: window.activeFilter.bpmRange || 6,
-      referenceBpm: referenceBpm  // Store for combined filtering
+      referenceBpm: referenceBpm,
+      sourceCardId: sourceCardId  // Store source card ID
     };
   } else {
     document.body.classList.add('filtering-active');
     window.activeFilter = { 
       type: 'key', 
       value: selectedKey,
-      referenceBpm: referenceBpm  // Store the reference BPM
+      referenceBpm: referenceBpm,
+      sourceCardId: sourceCardId  // Store source card ID
     };
   }
   
@@ -1853,7 +1855,25 @@ function applyFilterEffect(card, compatibilityScore, bpmProximity = null) {
     return;
   }
   
-  const bpmTiebreaker = bpmProximity !== null ? bpmProximity : 0.5;
+  // Check if this is the source card (the card that was clicked)
+  const isSourceCard = window.activeFilter && 
+                       window.activeFilter.sourceCardId && 
+                       card.dataset.id === window.activeFilter.sourceCardId;
+  
+  // Always put source card first, with highest priority
+  if (isSourceCard) {
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1.02)'; // Slightly larger
+    card.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.5)'; // Purple glow
+    card.style.order = '-20000'; // Ensure it's first
+    card.classList.add('high-compatibility');
+    card.classList.add('source-card');
+    console.log('Source card prioritized:', card.querySelector('.song-title')?.textContent);
+    return;
+  }
+  
+  // For all other cards, apply compatibility-based ordering
+  const bpmTiebreaker = bpmProximity !== null ? bpmProximity * 1000 : 0;
   let orderValue;
   
   if (compatibilityScore === 1.0) {
@@ -1869,68 +1889,50 @@ function applyFilterEffect(card, compatibilityScore, bpmProximity = null) {
     orderValue = -9000 - bpmTiebreaker;
     
   } else if (compatibilityScore >= 0.7) {
-    card.style.opacity = Math.max(0.5, compatibilityScore).toString();
+    card.style.opacity = Math.max(0.8, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
     orderValue = -7000 - bpmTiebreaker;
     
   } else if (compatibilityScore >= 0.4) {
-    card.style.opacity = Math.max(0.4, compatibilityScore).toString();
+    card.style.opacity = Math.max(0.6, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
     orderValue = -4000 - bpmTiebreaker;
     
   } else {
-    card.style.opacity = Math.max(0.3, compatibilityScore).toString();
+    card.style.opacity = Math.max(0.4, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
     orderValue = -1000 - bpmTiebreaker;
   }
   
-  // CRITICAL: Store as NUMBER not string
+  // Store as NUMBER not string for the ordering
   card.style.order = orderValue.toString();
   
-  // DEBUG: Log first 5 cards
+  // DEBUG: Log key cards
   const cardTitle = card.querySelector('.song-title')?.textContent || 'Unknown';
   if (parseInt(card.style.order) < -7000) {
-    console.log(`${cardTitle}: score=${compatibilityScore}, bpm=${bpmTiebreaker.toFixed(2)}, order=${orderValue}`);
+    console.log(`${cardTitle}: score=${compatibilityScore.toFixed(2)}, bpm=${bpmTiebreaker.toFixed(2)}, order=${orderValue}`);
   }
 }
 
-// Physically reorder cards in the DOM based on compatibility
-function reorderCardsByFilter() {
-  const container = document.getElementById('requestsList');
-  if (!container) return;
-  
-  // Get all cards with their calculated order values
-  const cards = Array.from(container.querySelectorAll('.request-card'));
-  
-  // Sort cards by their order style property (lower = higher priority)
-  cards.sort((a, b) => {
-    const orderA = parseFloat(a.style.order) || 0;
-    const orderB = parseFloat(b.style.order) || 0;
-    return orderA - orderB;
-  });
-  
-  // Reinsert cards in sorted order
-  cards.forEach(card => container.appendChild(card));
-  
-  console.log('Cards reordered in DOM');
-}
-
-
 function applyKeyFilter() {
+  if (!window.activeFilter) return;
+  
   const selectedKey = window.activeFilter.key || window.activeFilter.value;
   const referenceBpm = window.activeFilter.referenceBpm || null;
+  const sourceCardId = window.activeFilter.sourceCardId || null;
   
-  console.log(`Applying key filter: ${selectedKey}, reference BPM: ${referenceBpm}`);
+  console.log(`Applying key filter: ${selectedKey}, reference BPM: ${referenceBpm}, source card: ${sourceCardId}`);
   
   const allCards = document.querySelectorAll('.request-card');
   console.log(`Total cards found: ${allCards.length}`);
   
+  // First pass to calculate and apply ordering
   allCards.forEach(card => {
     const cardKeyElement = card.querySelector('.key-badge') || card.querySelector('.key-badge-large');
     
     if (!cardKeyElement) {
       console.warn('Card missing key badge:', card.querySelector('.song-title')?.textContent);
-      card.style.opacity = '0.15';
+      card.style.opacity = '0.3';
       card.style.transform = 'scale(1)';
       card.style.order = '1000';
       return;
@@ -1958,19 +1960,24 @@ function applyKeyFilter() {
         applyFilterEffect(card, keyCompatibility, bpmProximity);
       }
     } else {
-      card.style.opacity = '0.15';
+      card.style.opacity = '0.3';
       card.style.transform = 'scale(1)';
       card.style.order = '1000';
     }
   });
   
-  // PHYSICALLY reorder the DOM elements
-  reorderCardsByFilter();
+  // Use CSS grid's order property for sorting (more efficient than DOM manipulation)
+  // But ensure the grid layout is maintained by updating styles
+  const container = document.getElementById('requestsList');
+  if (container) {
+    container.style.display = 'grid';
+    container.style.gridAutoFlow = 'dense';
+  }
   
   console.log('Key filter applied to all cards');
 }
 
-function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null) {
+function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null, sourceCardId = null) {
   if (!selectedBpm) return;
   
   selectedBpm = parseInt(selectedBpm);
@@ -1987,7 +1994,8 @@ function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null) {
       key: window.activeFilter.value, 
       bpm: selectedBpm,
       bpmRange: percentageRange,
-      referenceKey: referenceKey
+      referenceKey: referenceKey,
+      sourceCardId: sourceCardId  // Store source card ID
     };
   } else {
     document.body.classList.add('filtering-active');
@@ -1995,7 +2003,8 @@ function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null) {
       type: 'bpm', 
       value: selectedBpm, 
       bpmRange: percentageRange,
-      referenceKey: referenceKey  // Store reference key for tiebreaking
+      referenceKey: referenceKey,
+      sourceCardId: sourceCardId  // Store source card ID
     };
   }
   
@@ -2003,6 +2012,7 @@ function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null) {
   let rangeControl = document.getElementById('bpmRangeControl');
   
   if (!rangeControl) {
+    // [existing code for creating range control - no changes needed]
     rangeControl = document.createElement('div');
     rangeControl.id = 'bpmRangeControl';
     rangeControl.className = 'filter-range-control';
@@ -2024,7 +2034,8 @@ function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null) {
     rangeControl.querySelectorAll('.bpm-percentage-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const percent = parseInt(this.dataset.percent);
-        filterByBpm(selectedBpm, percent);
+        // Preserve source card ID when changing percentage
+        filterByBpm(selectedBpm, percent, referenceKey, sourceCardId);
       });
     });
   }
@@ -2047,6 +2058,7 @@ function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null) {
 function applyBpmFilter(selectedBpm, percentageRange) {
   const minBpm = selectedBpm * (1 - percentageRange / 100);
   const maxBpm = selectedBpm * (1 + percentageRange / 100);
+  const sourceCardId = window.activeFilter.sourceCardId || null;
   
   // Get reference key from clicked card (if available)
   let referenceKey = null;
@@ -2054,7 +2066,7 @@ function applyBpmFilter(selectedBpm, percentageRange) {
     referenceKey = window.activeFilter.referenceKey;
   }
   
-  console.log(`Applying BPM filter: ${selectedBpm}, range: ±${percentageRange}%, reference key: ${referenceKey}`);
+  console.log(`Applying BPM filter: ${selectedBpm}, range: ±${percentageRange}%, reference key: ${referenceKey}, source card: ${sourceCardId}`);
   
   const allCards = document.querySelectorAll('.request-card');
   console.log(`Total cards found: ${allCards.length}`);
@@ -2064,7 +2076,7 @@ function applyBpmFilter(selectedBpm, percentageRange) {
     
     if (!bpmElement) {
       console.warn('Card missing BPM badge:', card.querySelector('.song-title')?.textContent);
-      card.style.opacity = '0.15';
+      card.style.opacity = '0.3';
       card.style.transform = 'scale(1)';
       card.style.order = '1000';
       return;
@@ -2114,27 +2126,30 @@ function applyBpmFilter(selectedBpm, percentageRange) {
         if (window.activeFilter.type === 'combined') {
           const keyCompatibility = checkKeyCompatibility(card);
           const combinedScore = Math.min(bpmCompatibilityScore, keyCompatibility);
-          applyFilterEffect(card, combinedScore, keyProximity || bestScore);
+          applyFilterEffect(card, combinedScore, keyProximity);
         } else {
-          // BPM filtering: BPM is primary, KEY is tiebreaker
           applyFilterEffect(card, bpmCompatibilityScore, keyProximity);
         }
       } else {
         // Outside range for all scenarios
-        card.style.opacity = '0.15';
+        card.style.opacity = '0.3';
         card.style.transform = 'scale(1)';
         card.style.order = '1000';
       }
     } else {
       // Cards without data at bottom
-      card.style.opacity = '0.15';
+      card.style.opacity = '0.3';
       card.style.transform = 'scale(1)';
       card.style.order = '1000';
     }
   });
   
-  // PHYSICALLY reorder the DOM elements
-  reorderCardsByFilter();
+  // Use CSS grid's order property for sorting (more efficient than DOM manipulation)
+  const container = document.getElementById('requestsList');
+  if (container) {
+    container.style.display = 'grid';
+    container.style.gridAutoFlow = 'dense';
+  }
   
   console.log('BPM filter applied to all cards');
 }
@@ -2210,11 +2225,13 @@ function bpmBadgeClickHandler(e) {
   e.stopPropagation();
   const bpm = parseInt(this.textContent.trim());
   
-  // Get the KEY from THIS specific clicked card
+  // Get the clicked card and store its ID
   const clickedCard = this.closest('.request-card');
+  let sourceCardId = null;
   let referenceKey = null;
   
   if (clickedCard) {
+    sourceCardId = clickedCard.dataset.id;
     const keyBadge = clickedCard.querySelector('.key-badge, .key-badge-large');
     if (keyBadge && keyBadge.textContent.trim()) {
       referenceKey = keyBadge.textContent.trim();
@@ -2222,7 +2239,7 @@ function bpmBadgeClickHandler(e) {
   }
   
   if (!isNaN(bpm)) {
-    filterByBpm(bpm, 6, referenceKey);
+    filterByBpm(bpm, 6, referenceKey, sourceCardId);
   }
 }
 
@@ -2231,18 +2248,20 @@ function keyBadgeClickHandler(e) {
   e.stopPropagation();
   const key = this.textContent.trim();
   
-  // Get the BPM from THIS specific clicked card
+  // Get the clicked card and store its ID
   const clickedCard = this.closest('.request-card');
+  let sourceCardId = null;
   let referenceBpm = null;
   
   if (clickedCard) {
+    sourceCardId = clickedCard.dataset.id;
     const bpmBadge = clickedCard.querySelector('.bpm-badge, .bpm-badge-large');
     if (bpmBadge && bpmBadge.textContent.trim()) {
       referenceBpm = parseInt(bpmBadge.textContent.trim());
     }
   }
   
-  filterByKey(key, referenceBpm);
+  filterByKey(key, referenceBpm, sourceCardId);
 }
 
 // Clear filtering function and button
