@@ -1936,31 +1936,33 @@ function applyKeyFilter() {
   });
 }
 
-function filterByBpm(selectedBpm, percentageRange = 6) {
+function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null) {
   if (!selectedBpm) return;
   
   selectedBpm = parseInt(selectedBpm);
   
-  // Save scroll position if not already filtering
   if (!document.body.classList.contains('filtering-active')) {
     scrollPositionBeforeFilter = window.scrollY || window.pageYOffset;
   }
   
-  // Check if this is a secondary filter
   const isSecondaryFilter = window.activeFilter && window.activeFilter.type === 'key';
   
   if (isSecondaryFilter) {
-    // Combined filtering mode
     window.activeFilter = { 
       type: 'combined', 
       key: window.activeFilter.value, 
       bpm: selectedBpm,
-      bpmRange: percentageRange
+      bpmRange: percentageRange,
+      referenceKey: referenceKey
     };
   } else {
-    // Primary BPM filter
     document.body.classList.add('filtering-active');
-    window.activeFilter = { type: 'bpm', value: selectedBpm, bpmRange: percentageRange };
+    window.activeFilter = { 
+      type: 'bpm', 
+      value: selectedBpm, 
+      bpmRange: percentageRange,
+      referenceKey: referenceKey  // Store reference key for tiebreaking
+    };
   }
   
   // Create percentage button controls
@@ -2012,6 +2014,12 @@ function applyBpmFilter(selectedBpm, percentageRange) {
   const minBpm = selectedBpm * (1 - percentageRange / 100);
   const maxBpm = selectedBpm * (1 + percentageRange / 100);
   
+  // Get reference key from clicked card (if available)
+  let referenceKey = null;
+  if (window.activeFilter && window.activeFilter.referenceKey) {
+    referenceKey = window.activeFilter.referenceKey;
+  }
+  
   document.querySelectorAll('.request-card').forEach(card => {
     const bpmElement = card.querySelector('.bpm-badge');
     if (!bpmElement) return;
@@ -2029,7 +2037,6 @@ function applyBpmFilter(selectedBpm, percentageRange) {
         { bpm: cardBpm / 2, label: 'half' }
       ];
       
-      // Find which scenario fits best within range
       let bestMatch = null;
       let bestScore = 0;
       
@@ -2045,16 +2052,26 @@ function applyBpmFilter(selectedBpm, percentageRange) {
       });
       
       if (bestMatch) {
-        // Within range - use best compatibility score
-        const compatibilityScore = Math.max(0.3, bestScore);
+        const bpmCompatibilityScore = Math.max(0.3, bestScore);
         
-        // If combined filter, also check key
+        // Calculate KEY proximity as tiebreaker (just like BPM is tiebreaker for key filtering)
+        let keyProximity = null;
+        if (referenceKey) {
+          const cardKeyElement = card.querySelector('.key-badge');
+          if (cardKeyElement && cardKeyElement.textContent.trim()) {
+            const cardKey = cardKeyElement.textContent.trim();
+            keyProximity = calculateKeyCompatibility(referenceKey, cardKey);
+          }
+        }
+        
+        // If combined filter, use minimum of both
         if (window.activeFilter.type === 'combined') {
           const keyCompatibility = checkKeyCompatibility(card);
-          const combinedScore = Math.min(compatibilityScore, keyCompatibility);
-          applyFilterEffect(card, combinedScore, bestScore);
+          const combinedScore = Math.min(bpmCompatibilityScore, keyCompatibility);
+          applyFilterEffect(card, combinedScore, keyProximity || bestScore);
         } else {
-          applyFilterEffect(card, compatibilityScore, bestScore);
+          // BPM filtering: BPM is primary, KEY is tiebreaker
+          applyFilterEffect(card, bpmCompatibilityScore, keyProximity);
         }
       } else {
         // Outside range for all scenarios
@@ -2139,10 +2156,22 @@ function initializeBpmFilterListeners() {
 
 // BPM badge click handler
 function bpmBadgeClickHandler(e) {
-  e.stopPropagation(); // Prevent card expansion
+  e.stopPropagation();
   const bpm = parseInt(this.textContent.trim());
+  
+  // Get the KEY from THIS specific clicked card
+  const clickedCard = this.closest('.request-card');
+  let referenceKey = null;
+  
+  if (clickedCard) {
+    const keyBadge = clickedCard.querySelector('.key-badge, .key-badge-large');
+    if (keyBadge && keyBadge.textContent.trim()) {
+      referenceKey = keyBadge.textContent.trim();
+    }
+  }
+  
   if (!isNaN(bpm)) {
-    filterByBpm(bpm);
+    filterByBpm(bpm, 6, referenceKey);
   }
 }
 
