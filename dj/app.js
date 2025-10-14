@@ -1368,8 +1368,6 @@ document.addEventListener('DOMContentLoaded', function() {
   filterInput = document.getElementById('requestFilter');
   clearFilterButton = document.getElementById('clearFilter');
 
-
-  
   // Clear the filter immediately
   if (filterInput) {
     filterInput.value = '';
@@ -1448,12 +1446,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize key filter listeners
   initializeKeyFilterListeners();
   
+  // ADD THIS LINE: Initialize BPM filter listeners
+  initializeBpmFilterListeners();
+  
   // Re-initialize listeners after requests are loaded
   // This ensures new cards have listeners too
   const originalFetchRequests = fetchRequests;
   fetchRequests = async function(...args) {
     await originalFetchRequests.apply(this, args);
     initializeKeyFilterListeners();
+    // ADD THIS LINE: Re-initialize BPM listeners too
+    initializeBpmFilterListeners();
   };
 });
 
@@ -1660,8 +1663,8 @@ function filterByBpm(selectedBpm) {
     
     // Calculate BPM compatibility (0-1)
     const percentDifference = Math.abs(cardBpm - selectedBpm) / selectedBpm;
-    const bpmCompatibility = percentDifference <= 0.08 ? 
-                            Math.max(0, 1 - (percentDifference / 0.08)) : 0;
+    const bpmCompatibility = percentDifference <= 0.05 ? 
+                            Math.max(0, 1 - (percentDifference / 0.05)) : 0;
     
     // Calculate key compatibility if we have key data
     let keyCompatibility = 1; // Default if we can't calculate
@@ -1676,7 +1679,7 @@ function filterByBpm(selectedBpm) {
       }
     }
     
-    // Create weighted compatibility score (30% key, 70% BPM)
+    // Create weighted compatibility score (70% BPM, 30% key)
     // Note: For BPM filtering, we weight BPM higher than key
     const combinedCompatibility = (keyCompatibility * 0.3) + (bpmCompatibility * 0.7);
     
@@ -1702,6 +1705,30 @@ function initializeKeyFilterListeners() {
       badge.addEventListener('click', keyBadgeClickHandler);
     }
   });
+}
+
+function initializeBpmFilterListeners() {
+  document.querySelectorAll('.bpm-badge, .bpm-badge-large').forEach(badge => {
+    if (badge.textContent.trim()) {  // Only add if badge has content
+      badge.classList.add('interactive-badge');
+      badge.setAttribute('title', 'Click to show compatible BPMs');
+      
+      // Remove any existing listeners to avoid duplicates
+      badge.removeEventListener('click', bpmBadgeClickHandler);
+      
+      // Add click event
+      badge.addEventListener('click', bpmBadgeClickHandler);
+    }
+  });
+}
+
+// BPM badge click handler
+function bpmBadgeClickHandler(e) {
+  e.stopPropagation(); // Prevent card expansion
+  const bpm = parseInt(this.textContent.trim());
+  if (!isNaN(bpm)) {
+    filterByBpm(bpm);
+  }
 }
 
 // Key badge click handler
