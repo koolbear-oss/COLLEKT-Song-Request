@@ -11,22 +11,31 @@
 </head>
 <body>
     <div class="dashboard">
+        <!-- New streamlined header -->
         <header>
-            <div class="nav-bar">
-                <button id="backToEventsButton" class="nav-button">
-                    <span class="nav-icon">←</span> Events
-                </button>
-                <button id="viewQrButton" class="nav-button">
-                    <span class="nav-icon">🔍</span> QR Display
-                </button>
-                <button id="guestFormButton" class="nav-button">
-                    <span class="nav-icon">➕</span> Guest Form
-                </button>
+            <div class="main-header">
+                <div class="logo-container">
+                    <h1 class="brand-logo">COLLEKT</h1>
+                </div>
             </div>
-            <h1>COLLEKT Song Requests</h1>
-            <div class="event-info">
-                <span id="eventName">Loading event...</span>
-                <div class="header-controls">
+            
+            <div class="nav-controls-bar">
+                <div class="left-controls">
+                    <button id="backToEventsButton" class="nav-button">
+                        <span class="nav-icon">←</span> Events
+                    </button>
+                    <button id="viewQrButton" class="nav-button">
+                        <span class="nav-icon">🔍</span> QR Display
+                    </button>
+                    <button id="guestFormButton" class="nav-button">
+                        <span class="nav-icon">➕</span> Guest Form
+                    </button>
+                    
+                    <!-- Event info moved here -->
+                    <span id="eventName" class="event-title">Loading event...</span>
+                </div>
+                
+                <div class="right-controls">
                     <button id="refreshButton" class="icon-button" title="Refresh Now">
                         <span class="refresh-icon">🔄</span>
                     </button>
@@ -42,23 +51,26 @@
         <div class="dashboard-content">
             <!-- Current requests section -->
             <div class="section requests-section">
-                <div class="section-header">
-                    <div class="header-title-row">
+                <div class="section-header compact">
+                    <div class="header-row">
                         <h2>Current Requests <span id="requestCount" class="count-badge">0</span></h2>
-                        <div class="header-controls-right">
+                        
+                        <div class="header-controls">
                             <button id="enhanceAllButton" class="enhance-all-button" style="display: none;">
                                 <span class="enhance-icon">🧠</span> Enhance All (<span id="enhanceCount">0</span>)
                             </button>
-                            <div class="quick-filters">
-                                <button class="quick-filter-button active" data-filter="all">All</button>
-                                <button class="quick-filter-button" data-filter="starred">Starred</button>
-                                <button class="quick-filter-button" data-filter="new">Recently Added</button>
-                            </div>
+                            
                             <div class="filter-container">
-                                <input type="text" id="requestFilter" placeholder="Search requests..." class="filter-input">
+                                <input type="text" id="requestFilter" placeholder="Search..." class="filter-input">
                                 <button id="clearFilter" class="clear-filter-button">&times;</button>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="quick-filters">
+                        <button class="quick-filter-button active" data-filter="all">All</button>
+                        <button class="quick-filter-button" data-filter="starred">Starred</button>
+                        <button class="quick-filter-button" data-filter="new">Recently Added</button>
                     </div>
                 </div>
                 
