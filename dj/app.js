@@ -1724,30 +1724,81 @@ function calculateKeyCompatibility(key1, key2) {
   return 0.1;
 }
 
-function applyFilterEffect(card, compatibilityScore) {
-  // Reset compatibility classes
-  card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility');
+// Calculate BPM proximity considering double-time and half-time relationships
+function calculateBpmProximity(referenceBpm, cardBpm) {
+  if (!referenceBpm || !cardBpm) return 0;
   
-  if (!document.body.classList.contains('filtering-active')) {
-    card.style.opacity = '1';
-    card.style.transform = 'scale(1)';
-    card.style.boxShadow = '';
-    card.style.order = '';
-    return;
+  // Calculate percentage difference for three scenarios
+  const scenarios = [
+    cardBpm,           // Original tempo
+    cardBpm * 2,       // Double-time
+    cardBpm / 2        // Half-time
+  ];
+  
+  // Find the closest match by percentage
+  const percentageDifferences = scenarios.map(tempo => {
+    return Math.abs(tempo - referenceBpm) / referenceBpm;
+  });
+  
+  // Get the smallest percentage difference
+  const minPercentageDiff = Math.min(...percentageDifferences);
+  
+  // Convert to proximity score (0-1, where 1 is identical)
+  // Using exponential decay for smoother falloff
+  // Within 6% = ~0.9, within 12% = ~0.7, within 25% = ~0.5
+  const proximityScore = Math.exp(-minPercentageDiff * 5);
+  
+  return proximityScore;
+}
+
+function applyKeyFilter() {
+  const selectedKey = window.activeFilter.key || window.activeFilter.value;
+  
+  // Get reference BPM from the clicked card
+  let referenceBpm = null;
+  const sourceCard = Array.from(document.querySelectorAll('.key-badge, .key-badge-large'))
+    .find(badge => badge.textContent.trim() === selectedKey)?.closest('.request-card');
+  if (sourceCard) {
+    const sourceBpmElement = sourceCard.querySelector('.bpm-badge, .bpm-badge-large');
+    if (sourceBpmElement && sourceBpmElement.textContent.trim()) {
+      referenceBpm = parseInt(sourceBpmElement.textContent.trim());
+    }
   }
   
-  // Only perfect/strong matches get purple highlight
-  if (compatibilityScore >= 0.9) {
-    card.classList.add('high-compatibility');
-    card.style.opacity = '1';
-    card.style.transform = 'scale(1)';
-    card.style.order = '-100'; // Top priority
-  } else {
-    // All others: proportional opacity gradient
-    card.style.opacity = Math.max(0.3, compatibilityScore).toString();
-    card.style.transform = 'scale(1)';
-    card.style.order = Math.floor(-compatibilityScore * 50).toString(); // Proportional ordering
-  }
+  document.querySelectorAll('.request-card').forEach(card => {
+    const cardKeyElement = card.querySelector('.key-badge');
+    if (!cardKeyElement) return;
+    
+    const cardKey = cardKeyElement.textContent.trim();
+    
+    if (cardKey) {
+      const keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
+      
+      // Calculate BPM proximity for tiebreaking (with double/half-time support)
+      let bpmProximity = null;
+      if (referenceBpm) {
+        const cardBpmElement = card.querySelector('.bpm-badge');
+        if (cardBpmElement && cardBpmElement.textContent.trim()) {
+          const cardBpm = parseInt(cardBpmElement.textContent.trim());
+          bpmProximity = calculateBpmProximity(referenceBpm, cardBpm);
+        }
+      }
+      
+      // If combined filter, also check BPM
+      if (window.activeFilter.type === 'combined') {
+        const bpmCompatibility = checkBpmCompatibility(card);
+        const combinedScore = Math.min(keyCompatibility, bpmCompatibility);
+        applyFilterEffect(card, combinedScore, bpmProximity);
+      } else {
+        applyFilterEffect(card, keyCompatibility, bpmProximity);
+      }
+    } else {
+      // Cards without data always at bottom
+      card.style.opacity = '0.15';
+      card.style.transform = 'scale(1)';
+      card.style.order = '1000';
+    }
+  });
 }
 
 // ADD to app.js - Key filtering implementation
@@ -1891,10 +1942,8 @@ function filterByBpm(selectedBpm, percentageRange = 6) {
 }
 
 function applyBpmFilter(selectedBpm, percentageRange) {
-  // Calculate BPM range based on percentage
   const minBpm = selectedBpm * (1 - percentageRange / 100);
   const maxBpm = selectedBpm * (1 + percentageRange / 100);
-  const totalRange = maxBpm - minBpm;
   
   document.querySelectorAll('.request-card').forEach(card => {
     const bpmElement = card.querySelector('.bpm-badge');
@@ -1906,22 +1955,42 @@ function applyBpmFilter(selectedBpm, percentageRange) {
       const cardBpm = parseInt(bpmText);
       if (isNaN(cardBpm)) return;
       
-      if (cardBpm >= minBpm && cardBpm <= maxBpm) {
-        // Calculate compatibility score based on distance from center
-        const distanceFromCenter = Math.abs(cardBpm - selectedBpm);
-        const maxDistance = totalRange / 2;
-        const compatibilityScore = 1 - (distanceFromCenter / maxDistance);
+      // Check all three tempo scenarios
+      const tempoScenarios = [
+        { bpm: cardBpm, label: 'original' },
+        { bpm: cardBpm * 2, label: 'double' },
+        { bpm: cardBpm / 2, label: 'half' }
+      ];
+      
+      // Find which scenario fits best within range
+      let bestMatch = null;
+      let bestScore = 0;
+      
+      tempoScenarios.forEach(scenario => {
+        if (scenario.bpm >= minBpm && scenario.bpm <= maxBpm) {
+          const percentageDiff = Math.abs(scenario.bpm - selectedBpm) / selectedBpm;
+          const score = 1 - percentageDiff;
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = scenario;
+          }
+        }
+      });
+      
+      if (bestMatch) {
+        // Within range - use best compatibility score
+        const compatibilityScore = Math.max(0.3, bestScore);
         
         // If combined filter, also check key
         if (window.activeFilter.type === 'combined') {
           const keyCompatibility = checkKeyCompatibility(card);
           const combinedScore = Math.min(compatibilityScore, keyCompatibility);
-          applyFilterEffect(card, combinedScore);
+          applyFilterEffect(card, combinedScore, bestScore);
         } else {
-          applyFilterEffect(card, compatibilityScore);
+          applyFilterEffect(card, compatibilityScore, bestScore);
         }
       } else {
-        // Outside range
+        // Outside range for all scenarios
         card.style.opacity = '0.15';
         card.style.transform = 'scale(1)';
         card.style.order = '1000';
