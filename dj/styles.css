@@ -1684,8 +1684,14 @@ body.filtering-active .request-card.high-compatibility {
   box-shadow: 0 0 8px rgba(138, 43, 226, 0.3);
 }
 
-/* CRITICAL: Ensure order property works */
 #requestsList {
-  display: flex !important;
-  flex-direction: column !important;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 15px !important;
+  grid-auto-flow: dense !important;
+}
+
+/* Request cards must be grid items for order to work */
+.request-card {
+  display: block;
 }
