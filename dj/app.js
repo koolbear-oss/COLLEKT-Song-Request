@@ -1853,46 +1853,45 @@ function applyFilterEffect(card, compatibilityScore, bpmProximity = null) {
     return;
   }
   
-  // BPM tiebreaker (0-1 range)
   const bpmTiebreaker = bpmProximity !== null ? bpmProximity : 0.5;
-  
-  // Calculate order with LARGE gaps between compatibility levels
   let orderValue;
   
   if (compatibilityScore === 1.0) {
-    // PERFECT key match: -10000 to -9999
     card.classList.add('high-compatibility');
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
     orderValue = -10000 - bpmTiebreaker;
     
   } else if (compatibilityScore >= 0.9) {
-    // Near-perfect (relative major/minor): -9000 to -8999
     card.classList.add('high-compatibility');
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
     orderValue = -9000 - bpmTiebreaker;
     
   } else if (compatibilityScore >= 0.7) {
-    // Adjacent keys: -7000 to -6999
     card.style.opacity = Math.max(0.5, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
     orderValue = -7000 - bpmTiebreaker;
     
   } else if (compatibilityScore >= 0.4) {
-    // Two steps away: -4000 to -3999
     card.style.opacity = Math.max(0.4, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
     orderValue = -4000 - bpmTiebreaker;
     
   } else {
-    // Low compatibility: -1000 to -999
     card.style.opacity = Math.max(0.3, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
     orderValue = -1000 - bpmTiebreaker;
   }
   
+  // CRITICAL: Store as NUMBER not string
   card.style.order = orderValue.toString();
+  
+  // DEBUG: Log first 5 cards
+  const cardTitle = card.querySelector('.song-title')?.textContent || 'Unknown';
+  if (parseInt(card.style.order) < -7000) {
+    console.log(`${cardTitle}: score=${compatibilityScore}, bpm=${bpmTiebreaker.toFixed(2)}, order=${orderValue}`);
+  }
 }
 
 
