@@ -208,7 +208,12 @@ function collapseCard(card) {
 async function fetchRequests(resetStarred = true) {
   if (!eventId) return;
   
+  // Store current filter state before refreshing
+  const wasFiltering = document.body.classList.contains('filtering-active');
+  const activeFilter = window.activeFilter;
+  
   console.log("Fetching requests for event:", eventId);
+  console.log("Filtering active:", wasFiltering, activeFilter);
 
   // Save expanded card ID before refresh
   const expandedCardId = currentlyExpandedCard ? currentlyExpandedCard.dataset.id : null;
@@ -287,6 +292,16 @@ async function fetchRequests(resetStarred = true) {
       currentlyExpandedCard = card;
     } else {
       currentlyExpandedCard = null;
+    }
+  }
+  
+  // After rendering the requests, reapply filter if it was active
+  if (wasFiltering && activeFilter) {
+    console.log("Reapplying filter:", activeFilter);
+    if (activeFilter.type === 'key') {
+      filterByKey(activeFilter.value);
+    } else if (activeFilter.type === 'bpm') {
+      filterByBpm(activeFilter.value);
     }
   }
 }
@@ -1097,23 +1112,41 @@ function applyQuickFilter(filterType) {
   }
 }
 
-function clearFilter() {
-  filterInput.value = '';
+function clearFiltering() {
+  console.log("Clearing all filters");
   
-  // Reset active quick filter
-  activeFilter = 'all';
-  quickFilterButtons.forEach(btn => {
-    btn.classList.remove('active');
-    if (btn.getAttribute('data-filter') === 'all') {
-      btn.classList.add('active');
-    }
+  // Remove filtering state
+  document.body.classList.remove('filtering-active');
+  window.activeFilter = null;
+  
+  // Reset all cards
+  document.querySelectorAll('.request-card').forEach(card => {
+    // Remove compatibility classes
+    card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility');
+    
+    // Reset inline styles
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+    card.style.boxShadow = '';
+    card.style.display = ''; // Make sure hidden cards are shown again
+    card.style.order = '';
   });
   
-  // Show all cards
-  const cards = requestsListElement.querySelectorAll('.request-card');
-  cards.forEach(card => card.style.display = '');
+  // Hide clear button
+  const clearButton = document.getElementById('clearFilterButton');
+  if (clearButton) {
+    clearButton.style.display = 'none';
+  }
   
-  filterInput.blur();
+  // Remove temporary filter controls
+  const tempControls = [
+    document.getElementById('includeUnknownToggle'),
+    document.getElementById('bpmRangeControl')
+  ];
+  
+  tempControls.forEach(control => {
+    if (control) control.remove();
+  });
 }
 
 // Mark request as starred (move to top)
