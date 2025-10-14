@@ -1654,16 +1654,32 @@ body.dragging .requests-container {
 
 /* Filtering active styles - only apply when filtering is active */
 body.filtering-active .request-card.high-compatibility {
-  border-left: 3px solid #9c27b0; /* Purple for high compatibility */
-  box-shadow: 0 0 8px rgba(156, 39, 176, 0.4);
+  border-left: 3px solid #9c27b0;
+  box-shadow: 0 0 12px rgba(156, 39, 176, 0.5);
 }
 
-body.filtering-active .request-card.medium-compatibility {
-  border-left: 3px solid #ba68c8; /* Lighter purple for medium */
-  box-shadow: 0 0 6px rgba(186, 104, 200, 0.3);
+/* BPM percentage button styling */
+.bpm-percentage-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-body.filtering-active .request-card.low-compatibility {
-  border-left: 3px solid #e1bee7; /* Very light purple for low */
-  box-shadow: 0 0 4px rgba(225, 190, 231, 0.2);
+.bpm-percentage-btn:hover {
+  background: rgba(138, 43, 226, 0.1);
+  border-color: rgba(138, 43, 226, 0.3);
+  transform: translateY(-1px);
+}
+
+.bpm-percentage-btn.active {
+  background: rgba(138, 43, 226, 0.2);
+  border-color: rgba(138, 43, 226, 0.5);
+  box-shadow: 0 0 8px rgba(138, 43, 226, 0.3);
 }

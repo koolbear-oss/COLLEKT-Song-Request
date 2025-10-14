@@ -20,6 +20,9 @@ const CAMELOT_COLORS = {
   '9B': '#E74C3C',  '10B': '#E95D4F', '11B': '#EB6E62', '12B': '#ED7F75'
 };
 
+// Track scroll position for filter reset
+let scrollPositionBeforeFilter = 0;
+
 // Helper function to get Camelot color
 function getCamelotColor(key) {
   if (!key) return null;
@@ -1722,33 +1725,28 @@ function calculateKeyCompatibility(key1, key2) {
 }
 
 function applyFilterEffect(card, compatibilityScore) {
-  // First, reset any existing compatibility classes
+  // Reset compatibility classes
   card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility');
   
-  // Only apply effects if filtering is actually active
   if (!document.body.classList.contains('filtering-active')) {
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
     card.style.boxShadow = '';
+    card.style.order = '';
     return;
   }
   
-  // Determine compatibility level based on score
-  if (compatibilityScore >= 0.8) {
+  // Only perfect/strong matches get purple highlight
+  if (compatibilityScore >= 0.9) {
     card.classList.add('high-compatibility');
     card.style.opacity = '1';
-    card.style.transform = 'scale(1.02)';
-    card.style.order = '-3'; // High priority in flexbox
-  } else if (compatibilityScore >= 0.4) {
-    card.classList.add('medium-compatibility');
-    card.style.opacity = '0.85';
     card.style.transform = 'scale(1)';
-    card.style.order = '-2';
+    card.style.order = '-100'; // Top priority
   } else {
-    card.classList.add('low-compatibility');
-    card.style.opacity = '0.6';
-    card.style.transform = 'scale(0.98)';
-    card.style.order = '-1';
+    // All others: proportional opacity gradient
+    card.style.opacity = Math.max(0.3, compatibilityScore).toString();
+    card.style.transform = 'scale(1)';
+    card.style.order = Math.floor(-compatibilityScore * 50).toString(); // Proportional ordering
   }
 }
 
@@ -1758,86 +1756,96 @@ function filterByKey(selectedKey) {
   
   console.log("Filtering by key:", selectedKey);
   
-  document.body.classList.add('filtering-active');
-  window.activeFilter = { type: 'key', value: selectedKey };
-  
-  // Remove any existing toggle to avoid duplicates
-  const existingToggle = document.getElementById('includeUnknownToggle');
-  if (existingToggle) {
-    existingToggle.remove();
+  // Save scroll position if not already filtering
+  if (!document.body.classList.contains('filtering-active')) {
+    scrollPositionBeforeFilter = window.scrollY || window.pageYOffset;
   }
   
-  // Create fresh filter toggle
-  const filterToggle = document.createElement('div');
-  filterToggle.id = 'includeUnknownToggle';
-  filterToggle.className = 'filter-toggle';
-  filterToggle.innerHTML = `
-    <label style="font-size: 0.8rem; opacity: 0.8; display: flex; align-items: center; gap: 5px;">
-      <input type="checkbox" id="includeUnknown" checked style="margin: 0;">
-      <span>Include unknown</span>
-    </label>
-  `;
+  // Check if this is a secondary filter (adding to existing filter)
+  const isSecondaryFilter = window.activeFilter && window.activeFilter.type === 'bpm';
   
-  // Add next to clear filter button
-  const clearButton = document.getElementById('clearFilterButton');
-  if (clearButton && clearButton.parentNode) {
-    clearButton.parentNode.insertBefore(filterToggle, clearButton);
-  }
-  
-  // Function to process the cards based on filter settings
-  function applyKeyFilter(includeUnknown = true) {
-    document.querySelectorAll('.request-card').forEach(card => {
-      const cardKeyElement = card.querySelector('.key-badge');
-      if (!cardKeyElement) return;
-      
-      const cardKey = cardKeyElement.textContent.trim();
-      
-      // Handle cards with key data
-      if (cardKey) {
-        const keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
-        applyFilterEffect(card, keyCompatibility);
-      } 
-      // Handle cards without key data
-      else {
-        if (includeUnknown) {
-          // Show with reduced visibility
-          card.style.opacity = '0.4';
-          card.style.transform = 'scale(0.96)';
-        } else {
-          // Hide completely
-          card.style.display = 'none';
-        }
-      }
-    });
-  }
-  
-  // Initial filter application
-  applyKeyFilter(true);
-  
-  // Setup toggle listener - with safety check
-  const includeUnknownCheckbox = document.getElementById('includeUnknown');
-  if (includeUnknownCheckbox) {
-    includeUnknownCheckbox.addEventListener('change', function() {
-      applyKeyFilter(this.checked);
-    });
+  if (isSecondaryFilter) {
+    // Combined filtering mode
+    window.activeFilter = { 
+      type: 'combined', 
+      key: selectedKey, 
+      bpm: window.activeFilter.value,
+      bpmRange: window.activeFilter.bpmRange || 3
+    };
   } else {
-    console.error("Could not find 'includeUnknown' checkbox element");
+    // Primary key filter
+    document.body.classList.add('filtering-active');
+    window.activeFilter = { type: 'key', value: selectedKey };
   }
   
+  applyKeyFilter();
   showClearFilterButton();
+  
+  // Scroll to top if more than 8 cards
+  const cardCount = document.querySelectorAll('.request-card').length;
+  if (cardCount > 8) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
-function filterByBpm(selectedBpm) {
+function applyKeyFilter() {
+  const selectedKey = window.activeFilter.key || window.activeFilter.value;
+  
+  document.querySelectorAll('.request-card').forEach(card => {
+    const cardKeyElement = card.querySelector('.key-badge');
+    if (!cardKeyElement) return;
+    
+    const cardKey = cardKeyElement.textContent.trim();
+    
+    if (cardKey) {
+      const keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
+      
+      // If combined filter, also check BPM
+      if (window.activeFilter.type === 'combined') {
+        const bpmCompatibility = checkBpmCompatibility(card);
+        // Use minimum of both scores for combined filtering
+        const combinedScore = Math.min(keyCompatibility, bpmCompatibility);
+        applyFilterEffect(card, combinedScore);
+      } else {
+        applyFilterEffect(card, keyCompatibility);
+      }
+    } else {
+      // Cards without data always at bottom with lowest opacity
+      card.style.opacity = '0.15';
+      card.style.transform = 'scale(1)';
+      card.style.order = '1000'; // Bottom of list
+    }
+  });
+}
+
+function filterByBpm(selectedBpm, percentageRange = 6) {
   if (!selectedBpm) return;
   
-  // Parse as integer
   selectedBpm = parseInt(selectedBpm);
   
-  // Set filtering state
-  document.body.classList.add('filtering-active');
-  window.activeFilter = { type: 'bpm', value: selectedBpm };
+  // Save scroll position if not already filtering
+  if (!document.body.classList.contains('filtering-active')) {
+    scrollPositionBeforeFilter = window.scrollY || window.pageYOffset;
+  }
   
-  // Create minimal range control
+  // Check if this is a secondary filter
+  const isSecondaryFilter = window.activeFilter && window.activeFilter.type === 'key';
+  
+  if (isSecondaryFilter) {
+    // Combined filtering mode
+    window.activeFilter = { 
+      type: 'combined', 
+      key: window.activeFilter.value, 
+      bpm: selectedBpm,
+      bpmRange: percentageRange
+    };
+  } else {
+    // Primary BPM filter
+    document.body.classList.add('filtering-active');
+    window.activeFilter = { type: 'bpm', value: selectedBpm, bpmRange: percentageRange };
+  }
+  
+  // Create percentage button controls
   let rangeControl = document.getElementById('bpmRangeControl');
   
   if (!rangeControl) {
@@ -1845,62 +1853,121 @@ function filterByBpm(selectedBpm) {
     rangeControl.id = 'bpmRangeControl';
     rangeControl.className = 'filter-range-control';
     rangeControl.innerHTML = `
-      <label style="font-size: 0.8rem; opacity: 0.8; display: flex; align-items: center; gap: 8px;">
-        <span>Range: ±<span id="bpmRange">3</span></span>
-        <input type="range" id="bpmRangeSlider" min="0" max="10" value="3" 
-               style="width: 80px; margin: 0;">
-      </label>
+      <div style="display: flex; gap: 8px; align-items: center; font-size: 0.8rem;">
+        <span style="opacity: 0.8;">Range:</span>
+        <button class="bpm-percentage-btn" data-percent="6">±6%</button>
+        <button class="bpm-percentage-btn" data-percent="12">±12%</button>
+        <button class="bpm-percentage-btn" data-percent="50">±50%</button>
+      </div>
     `;
     
-    // Add next to clear filter button
     const clearButton = document.getElementById('clearFilterButton');
     if (clearButton && clearButton.parentNode) {
       clearButton.parentNode.insertBefore(rangeControl, clearButton);
     }
-  }
-  
-  // Function to apply the BPM filtering with range
-  function applyBpmFilter(range) {
-    document.querySelectorAll('.request-card').forEach(card => {
-      const bpmElement = card.querySelector('.bpm-badge');
-      if (!bpmElement) return;
-      
-      const bpmText = bpmElement.textContent.trim();
-      
-      if (bpmText) {
-        const cardBpm = parseInt(bpmText);
-        if (isNaN(cardBpm)) return;
-        
-        // Calculate how close the BPM is to our target
-        const bpmDifference = Math.abs(cardBpm - selectedBpm);
-        
-        if (bpmDifference <= range) {
-          // Within range - calculate compatibility score (0-1)
-          const compatibilityScore = 1 - (bpmDifference / (range + 1));
-          applyFilterEffect(card, compatibilityScore);
-        } else {
-          // Outside range - reduce visibility
-          card.style.opacity = '0.2';
-          card.style.transform = 'scale(0.96)';
-        }
-      } else {
-        // No BPM data
-        card.style.opacity = '0.3';
-        card.style.transform = 'scale(0.95)';
-      }
+    
+    // Add button listeners
+    rangeControl.querySelectorAll('.bpm-percentage-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const percent = parseInt(this.dataset.percent);
+        filterByBpm(selectedBpm, percent);
+      });
     });
   }
   
-  // Initial application with default range
-  applyBpmFilter(3);
-  
-  // Setup range slider listener
-  document.getElementById('bpmRangeSlider').addEventListener('input', function() {
-    document.getElementById('bpmRange').textContent = this.value;
-    applyBpmFilter(parseInt(this.value));
+  // Highlight active button
+  rangeControl.querySelectorAll('.bpm-percentage-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.percent) === percentageRange);
   });
   
+  applyBpmFilter(selectedBpm, percentageRange);
   showClearFilterButton();
+  
+  // Scroll to top if more than 8 cards
+  const cardCount = document.querySelectorAll('.request-card').length;
+  if (cardCount > 8) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function applyBpmFilter(selectedBpm, percentageRange) {
+  // Calculate BPM range based on percentage
+  const minBpm = selectedBpm * (1 - percentageRange / 100);
+  const maxBpm = selectedBpm * (1 + percentageRange / 100);
+  const totalRange = maxBpm - minBpm;
+  
+  document.querySelectorAll('.request-card').forEach(card => {
+    const bpmElement = card.querySelector('.bpm-badge');
+    if (!bpmElement) return;
+    
+    const bpmText = bpmElement.textContent.trim();
+    
+    if (bpmText) {
+      const cardBpm = parseInt(bpmText);
+      if (isNaN(cardBpm)) return;
+      
+      if (cardBpm >= minBpm && cardBpm <= maxBpm) {
+        // Calculate compatibility score based on distance from center
+        const distanceFromCenter = Math.abs(cardBpm - selectedBpm);
+        const maxDistance = totalRange / 2;
+        const compatibilityScore = 1 - (distanceFromCenter / maxDistance);
+        
+        // If combined filter, also check key
+        if (window.activeFilter.type === 'combined') {
+          const keyCompatibility = checkKeyCompatibility(card);
+          const combinedScore = Math.min(compatibilityScore, keyCompatibility);
+          applyFilterEffect(card, combinedScore);
+        } else {
+          applyFilterEffect(card, compatibilityScore);
+        }
+      } else {
+        // Outside range
+        card.style.opacity = '0.15';
+        card.style.transform = 'scale(1)';
+        card.style.order = '1000';
+      }
+    } else {
+      // Cards without data at bottom
+      card.style.opacity = '0.15';
+      card.style.transform = 'scale(1)';
+      card.style.order = '1000';
+    }
+  });
+}
+
+// Helper function for combined filtering
+function checkBpmCompatibility(card) {
+  if (!window.activeFilter || !window.activeFilter.bpm) return 1;
+  
+  const bpmElement = card.querySelector('.bpm-badge');
+  if (!bpmElement || !bpmElement.textContent.trim()) return 0;
+  
+  const cardBpm = parseInt(bpmElement.textContent.trim());
+  const selectedBpm = window.activeFilter.bpm;
+  const percentageRange = window.activeFilter.bpmRange || 6;
+  
+  const minBpm = selectedBpm * (1 - percentageRange / 100);
+  const maxBpm = selectedBpm * (1 + percentageRange / 100);
+  
+  if (cardBpm >= minBpm && cardBpm <= maxBpm) {
+    const distanceFromCenter = Math.abs(cardBpm - selectedBpm);
+    const maxDistance = (maxBpm - minBpm) / 2;
+    return 1 - (distanceFromCenter / maxDistance);
+  }
+  
+  return 0;
+}
+
+function checkKeyCompatibility(card) {
+  if (!window.activeFilter || !window.activeFilter.key) return 1;
+  
+  const keyElement = card.querySelector('.key-badge');
+  if (!keyElement || !keyElement.textContent.trim()) return 0;
+  
+  const cardKey = keyElement.textContent.trim();
+  const selectedKey = window.activeFilter.key;
+  
+  return calculateKeyCompatibility(selectedKey, cardKey);
 }
 
 // ADD to app.js - Add event listeners for key badges
@@ -1960,13 +2027,11 @@ function clearFiltering() {
   
   // Reset all cards
   document.querySelectorAll('.request-card').forEach(card => {
-    // Remove compatibility classes
     card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility');
-    
-    // Reset inline styles
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
     card.style.boxShadow = '';
+    card.style.display = '';
     card.style.order = '';
   });
   
@@ -1974,6 +2039,22 @@ function clearFiltering() {
   const clearButton = document.getElementById('clearFilterButton');
   if (clearButton) {
     clearButton.style.display = 'none';
+  }
+  
+  // Remove temporary filter controls
+  const tempControls = [
+    document.getElementById('includeUnknownToggle'),
+    document.getElementById('bpmRangeControl')
+  ];
+  
+  tempControls.forEach(control => {
+    if (control) control.remove();
+  });
+  
+  // Return to previous scroll position
+  if (scrollPositionBeforeFilter > 0) {
+    window.scrollTo({ top: scrollPositionBeforeFilter, behavior: 'smooth' });
+    scrollPositionBeforeFilter = 0;
   }
 }
 
