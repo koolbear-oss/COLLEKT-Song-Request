@@ -1802,31 +1802,34 @@ function applyKeyFilter() {
 }
 
 // ADD to app.js - Key filtering implementation
-function filterByKey(selectedKey) {
+function filterByKey(selectedKey, referenceBpm = null) {
   if (!selectedKey) return;
   
-  console.log("Filtering by key:", selectedKey);
+  console.log("Filtering by key:", selectedKey, "Reference BPM:", referenceBpm);
   
   // Save scroll position if not already filtering
   if (!document.body.classList.contains('filtering-active')) {
     scrollPositionBeforeFilter = window.scrollY || window.pageYOffset;
   }
   
-  // Check if this is a secondary filter (adding to existing filter)
+  // Check if this is a secondary filter
   const isSecondaryFilter = window.activeFilter && window.activeFilter.type === 'bpm';
   
   if (isSecondaryFilter) {
-    // Combined filtering mode
     window.activeFilter = { 
       type: 'combined', 
       key: selectedKey, 
       bpm: window.activeFilter.value,
-      bpmRange: window.activeFilter.bpmRange || 3
+      bpmRange: window.activeFilter.bpmRange || 6,
+      referenceBpm: referenceBpm  // Store for combined filtering
     };
   } else {
-    // Primary key filter
     document.body.classList.add('filtering-active');
-    window.activeFilter = { type: 'key', value: selectedKey };
+    window.activeFilter = { 
+      type: 'key', 
+      value: selectedKey,
+      referenceBpm: referenceBpm  // Store the reference BPM
+    };
   }
   
   applyKeyFilter();
@@ -1869,6 +1872,7 @@ function applyFilterEffect(card, compatibilityScore, bpmProximity = null) {
 
 function applyKeyFilter() {
   const selectedKey = window.activeFilter.key || window.activeFilter.value;
+  const referenceBpm = window.activeFilter.referenceBpm || null;
   
   document.querySelectorAll('.request-card').forEach(card => {
     const cardKeyElement = card.querySelector('.key-badge');
@@ -1879,20 +1883,29 @@ function applyKeyFilter() {
     if (cardKey) {
       const keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
       
+      // Calculate BPM proximity (with the CLICKED card's BPM as reference)
+      let bpmProximity = null;
+      if (referenceBpm) {
+        const cardBpmElement = card.querySelector('.bpm-badge');
+        if (cardBpmElement && cardBpmElement.textContent.trim()) {
+          const cardBpm = parseInt(cardBpmElement.textContent.trim());
+          bpmProximity = calculateBpmProximity(referenceBpm, cardBpm);
+        }
+      }
+      
       // If combined filter, also check BPM
       if (window.activeFilter.type === 'combined') {
         const bpmCompatibility = checkBpmCompatibility(card);
-        // Use minimum of both scores for combined filtering
         const combinedScore = Math.min(keyCompatibility, bpmCompatibility);
-        applyFilterEffect(card, combinedScore);
+        applyFilterEffect(card, combinedScore, bpmProximity);
       } else {
-        applyFilterEffect(card, keyCompatibility);
+        applyFilterEffect(card, keyCompatibility, bpmProximity);
       }
     } else {
-      // Cards without data always at bottom with lowest opacity
+      // Cards without data always at bottom
       card.style.opacity = '0.15';
       card.style.transform = 'scale(1)';
-      card.style.order = '1000'; // Bottom of list
+      card.style.order = '1000';
     }
   });
 }
@@ -2109,12 +2122,24 @@ function bpmBadgeClickHandler(e) {
 
 // Key badge click handler
 function keyBadgeClickHandler(e) {
-  e.stopPropagation(); // Prevent card expansion
+  e.stopPropagation();
   const key = this.textContent.trim();
-  filterByKey(key);
+  
+  // Get the BPM from THIS specific clicked card
+  const clickedCard = this.closest('.request-card');
+  let referenceBpm = null;
+  
+  if (clickedCard) {
+    const bpmBadge = clickedCard.querySelector('.bpm-badge, .bpm-badge-large');
+    if (bpmBadge && bpmBadge.textContent.trim()) {
+      referenceBpm = parseInt(bpmBadge.textContent.trim());
+    }
+  }
+  
+  filterByKey(key, referenceBpm);
 }
 
-// ADD to app.js - Clear filtering function and button
+// Clear filtering function and button
 function clearFiltering() {
   console.log("Clearing all filters");
   
