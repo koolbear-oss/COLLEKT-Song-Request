@@ -384,8 +384,9 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     const bpmBadgeLarge = requestCard.querySelector('.bpm-badge-large');
 
     if (isPro) {
-      // Show key if available (collapsed state)
+      // Show key if available
       if (request.key) {
+        // For small badge (collapsed view)
         if (keyBadge) {
           keyBadge.textContent = request.key;
           keyBadge.setAttribute('data-value', request.key);
@@ -397,8 +398,10 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
           }
         }
         
+        // For large badge (expanded view)
         if (keyBadgeLarge) {
           keyBadgeLarge.textContent = request.key;
+          keyBadgeLarge.setAttribute('data-value', request.key);
           // Apply Camelot colors with text contrast
           const keyColors = getCamelotColor(request.key);
           if (keyColors) {
@@ -406,18 +409,26 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
             keyBadgeLarge.style.color = keyColors.color;
           }
         }
+      } else {
+        // No key data
+        if (keyBadge) keyBadge.textContent = '';
+        if (keyBadgeLarge) keyBadgeLarge.textContent = '';
       }
       
       // Show BPM if available
       if (request.bpm) {
+        // For small badge (collapsed view)
         if (bpmBadge) {
           bpmBadge.textContent = request.bpm;
           bpmBadge.setAttribute('data-value', request.bpm);
         }
+        // For large badge (expanded view)
         if (bpmBadgeLarge) {
           bpmBadgeLarge.textContent = request.bpm;
+          bpmBadgeLarge.setAttribute('data-value', request.bpm);
         }
       } else {
+        // No BPM data
         if (bpmBadge) bpmBadge.textContent = '';
         if (bpmBadgeLarge) bpmBadgeLarge.textContent = '';
       }
@@ -425,6 +436,8 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       // Hide metadata for non-Pro users
       if (keyBadge) keyBadge.style.display = 'none';
       if (bpmBadge) bpmBadge.style.display = 'none';
+      if (keyBadgeLarge) keyBadgeLarge.style.display = 'none';
+      if (bpmBadgeLarge) bpmBadgeLarge.style.display = 'none';
     }
     
     // Format timestamp
