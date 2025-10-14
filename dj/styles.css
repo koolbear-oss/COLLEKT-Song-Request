@@ -1634,3 +1634,19 @@ body.dragging .requests-container {
   border: 1px dashed rgba(255, 255, 255, 0.1);
   min-width: 40px;
 }
+
+/* Enhanced card styling - cards with metadata */
+.request-card.enhanced-with-data {
+  border-left: 3px solid var(--primary-color);
+}
+
+/* Enhanced but no data found - lighter background for the entire card */
+.request-card.enhanced-no-data {
+  background: rgba(60, 60, 60, 0.5); /* Lighter than regular cards */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Remove the previous yellow left border if it was added before */
+.request-card.enhanced-no-data {
+  border-left: 3px solid var(--card-border); /* Reset to default border */
+}

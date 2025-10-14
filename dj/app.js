@@ -533,6 +533,18 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
         copyForSeratoSearch(songTitle, artistName);
       });
     }
+
+    // Add enhancement status classes
+    if (request.enhanced_by_ai) {
+      requestCard.classList.add('enhanced');
+      
+      // Check if it actually has data
+      if (request.key || request.bpm) {
+        requestCard.classList.add('enhanced-with-data');
+      } else {
+        requestCard.classList.add('enhanced-no-data');
+      }
+    }
     
     // Add to container
     container.appendChild(requestCard);
