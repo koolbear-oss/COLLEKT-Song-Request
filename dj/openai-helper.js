@@ -20,8 +20,8 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
   }
 
   try {
-    // Create OpenAI API request
-    const response = await fetch("https://api.openai.com/v1/completions", {
+    // Create OpenAI API request - Updated to use chat completions
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -29,45 +29,51 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
       },
       
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        prompt: `You are a music expert identifying and correcting song requests from a DJ event.
+        model: "gpt-4-turbo-preview", // Updated model name for chat endpoint
+        messages: [
+          {
+            role: "system",
+            content: "You are a music expert identifying and correcting song requests from a DJ event."
+          },
+          {
+            role: "user",
+            content: `INPUT:
+            Title: ${title}
+            Artist: ${artist}
 
-      INPUT:
-      Title: ${title}
-      Artist: ${artist}
+            TASK:
+            1. Identify if this is a real song (correct common typos, spelling errors, and word variations)
+            2. Return the OFFICIAL/CORRECT title and artist name as they appear on the actual release
+            3. Provide musical metadata (key, BPM) only if you're highly confident
 
-      TASK:
-      1. Identify if this is a real song (correct common typos, spelling errors, and word variations)
-      2. Return the OFFICIAL/CORRECT title and artist name as they appear on the actual release
-      3. Provide musical metadata (key, BPM) only if you're highly confident
+            CORRECTION EXAMPLES:
+            - "peach & cream" → "Peaches & Cream"
+            - "dont stop believing" → "Don't Stop Believin'"
+            - "Mr Brightside" → "Mr. Brightside"
+            - "Billie Jean" by "MJ" → "Billie Jean" by "Michael Jackson"
 
-      CORRECTION EXAMPLES:
-      - "peach & cream" → "Peaches & Cream"
-      - "dont stop believing" → "Don't Stop Believin'"
-      - "Mr Brightside" → "Mr. Brightside"
-      - "Billie Jean" by "MJ" → "Billie Jean" by "Michael Jackson"
+            CRITICAL RULES:
+            ✓ CORRECT spelling errors, plurals, punctuation, and abbreviations
+            ✓ Use the OFFICIAL title/artist from the actual music release
+            ✓ For key: Use Camelot notation (e.g., "8A", "11B") - only if confident
+            ✓ For BPM: Use exact tempo - only if confident
+            ✗ Do NOT guess key/BPM if unsure - return null instead
+            ✗ Do NOT make up songs that don't exist
 
-      CRITICAL RULES:
-      ✓ CORRECT spelling errors, plurals, punctuation, and abbreviations
-      ✓ Use the OFFICIAL title/artist from the actual music release
-      ✓ For key: Use Camelot notation (e.g., "8A", "11B") - only if confident
-      ✓ For BPM: Use exact tempo - only if confident
-      ✗ Do NOT guess key/BPM if unsure - return null instead
-      ✗ Do NOT make up songs that don't exist
-
-      Return ONLY valid JSON (no markdown, no explanations):
-      {
-        "title": "Official Song Title With Correct Spelling",
-        "artist": "Official Artist Name",
-        "key": "8A",
-        "bpm": 102,
-        "confidence": "high",
-        "is_real_song": true
-      }`,
+            Return ONLY valid JSON (no markdown, no explanations):
+            {
+              "title": "Official Song Title With Correct Spelling",
+              "artist": "Official Artist Name",
+              "key": "8A",
+              "bpm": 102,
+              "confidence": "high",
+              "is_real_song": true
+            }`
+          }
+        ],
         max_tokens: 300,
         temperature: 0.3
       })
-
     });
 
     if (!response.ok) {
@@ -80,8 +86,8 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
       throw new Error("No response from OpenAI");
     }
 
-    // Extract and parse the JSON response
-    const responseText = data.choices[0].text.trim();
+    // Extract and parse the JSON response - Updated for chat format
+    const responseText = data.choices[0].message.content.trim();
     let result;
     
     try {
