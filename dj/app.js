@@ -210,15 +210,16 @@ async function fetchRequests(resetStarred = true) {
   
   // Store current filter state before refreshing
   const wasFiltering = document.body.classList.contains('filtering-active');
-  const activeFilter = window.activeFilter;
+  const activeFilter = window.activeFilter ? {...window.activeFilter} : null;
   
   console.log("Fetching requests for event:", eventId);
-  console.log("Filtering active:", wasFiltering, activeFilter);
+  console.log("Filter state before refresh:", wasFiltering, activeFilter);
 
   // Save expanded card ID before refresh
   const expandedCardId = currentlyExpandedCard ? currentlyExpandedCard.dataset.id : null;
   
   try {
+    
     // Fetch active requests
     const { data: activeRequests, error: activeError } = await supabase
       .from('requests')
@@ -296,13 +297,16 @@ async function fetchRequests(resetStarred = true) {
   }
   
   // After rendering the requests, reapply filter if it was active
+  // Use a slight delay to ensure DOM is fully updated
   if (wasFiltering && activeFilter) {
-    console.log("Reapplying filter:", activeFilter);
-    if (activeFilter.type === 'key') {
-      filterByKey(activeFilter.value);
-    } else if (activeFilter.type === 'bpm') {
-      filterByBpm(activeFilter.value);
-    }
+    console.log("Reapplying filter after refresh:", activeFilter);
+    setTimeout(() => {
+      if (activeFilter.type === 'key') {
+        filterByKey(activeFilter.value);
+      } else if (activeFilter.type === 'bpm') {
+        filterByBpm(activeFilter.value);
+      }
+    }, 50); // Small delay to ensure DOM is ready
   }
 }
 
@@ -1752,28 +1756,32 @@ function applyFilterEffect(card, compatibilityScore) {
 function filterByKey(selectedKey) {
   if (!selectedKey) return;
   
+  console.log("Filtering by key:", selectedKey);
+  
   document.body.classList.add('filtering-active');
   window.activeFilter = { type: 'key', value: selectedKey };
   
-  // Add a minimal filter toggle
-  let filterToggle = document.getElementById('includeUnknownToggle');
+  // Remove any existing toggle to avoid duplicates
+  const existingToggle = document.getElementById('includeUnknownToggle');
+  if (existingToggle) {
+    existingToggle.remove();
+  }
   
-  if (!filterToggle) {
-    filterToggle = document.createElement('div');
-    filterToggle.id = 'includeUnknownToggle';
-    filterToggle.className = 'filter-toggle';
-    filterToggle.innerHTML = `
-      <label style="font-size: 0.8rem; opacity: 0.8; display: flex; align-items: center; gap: 5px;">
-        <input type="checkbox" id="includeUnknown" checked style="margin: 0;">
-        <span>Include unknown</span>
-      </label>
-    `;
-    
-    // Add next to clear filter button
-    const clearButton = document.getElementById('clearFilterButton');
-    if (clearButton && clearButton.parentNode) {
-      clearButton.parentNode.insertBefore(filterToggle, clearButton);
-    }
+  // Create fresh filter toggle
+  const filterToggle = document.createElement('div');
+  filterToggle.id = 'includeUnknownToggle';
+  filterToggle.className = 'filter-toggle';
+  filterToggle.innerHTML = `
+    <label style="font-size: 0.8rem; opacity: 0.8; display: flex; align-items: center; gap: 5px;">
+      <input type="checkbox" id="includeUnknown" checked style="margin: 0;">
+      <span>Include unknown</span>
+    </label>
+  `;
+  
+  // Add next to clear filter button
+  const clearButton = document.getElementById('clearFilterButton');
+  if (clearButton && clearButton.parentNode) {
+    clearButton.parentNode.insertBefore(filterToggle, clearButton);
   }
   
   // Function to process the cards based on filter settings
@@ -1806,10 +1814,15 @@ function filterByKey(selectedKey) {
   // Initial filter application
   applyKeyFilter(true);
   
-  // Setup toggle listener
-  document.getElementById('includeUnknown').addEventListener('change', function() {
-    applyKeyFilter(this.checked);
-  });
+  // Setup toggle listener - with safety check
+  const includeUnknownCheckbox = document.getElementById('includeUnknown');
+  if (includeUnknownCheckbox) {
+    includeUnknownCheckbox.addEventListener('change', function() {
+      applyKeyFilter(this.checked);
+    });
+  } else {
+    console.error("Could not find 'includeUnknown' checkbox element");
+  }
   
   showClearFilterButton();
 }
