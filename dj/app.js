@@ -126,7 +126,8 @@ async function initializeDashboard() {
   initializeSortable();
 }
 
-// REPLACE the initializeCardExpansion function with this enhanced version
+let currentlyExpandedCard = null;
+
 function initializeCardExpansion() {
   // Add click event to all request cards (delegated to the container for dynamic content)
   document.getElementById('requestsList').addEventListener('click', function(e) {
@@ -135,45 +136,14 @@ function initializeCardExpansion() {
     
     // Only proceed if we found a card and the click wasn't on a button
     if (card && !e.target.closest('button')) {
-      // Toggle the expanded class
-      const wasCollapsed = card.classList.contains('collapsed');
-      
-      // Toggle classes with a smooth transition
-      if (wasCollapsed) {
-        card.classList.remove('collapsed');
-        card.classList.add('expanded');
-        
-        // Show expanded content with animation
-        const expandedContent = card.querySelector('.expanded-content');
-        if (expandedContent) {
-          expandedContent.style.display = 'block';
-          expandedContent.style.opacity = '0';
-          expandedContent.style.transform = 'scaleY(0.95)';
-          
-          // Trigger animation after display change
-          setTimeout(() => {
-            expandedContent.style.opacity = '1';
-            expandedContent.style.transform = 'scaleY(1)';
-          }, 10);
-        }
-      } else {
-        // Start collapsing animation
-        const expandedContent = card.querySelector('.expanded-content');
-        if (expandedContent) {
-          expandedContent.style.opacity = '0';
-          expandedContent.style.transform = 'scaleY(0.95)';
-          
-          // Wait for animation to finish before hiding
-          setTimeout(() => {
-            expandedContent.style.display = 'none';
-            card.classList.add('collapsed');
-            card.classList.remove('expanded');
-          }, 200);
-        } else {
-          card.classList.add('collapsed');
-          card.classList.remove('expanded');
-        }
+      // Check if another card is already expanded
+      if (currentlyExpandedCard && currentlyExpandedCard !== card) {
+        // Collapse the other card first
+        collapseCard(currentlyExpandedCard);
       }
+      
+      // Toggle the current card
+      toggleCardExpansion(card);
     }
   });
 
@@ -181,41 +151,56 @@ function initializeCardExpansion() {
   document.getElementById('playedList').addEventListener('click', function(e) {
     const card = e.target.closest('.request-card');
     if (card && !e.target.closest('button')) {
-      const wasCollapsed = card.classList.contains('collapsed');
-      
-      if (wasCollapsed) {
-        card.classList.remove('collapsed');
-        card.classList.add('expanded');
-        
-        const expandedContent = card.querySelector('.expanded-content');
-        if (expandedContent) {
-          expandedContent.style.display = 'block';
-          expandedContent.style.opacity = '0';
-          expandedContent.style.transform = 'scaleY(0.95)';
-          
-          setTimeout(() => {
-            expandedContent.style.opacity = '1';
-            expandedContent.style.transform = 'scaleY(1)';
-          }, 10);
-        }
-      } else {
-        const expandedContent = card.querySelector('.expanded-content');
-        if (expandedContent) {
-          expandedContent.style.opacity = '0';
-          expandedContent.style.transform = 'scaleY(0.95)';
-          
-          setTimeout(() => {
-            expandedContent.style.display = 'none';
-            card.classList.add('collapsed');
-            card.classList.remove('expanded');
-          }, 200);
-        } else {
-          card.classList.add('collapsed');
-          card.classList.remove('expanded');
-        }
+      // Check if another card is already expanded
+      if (currentlyExpandedCard && currentlyExpandedCard !== card) {
+        // Collapse the other card first
+        collapseCard(currentlyExpandedCard);
       }
+      
+      // Toggle the current card
+      toggleCardExpansion(card);
     }
   });
+}
+
+// Helper function to toggle card expansion state
+function toggleCardExpansion(card) {
+  const wasCollapsed = card.classList.contains('collapsed');
+  
+  if (wasCollapsed) {
+    // Expand the card
+    card.classList.remove('collapsed');
+    card.classList.add('expanded');
+    
+    const expandedContent = card.querySelector('.expanded-content');
+    if (expandedContent) {
+      expandedContent.style.display = 'block';
+    }
+    
+    // Update current expanded card reference
+    currentlyExpandedCard = card;
+  } else {
+    // Collapse the card
+    collapseCard(card);
+  }
+}
+
+// Helper function to collapse a card
+function collapseCard(card) {
+  if (!card) return;
+  
+  card.classList.add('collapsed');
+  card.classList.remove('expanded');
+  
+  const expandedContent = card.querySelector('.expanded-content');
+  if (expandedContent) {
+    expandedContent.style.display = 'none';
+  }
+  
+  // Clear current expanded card reference if this was it
+  if (currentlyExpandedCard === card) {
+    currentlyExpandedCard = null;
+  }
 }
 
 // Fetch requests from Supabase
@@ -223,6 +208,9 @@ async function fetchRequests(resetStarred = true) {
   if (!eventId) return;
   
   console.log("Fetching requests for event:", eventId);
+
+  // Save expanded card ID before refresh
+  const expandedCardId = currentlyExpandedCard ? currentlyExpandedCard.dataset.id : null;
   
   try {
     // Fetch active requests
@@ -283,6 +271,23 @@ async function fetchRequests(resetStarred = true) {
 
   // Update enhance button visibility
   await updateEnhanceAllButton();
+
+  // Restore expanded card state if needed
+  if (expandedCardId) {
+    const card = document.querySelector(`.request-card[data-id="${expandedCardId}"]`);
+    if (card) {
+      // Re-expand this card without animation
+      card.classList.remove('collapsed');
+      card.classList.add('expanded');
+      const expandedContent = card.querySelector('.expanded-content');
+      if (expandedContent) {
+        expandedContent.style.display = 'block';
+      }
+      currentlyExpandedCard = card;
+    } else {
+      currentlyExpandedCard = null;
+    }
+  }
 }
 
 // Display requests in the specified container
@@ -1470,6 +1475,9 @@ async function handleBulkEnhancement() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Assign dashboardContent reference
+  dashboardContent = document.querySelector('.dashboard-content');
+
   // Initialize filter elements
   filterInput = document.getElementById('requestFilter');
   clearFilterButton = document.getElementById('clearFilter');
@@ -1537,13 +1545,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // NEW: Initialize Enhance All button
+  // Initialize Enhance All button
   const enhanceAllButton = document.getElementById('enhanceAllButton');
   if (enhanceAllButton) {
     enhanceAllButton.addEventListener('click', handleBulkEnhancement);
   }
 
-  // NEW: Initialize card expansion functionality
+  // Initialize card expansion functionality
   initializeCardExpansion();
 
   // Initialize the dashboard
@@ -1552,7 +1560,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize key filter listeners
   initializeKeyFilterListeners();
   
-  // ADD THIS LINE: Initialize BPM filter listeners
+  // Initialize BPM filter listeners
   initializeBpmFilterListeners();
   
   // Re-initialize listeners after requests are loaded
@@ -1561,9 +1569,28 @@ document.addEventListener('DOMContentLoaded', function() {
   fetchRequests = async function(...args) {
     await originalFetchRequests.apply(this, args);
     initializeKeyFilterListeners();
-    // ADD THIS LINE: Re-initialize BPM listeners too
     initializeBpmFilterListeners();
   };
+
+  // Add global ESC key handler
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      // Close expanded card if any
+      if (currentlyExpandedCard) {
+        collapseCard(currentlyExpandedCard);
+      }
+      
+      // Close sidebar if open
+      if (dashboardContent && !dashboardContent.classList.contains('sidebar-collapsed')) {
+        dashboardContent.classList.add('sidebar-collapsed');
+      }
+      
+      // Close any active filtering
+      if (document.body.classList.contains('filtering-active')) {
+        clearFiltering();
+      }
+    }
+  });
 });
 
 async function getUnenhancedTracks() {

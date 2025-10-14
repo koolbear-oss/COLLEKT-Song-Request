@@ -1427,3 +1427,38 @@ body.dragging .requests-container {
 .filtering-active .request-card {
   transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+/* Improved action buttons for expanded view */
+.request-actions button {
+  min-width: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 16px;
+}
+
+.request-actions .action-text {
+  display: none;
+}
+
+/* Better spacing in expanded metadata */
+.expanded-metadata {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+/* Timestamp positioning */
+.expanded-metadata .timestamp {
+  margin-left: auto;
+}
+
+/* Ensure proper badge display */
+.expanded-metadata .key-badge,
+.expanded-metadata .bpm-badge {
+  margin-right: 5px;
+  background-color: rgba(138, 43, 226, 0.1);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+  font-weight: 500;
+}

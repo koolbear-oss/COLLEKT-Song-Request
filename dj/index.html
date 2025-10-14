@@ -133,33 +133,30 @@
             <!-- Expanded content: Hidden by default -->
             <div class="expanded-content" style="display: none;">
                 <div class="expanded-metadata">
-                    <span class="key-badge-large"></span>
-                    <span class="bpm-badge-large"></span>
+                    <!-- Reuse the same badges instead of having separate large ones -->
+                    <span class="key-badge"></span>
+                    <span class="bpm-badge"></span>
                     <span class="timestamp"></span>
                 </div>
                 
                 <p class="message"></p>
                 
                 <div class="request-actions">
+                    <!-- Remove text, keep only icons with tooltips -->
                     <button class="copy-button" title="Copy to search">
-                        <span class="action-icon">📋</span> 
-                        <span class="action-text">Copy</span>
+                        <span class="action-icon">📋</span>
                     </button>
                     <button class="star-button" title="Star request">
-                        <span class="action-icon">⭐</span> 
-                        <span class="action-text">Star</span>
+                        <span class="action-icon">⭐</span>
                     </button>
                     <button class="play-button-expanded" title="Mark as played">
-                        <span class="action-icon">✓</span> 
-                        <span class="action-text">Played</span>
+                        <span class="action-icon">✓</span>
                     </button>
                     <button class="delete-button" title="Delete request">
-                        <span class="action-icon">🗑️</span> 
-                        <span class="action-text">Delete</span>
+                        <span class="action-icon">🗑️</span>
                     </button>
                     <button class="enhance-button-expanded" style="display: none;" title="Enhance with AI">
-                        <span class="action-icon">🧠</span> 
-                        <span class="action-text">Enhance</span>
+                        <span class="action-icon">🧠</span>
                     </button>
                 </div>
             </div>
