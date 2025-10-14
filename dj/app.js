@@ -378,66 +378,53 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     
     // Show metadata for Pro users if available
     const isPro = localStorage.getItem('userRole') === 'Pro DJ' || localStorage.getItem('userRole') === 'Admin';
-    const keyBadge = requestCard.querySelector('.key-badge');
-    const bpmBadge = requestCard.querySelector('.bpm-badge');
-    const keyBadgeLarge = requestCard.querySelector('.key-badge-large');
-    const bpmBadgeLarge = requestCard.querySelector('.bpm-badge-large');
+    
+    // Get ALL key badges and BPM badges in both collapsed and expanded views
+    const keyBadges = requestCard.querySelectorAll('.key-badge');
+    const bpmBadges = requestCard.querySelectorAll('.bpm-badge');
 
     if (isPro) {
       // Show key if available
       if (request.key) {
-        // For small badge (collapsed view)
-        if (keyBadge) {
-          keyBadge.textContent = request.key;
-          keyBadge.setAttribute('data-value', request.key);
+        // Update all key badges (both in collapsed and expanded view)
+        keyBadges.forEach(badge => {
+          badge.textContent = request.key;
+          badge.setAttribute('data-value', request.key);
           // Apply Camelot colors with text contrast
           const keyColors = getCamelotColor(request.key);
           if (keyColors) {
-            keyBadge.style.backgroundColor = keyColors.backgroundColor;
-            keyBadge.style.color = keyColors.color;
+            badge.style.backgroundColor = keyColors.backgroundColor;
+            badge.style.color = keyColors.color;
           }
-        }
-        
-        // For large badge (expanded view)
-        if (keyBadgeLarge) {
-          keyBadgeLarge.textContent = request.key;
-          keyBadgeLarge.setAttribute('data-value', request.key);
-          // Apply Camelot colors with text contrast
-          const keyColors = getCamelotColor(request.key);
-          if (keyColors) {
-            keyBadgeLarge.style.backgroundColor = keyColors.backgroundColor;
-            keyBadgeLarge.style.color = keyColors.color;
-          }
-        }
+        });
       } else {
-        // No key data
-        if (keyBadge) keyBadge.textContent = '';
-        if (keyBadgeLarge) keyBadgeLarge.textContent = '';
+        // No key data - clear all badges
+        keyBadges.forEach(badge => {
+          badge.textContent = '';
+        });
       }
       
       // Show BPM if available
       if (request.bpm) {
-        // For small badge (collapsed view)
-        if (bpmBadge) {
-          bpmBadge.textContent = request.bpm;
-          bpmBadge.setAttribute('data-value', request.bpm);
-        }
-        // For large badge (expanded view)
-        if (bpmBadgeLarge) {
-          bpmBadgeLarge.textContent = request.bpm;
-          bpmBadgeLarge.setAttribute('data-value', request.bpm);
-        }
+        // Update all BPM badges
+        bpmBadges.forEach(badge => {
+          badge.textContent = request.bpm;
+          badge.setAttribute('data-value', request.bpm);
+        });
       } else {
-        // No BPM data
-        if (bpmBadge) bpmBadge.textContent = '';
-        if (bpmBadgeLarge) bpmBadgeLarge.textContent = '';
+        // No BPM data - clear all badges
+        bpmBadges.forEach(badge => {
+          badge.textContent = '';
+        });
       }
     } else {
       // Hide metadata for non-Pro users
-      if (keyBadge) keyBadge.style.display = 'none';
-      if (bpmBadge) bpmBadge.style.display = 'none';
-      if (keyBadgeLarge) keyBadgeLarge.style.display = 'none';
-      if (bpmBadgeLarge) bpmBadgeLarge.style.display = 'none';
+      keyBadges.forEach(badge => {
+        badge.style.display = 'none';
+      });
+      bpmBadges.forEach(badge => {
+        badge.style.display = 'none';
+      });
     }
     
     // Format timestamp
