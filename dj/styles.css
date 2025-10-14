@@ -590,7 +590,7 @@ button:active {
   box-shadow: var(--shadow-subtle);
   transition: all var(--transition-normal) ease;
   position: relative;
-  border-left: 3px solid transparent;
+  border-left: 3px solid var(--card-border);
   padding: 12px;
   cursor: pointer;
   backdrop-filter: blur(5px);
@@ -1637,16 +1637,33 @@ body.dragging .requests-container {
 
 /* Enhanced card styling - cards with metadata */
 .request-card.enhanced-with-data {
-  border-left: 3px solid var(--primary-color);
+  border-left: 3px solid var(--card-border); 
 }
 
 /* Enhanced but no data found - lighter background for the entire card */
 .request-card.enhanced-no-data {
   background: rgba(60, 60, 60, 0.5); /* Lighter than regular cards */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 3px solid var(--card-border); /* Reset to default border */
 }
 
 /* Remove the previous yellow left border if it was added before */
 .request-card.enhanced-no-data {
   border-left: 3px solid var(--card-border); /* Reset to default border */
+}
+
+/* Filtering active styles - only apply when filtering is active */
+body.filtering-active .request-card.high-compatibility {
+  border-left: 3px solid #9c27b0; /* Purple for high compatibility */
+  box-shadow: 0 0 8px rgba(156, 39, 176, 0.4);
+}
+
+body.filtering-active .request-card.medium-compatibility {
+  border-left: 3px solid #ba68c8; /* Lighter purple for medium */
+  box-shadow: 0 0 6px rgba(186, 104, 200, 0.3);
+}
+
+body.filtering-active .request-card.low-compatibility {
+  border-left: 3px solid #e1bee7; /* Very light purple for low */
+  box-shadow: 0 0 4px rgba(225, 190, 231, 0.2);
 }

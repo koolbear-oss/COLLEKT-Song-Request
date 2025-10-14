@@ -1685,43 +1685,33 @@ function calculateKeyCompatibility(key1, key2) {
 }
 
 function applyFilterEffect(card, compatibilityScore) {
-  // More dramatic opacity range - 0.1 to 1
-  const opacity = 0.1 + (compatibilityScore * 0.9);
+  // First, reset any existing compatibility classes
+  card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility');
   
-  // Apply visual effects
-  card.style.opacity = opacity.toString();
-  card.style.transition = 'all 0.3s ease-in-out';
-  
-  // Scale effect based on compatibility
-  const scale = 1 + (compatibilityScore * 0.05); // 1.00 to 1.05 scale
-  
-  if (compatibilityScore > 0.8) {
-    // Highly compatible cards get highlight effect
-    card.style.transform = `scale(${scale})`;
-    card.style.boxShadow = '0 0 15px rgba(138, 43, 226, 0.7)';
-    card.style.zIndex = '5'; // Bring to front
-    card.style.borderLeftColor = 'rgba(138, 43, 226, 0.8)';
-  } 
-  else if (compatibilityScore > 0.6) {
-    // Medium compatibility
-    card.style.transform = `scale(${scale * 0.99})`;
-    card.style.boxShadow = '0 0 10px rgba(138, 43, 226, 0.4)';
-    card.style.zIndex = '4';
-    card.style.borderLeftColor = 'rgba(138, 43, 226, 0.6)';
-  }
-  else if (compatibilityScore > 0.4) {
-    // Low compatibility
-    card.style.transform = `scale(${scale * 0.98})`;
-    card.style.boxShadow = '0 0 5px rgba(138, 43, 226, 0.2)';
-    card.style.zIndex = '3';
-    card.style.borderLeftColor = 'rgba(138, 43, 226, 0.3)';
-  }
-  else {
-    // Minimal compatibility
+  // Only apply effects if filtering is actually active
+  if (!document.body.classList.contains('filtering-active')) {
+    card.style.opacity = '1';
     card.style.transform = 'scale(1)';
-    card.style.boxShadow = 'none';
-    card.style.zIndex = '2';
-    card.style.borderLeftColor = 'transparent';
+    card.style.boxShadow = '';
+    return;
+  }
+  
+  // Determine compatibility level based on score
+  if (compatibilityScore >= 0.8) {
+    card.classList.add('high-compatibility');
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1.02)';
+    card.style.order = '-3'; // High priority in flexbox
+  } else if (compatibilityScore >= 0.4) {
+    card.classList.add('medium-compatibility');
+    card.style.opacity = '0.85';
+    card.style.transform = 'scale(1)';
+    card.style.order = '-2';
+  } else {
+    card.classList.add('low-compatibility');
+    card.style.opacity = '0.6';
+    card.style.transform = 'scale(0.98)';
+    card.style.order = '-1';
   }
 }
 
@@ -1916,16 +1906,22 @@ function keyBadgeClickHandler(e) {
 
 // ADD to app.js - Clear filtering function and button
 function clearFiltering() {
+  console.log("Clearing all filters");
+  
   // Remove filtering state
   document.body.classList.remove('filtering-active');
   window.activeFilter = null;
   
   // Reset all cards
   document.querySelectorAll('.request-card').forEach(card => {
+    // Remove compatibility classes
+    card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility');
+    
+    // Reset inline styles
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
     card.style.boxShadow = '';
-    card.style.display = ''; // Make sure hidden cards are shown again
+    card.style.order = '';
   });
   
   // Hide clear button
@@ -1933,16 +1929,6 @@ function clearFiltering() {
   if (clearButton) {
     clearButton.style.display = 'none';
   }
-  
-  // Remove temporary filter controls
-  const tempControls = [
-    document.getElementById('includeUnknownToggle'),
-    document.getElementById('bpmRangeControl')
-  ];
-  
-  tempControls.forEach(control => {
-    if (control) control.remove();
-  });
 }
 
 function showClearFilterButton() {
@@ -1979,3 +1965,16 @@ document.addEventListener('keydown', function(e) {
     }
   }
 });
+
+function checkFilterState() {
+  console.log("Filter state check:");
+  console.log("- Body has filtering-active:", document.body.classList.contains('filtering-active'));
+  console.log("- Active filter:", window.activeFilter);
+  console.log("- Cards with high-compatibility:", document.querySelectorAll('.high-compatibility').length);
+  console.log("- Cards with medium-compatibility:", document.querySelectorAll('.medium-compatibility').length);
+  console.log("- Cards with low-compatibility:", document.querySelectorAll('.low-compatibility').length);
+}
+
+// Call this at key points
+// Add to the end of filterByKey, filterByBpm, clearFiltering, and fetchRequests
+checkFilterState();
