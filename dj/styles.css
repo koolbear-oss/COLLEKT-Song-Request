@@ -1462,3 +1462,38 @@ body.dragging .requests-container {
   border: 1px solid rgba(138, 43, 226, 0.2);
   font-weight: 500;
 }
+
+/* Ensure consistent badge styling in expanded and collapsed views */
+.expanded-metadata .key-badge,
+.expanded-metadata .bpm-badge {
+  /* Use the same styling as the collapsed view badges */
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(138, 43, 226, 0.1);
+  font-weight: 500;
+  font-size: 0.85em;
+}
+
+/* Remove the border from expanded-content */
+.expanded-content {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: none; /* Remove the border */
+}
+
+/* Fix title display in expanded mode */
+.request-card.expanded .song-title,
+.request-card.is-expanded .song-title {
+  display: inline; /* Keep it inline, not block */
+}
+
+.request-card.expanded .artist-name,
+.request-card.is-expanded .artist-name {
+  display: inline; /* Keep it inline, not block */
+}
+
+.request-card.expanded .artist-name::before,
+.request-card.is-expanded .artist-name::before {
+  content: " - "; /* Keep the dash separator */
+  opacity: 0.6;
+}

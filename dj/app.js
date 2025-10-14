@@ -168,14 +168,15 @@ function toggleCardExpansion(card) {
   const wasCollapsed = card.classList.contains('collapsed');
   
   if (wasCollapsed) {
-    // Expand the card
-    card.classList.remove('collapsed');
-    card.classList.add('expanded');
-    
+    // Just show the expanded content without affecting the overall card layout
+    // We'll keep the collapsed class but show the expanded content
     const expandedContent = card.querySelector('.expanded-content');
     if (expandedContent) {
       expandedContent.style.display = 'block';
     }
+    
+    // Add a class just for tracking the expanded state
+    card.classList.add('is-expanded');
     
     // Update current expanded card reference
     currentlyExpandedCard = card;
@@ -189,13 +190,14 @@ function toggleCardExpansion(card) {
 function collapseCard(card) {
   if (!card) return;
   
-  card.classList.add('collapsed');
-  card.classList.remove('expanded');
-  
+  // Hide the expanded content
   const expandedContent = card.querySelector('.expanded-content');
   if (expandedContent) {
     expandedContent.style.display = 'none';
   }
+  
+  // Remove the expansion tracking class
+  card.classList.remove('is-expanded');
   
   // Clear current expanded card reference if this was it
   if (currentlyExpandedCard === card) {
