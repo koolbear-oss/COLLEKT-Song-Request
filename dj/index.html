@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DJ Dashboard</title>
+    <title>DJ Dashboard - COLLEKT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -20,7 +23,7 @@
                     <span class="nav-icon">➕</span> Guest Form
                 </button>
             </div>
-            <h1>Collekt Song Requests</h1>
+            <h1>COLLEKT Song Requests</h1>
             <div class="event-info">
                 <span id="eventName">Loading event...</span>
                 <div class="header-controls">
@@ -83,7 +86,7 @@
         </div>
     </div>
 
-    <!-- Settings Popup - CORRECTLY PLACED at the end of body -->
+    <!-- Settings Popup -->
     <div id="settingsPopup" class="settings-popup">
         <div class="popup-content">
             <div class="refresh-controls">
@@ -92,7 +95,7 @@
             </div>
             <button id="exportButton" class="export-button">Export Playlist</button>
             
-            <!-- THIS SHOULD BE HERE - Pro Features section -->
+            <!-- Pro Features section -->
             <div id="proSettings" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #444; display: none;">
                 <h3 style="margin-top: 0; font-size: 16px; color: #8a2be2;">Pro Features</h3>
                 <div style="margin-bottom: 10px;">
@@ -109,41 +112,72 @@
         <div class="request-card collapsed" data-id="" data-key="">
             <!-- Card Header: Always visible (title/artist) -->
             <div class="card-header">
-            <div class="card-title-line">
-                <h3 class="song-title"></h3>
-                <span class="artist-name"></span>
-            </div>
-            
-            <!-- Quick actions: Always visible -->
-            <div class="quick-actions">
-                <button class="play-button" title="Mark as played">✓</button>
-                <button class="enhance-button" title="Enhance with AI" style="display: none;">🧠</button>
-            </div>
+                <div class="card-title-line">
+                    <h3 class="song-title"></h3>
+                    <span class="artist-name"></span>
+                </div>
+                
+                <!-- Quick actions: Always visible -->
+                <div class="quick-actions">
+                    <button class="play-button" title="Mark as played">✓</button>
+                    <button class="enhance-button" title="Enhance with AI" style="display: none;">🧠</button>
+                </div>
             </div>
             
             <!-- Metadata row: Always visible when collapsed -->
             <div class="metadata-row">
-            <span class="key-badge"></span>
-            <span class="bpm-badge"></span>
+                <span class="key-badge"></span>
+                <span class="bpm-badge"></span>
             </div>
             
             <!-- Expanded content: Hidden by default -->
             <div class="expanded-content" style="display: none;">
-            <div class="expanded-metadata">
-                <span class="key-badge-large"></span>
-                <span class="bpm-badge-large"></span>
-                <span class="timestamp"></span>
+                <div class="expanded-metadata">
+                    <span class="key-badge-large"></span>
+                    <span class="bpm-badge-large"></span>
+                    <span class="timestamp"></span>
+                </div>
+                
+                <p class="message"></p>
+                
+                <div class="request-actions">
+                    <button class="copy-button" title="Copy to search">
+                        <span class="action-icon">📋</span> 
+                        <span class="action-text">Copy</span>
+                    </button>
+                    <button class="star-button" title="Star request">
+                        <span class="action-icon">⭐</span> 
+                        <span class="action-text">Star</span>
+                    </button>
+                    <button class="play-button-expanded" title="Mark as played">
+                        <span class="action-icon">✓</span> 
+                        <span class="action-text">Played</span>
+                    </button>
+                    <button class="delete-button" title="Delete request">
+                        <span class="action-icon">🗑️</span> 
+                        <span class="action-text">Delete</span>
+                    </button>
+                    <button class="enhance-button-expanded" style="display: none;" title="Enhance with AI">
+                        <span class="action-icon">🧠</span> 
+                        <span class="action-text">Enhance</span>
+                    </button>
+                </div>
             </div>
-            
-            <p class="message"></p>
-            
-            <div class="request-actions">
-                <button class="copy-button" title="Copy to search">Copy</button>
-                <button class="star-button" title="Star request">Star</button>
-                <button class="play-button-expanded" title="Mark as played">Played</button>
-                <button class="delete-button" title="Delete request">Delete</button>
-                <button class="enhance-button-expanded" style="display: none;" title="Enhance with AI">Enhance</button>
-            </div>
+        </div>
+    </template>
+
+    <!-- Enhancement Progress Modal Template -->
+    <template id="enhancementModalTemplate">
+        <div class="enhancement-modal">
+            <div class="enhancement-modal-content">
+                <h2>Enhancing Tracks</h2>
+                <div class="enhancement-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <p id="progressText">Starting...</p>
+                    <p class="current-track" id="currentTrack"></p>
+                </div>
             </div>
         </div>
     </template>
