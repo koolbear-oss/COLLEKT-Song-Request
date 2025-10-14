@@ -1853,27 +1853,43 @@ function applyFilterEffect(card, compatibilityScore, bpmProximity = null) {
     return;
   }
   
-  // Calculate order value - key compatibility is PRIMARY, BPM is subtle tiebreaker
+  // BPM tiebreaker (0-1 range)
+  const bpmTiebreaker = bpmProximity !== null ? bpmProximity : 0.5;
+  
+  // Calculate order with LARGE gaps between compatibility levels
   let orderValue;
   
-  if (compatibilityScore >= 0.9) {
-    // Perfect/near-perfect matches: use narrow range -1000 to -999
+  if (compatibilityScore === 1.0) {
+    // PERFECT key match: -10000 to -9999
     card.classList.add('high-compatibility');
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
+    orderValue = -10000 - bpmTiebreaker;
     
-    // BPM tiebreaker range: 0-1 (keeps perfect matches together)
-    const tiebreaker = bpmProximity !== null ? bpmProximity : 0.5;
-    orderValue = -1000 - tiebreaker;
+  } else if (compatibilityScore >= 0.9) {
+    // Near-perfect (relative major/minor): -9000 to -8999
+    card.classList.add('high-compatibility');
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+    orderValue = -9000 - bpmTiebreaker;
+    
+  } else if (compatibilityScore >= 0.7) {
+    // Adjacent keys: -7000 to -6999
+    card.style.opacity = Math.max(0.5, compatibilityScore).toString();
+    card.style.transform = 'scale(1)';
+    orderValue = -7000 - bpmTiebreaker;
+    
+  } else if (compatibilityScore >= 0.4) {
+    // Two steps away: -4000 to -3999
+    card.style.opacity = Math.max(0.4, compatibilityScore).toString();
+    card.style.transform = 'scale(1)';
+    orderValue = -4000 - bpmTiebreaker;
+    
   } else {
-    // Imperfect matches: key dominates, BPM is minor tiebreaker
+    // Low compatibility: -1000 to -999
     card.style.opacity = Math.max(0.3, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
-    
-    // Primary: key * 100 (range -70 to -10)
-    // Tiebreaker: BPM * 0.5 (range -0.5 to 0, minimal impact)
-    const tiebreaker = bpmProximity !== null ? bpmProximity * 0.5 : 0;
-    orderValue = Math.floor(-compatibilityScore * 100 - tiebreaker);
+    orderValue = -1000 - bpmTiebreaker;
   }
   
   card.style.order = orderValue.toString();
