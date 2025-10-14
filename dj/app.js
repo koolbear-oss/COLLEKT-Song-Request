@@ -1839,6 +1839,34 @@ function filterByKey(selectedKey) {
   }
 }
 
+function applyFilterEffect(card, compatibilityScore, bpmProximity = null) {
+  card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility');
+  
+  if (!document.body.classList.contains('filtering-active')) {
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+    card.style.boxShadow = '';
+    card.style.order = '';
+    return;
+  }
+  
+  if (compatibilityScore >= 0.9) {
+    card.classList.add('high-compatibility');
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+    
+    const tiebreaker = bpmProximity !== null ? bpmProximity : 0.5;
+    card.style.order = (-100 - tiebreaker).toString();
+  } else {
+    card.style.opacity = Math.max(0.3, compatibilityScore).toString();
+    card.style.transform = 'scale(1)';
+    
+    const tiebreaker = bpmProximity !== null ? bpmProximity * 10 : 0;
+    card.style.order = Math.floor(-compatibilityScore * 50 - tiebreaker).toString();
+  }
+}
+
+
 function applyKeyFilter() {
   const selectedKey = window.activeFilter.key || window.activeFilter.value;
   
