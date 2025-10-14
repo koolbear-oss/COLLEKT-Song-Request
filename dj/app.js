@@ -91,7 +91,7 @@ async function initializeDashboard() {
 
   // Simple, safe filter clear operation
   try {
-    const filterInput = document.getElementById('requestFilter');
+    // Use the global filterInput reference, not a new local variable
     if (filterInput) {
       filterInput.value = '';
       console.log("Cleared filter field on initialization");
@@ -1187,7 +1187,7 @@ async function restoreRequest(requestId) {
 
 // Sidebar toggle functionality
 const sidebarToggle = document.getElementById('sidebarToggle');
-const dashboardContent = document.querySelector('.dashboard-content');
+let dashboardContent = document.querySelector('.dashboard-content');
 
 sidebarToggle.addEventListener('click', function() {
   // Toggle the class
@@ -1476,7 +1476,9 @@ async function handleBulkEnhancement() {
 
 document.addEventListener('DOMContentLoaded', function() {
   // Assign dashboardContent reference
-  dashboardContent = document.querySelector('.dashboard-content');
+  if (!dashboardContent) {
+    dashboardContent = document.querySelector('.dashboard-content');
+  }
 
   // Initialize filter elements
   filterInput = document.getElementById('requestFilter');
