@@ -305,9 +305,14 @@ async function fetchRequests(resetStarred = true) {
     console.log("Reapplying filter after refresh:", activeFilter);
     setTimeout(() => {
       if (activeFilter.type === 'key') {
-        filterByKey(activeFilter.value);
+        // Preserve sourceCardId and referenceBpm when reapplying
+        filterByKey(activeFilter.value, activeFilter.referenceBpm, activeFilter.sourceCardId);
       } else if (activeFilter.type === 'bpm') {
-        filterByBpm(activeFilter.value);
+        // Preserve sourceCardId when reapplying
+        filterByBpm(activeFilter.value, activeFilter.bpmRange || 6, activeFilter.referenceKey, activeFilter.sourceCardId);
+      } else if (activeFilter.type === 'combined') {
+        // For combined filters, apply key first then BPM
+        filterByKey(activeFilter.key, activeFilter.referenceBpm, activeFilter.sourceCardId);
       }
     }, 50); // Small delay to ensure DOM is ready
   }
@@ -1751,57 +1756,6 @@ function calculateBpmProximity(referenceBpm, cardBpm) {
   return proximityScore;
 }
 
-function applyKeyFilter() {
-  const selectedKey = window.activeFilter.key || window.activeFilter.value;
-  
-  // Get reference BPM from the clicked card
-  let referenceBpm = null;
-  const sourceCard = Array.from(document.querySelectorAll('.key-badge, .key-badge-large'))
-    .find(badge => badge.textContent.trim() === selectedKey)?.closest('.request-card');
-  if (sourceCard) {
-    const sourceBpmElement = sourceCard.querySelector('.bpm-badge, .bpm-badge-large');
-    if (sourceBpmElement && sourceBpmElement.textContent.trim()) {
-      referenceBpm = parseInt(sourceBpmElement.textContent.trim());
-    }
-  }
-  
-  document.querySelectorAll('.request-card').forEach(card => {
-    const cardKeyElement = card.querySelector('.key-badge');
-    if (!cardKeyElement) return;
-    
-    const cardKey = cardKeyElement.textContent.trim();
-    
-    if (cardKey) {
-      const keyCompatibility = calculateKeyCompatibility(selectedKey, cardKey);
-      
-      // Calculate BPM proximity for tiebreaking (with double/half-time support)
-      let bpmProximity = null;
-      if (referenceBpm) {
-        const cardBpmElement = card.querySelector('.bpm-badge');
-        if (cardBpmElement && cardBpmElement.textContent.trim()) {
-          const cardBpm = parseInt(cardBpmElement.textContent.trim());
-          bpmProximity = calculateBpmProximity(referenceBpm, cardBpm);
-        }
-      }
-      
-      // If combined filter, also check BPM
-      if (window.activeFilter.type === 'combined') {
-        const bpmCompatibility = checkBpmCompatibility(card);
-        const combinedScore = Math.min(keyCompatibility, bpmCompatibility);
-        applyFilterEffect(card, combinedScore, bpmProximity);
-      } else {
-        applyFilterEffect(card, keyCompatibility, bpmProximity);
-      }
-    } else {
-      // Cards without data always at bottom
-      card.style.opacity = '0.15';
-      card.style.transform = 'scale(1)';
-      card.style.order = '1000';
-    }
-  });
-}
-
-// ADD to app.js - Key filtering implementation
 function filterByKey(selectedKey, referenceBpm = null, sourceCardId = null) {
   if (!selectedKey) return;
   
@@ -1811,6 +1765,8 @@ function filterByKey(selectedKey, referenceBpm = null, sourceCardId = null) {
   if (!document.body.classList.contains('filtering-active')) {
     scrollPositionBeforeFilter = window.scrollY || window.pageYOffset;
   }
+
+  
   
   // Check if this is a secondary filter
   const isSecondaryFilter = window.activeFilter && window.activeFilter.type === 'bpm';
@@ -1973,6 +1929,8 @@ function applyKeyFilter() {
     container.style.display = 'grid';
     container.style.gridAutoFlow = 'dense';
   }
+
+  forceGridRefresh();
   
   console.log('Key filter applied to all cards');
 }
@@ -2142,6 +2100,8 @@ function applyBpmFilter(selectedBpm, percentageRange) {
       card.style.transform = 'scale(1)';
       card.style.order = '1000';
     }
+
+    forceGridRefresh();
   });
   
   // Use CSS grid's order property for sorting (more efficient than DOM manipulation)
@@ -2352,3 +2312,24 @@ function checkFilterState() {
 // Call this at key points
 // Add to the end of filterByKey, filterByBpm, clearFiltering, and fetchRequests
 checkFilterState();
+
+function forceGridRefresh() {
+  // Force layout recalculation to make order property take effect immediately
+  const container = document.getElementById('requestsList');
+  if (!container) return;
+  
+  // Force a reflow by temporarily changing a layout property
+  const currentDisplay = container.style.display;
+  container.style.display = 'none';
+  // Trigger reflow
+  void container.offsetHeight;
+  // Restore display
+  container.style.display = 'grid';
+  
+  // Make sure grid settings are explicitly set
+  container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+  container.style.gap = '15px';
+  container.style.gridAutoFlow = 'dense';
+  
+  console.log("Forced grid refresh");
+}
