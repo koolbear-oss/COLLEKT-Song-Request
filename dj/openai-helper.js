@@ -29,7 +29,7 @@ async function enhanceTrackWithOpenAI(title, artist, apiKey) {
       },
       
       body: JSON.stringify({
-        model: "gpt-4-turbo",
+        model: "gpt-3.5-turbo",
         prompt: `You are a music expert identifying and correcting song requests from a DJ event.
 
       INPUT:
