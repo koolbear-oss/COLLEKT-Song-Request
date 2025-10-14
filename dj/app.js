@@ -410,9 +410,13 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       
       // Show BPM if available
       if (request.bpm) {
-        if (bpmBadge) bpmBadge.textContent = request.bpm;
-        bpmBadge.setAttribute('data-value', request.bpm);
-        if (bpmBadgeLarge) bpmBadgeLarge.textContent = request.bpm;
+        if (bpmBadge) {
+          bpmBadge.textContent = request.bpm;
+          bpmBadge.setAttribute('data-value', request.bpm);
+        }
+        if (bpmBadgeLarge) {
+          bpmBadgeLarge.textContent = request.bpm;
+        }
       } else {
         if (bpmBadge) bpmBadge.textContent = '';
         if (bpmBadgeLarge) bpmBadgeLarge.textContent = '';
