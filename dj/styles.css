@@ -774,7 +774,7 @@ button:active {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
 }
 
 .key-badge-large,
@@ -1445,8 +1445,8 @@ body.dragging .requests-container {
 .expanded-metadata {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 /* Timestamp positioning */
@@ -1454,19 +1454,9 @@ body.dragging .requests-container {
   margin-left: auto;
 }
 
-/* Ensure proper badge display */
 .expanded-metadata .key-badge,
 .expanded-metadata .bpm-badge {
-  margin-right: 5px;
-  background-color: rgba(138, 43, 226, 0.1);
-  border: 1px solid rgba(138, 43, 226, 0.2);
-  font-weight: 500;
-}
-
-/* Ensure consistent badge styling in expanded and collapsed views */
-.expanded-metadata .key-badge,
-.expanded-metadata .bpm-badge {
-  /* Use the same styling as the collapsed view badges */
+  /* Match the styling of regular badges */
   padding: 3px 8px;
   border-radius: 5px;
   background: rgba(138, 43, 226, 0.1);
@@ -1476,8 +1466,8 @@ body.dragging .requests-container {
 
 /* Remove the border from expanded-content */
 .expanded-content {
-  margin-top: 15px;
-  padding-top: 10px;
+  margin-top: 5px;
+  padding-top: 5px;
   border-top: none; /* Remove the border */
 }
 
@@ -1496,4 +1486,8 @@ body.dragging .requests-container {
 .request-card.is-expanded .artist-name::before {
   content: " - "; /* Keep the dash separator */
   opacity: 0.6;
+}
+
+.request-card.is-expanded .metadata-row {
+  display: none;
 }

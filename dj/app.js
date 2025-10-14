@@ -165,18 +165,17 @@ function initializeCardExpansion() {
 
 // Helper function to toggle card expansion state
 function toggleCardExpansion(card) {
-  const wasCollapsed = card.classList.contains('collapsed');
+  const wasCollapsed = !card.classList.contains('is-expanded');
   
   if (wasCollapsed) {
-    // Just show the expanded content without affecting the overall card layout
-    // We'll keep the collapsed class but show the expanded content
+    // Add expanded class for tracking the expanded state
+    card.classList.add('is-expanded');
+    
+    // Show the expanded content
     const expandedContent = card.querySelector('.expanded-content');
     if (expandedContent) {
       expandedContent.style.display = 'block';
     }
-    
-    // Add a class just for tracking the expanded state
-    card.classList.add('is-expanded');
     
     // Update current expanded card reference
     currentlyExpandedCard = card;
@@ -190,14 +189,14 @@ function toggleCardExpansion(card) {
 function collapseCard(card) {
   if (!card) return;
   
+  // Remove expanded class
+  card.classList.remove('is-expanded');
+  
   // Hide the expanded content
   const expandedContent = card.querySelector('.expanded-content');
   if (expandedContent) {
     expandedContent.style.display = 'none';
   }
-  
-  // Remove the expansion tracking class
-  card.classList.remove('is-expanded');
   
   // Clear current expanded card reference if this was it
   if (currentlyExpandedCard === card) {
@@ -340,7 +339,7 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     requestCard.dataset.id = request.id;
     requestCard.dataset.position = request.position;
 
-    // Start collapsed by default
+    // Always add collapsed class to maintain basic layout
     requestCard.classList.add('collapsed');
 
     // Highlight new requests
