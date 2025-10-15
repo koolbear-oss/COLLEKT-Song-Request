@@ -58,6 +58,7 @@ TECHNICAL METADATA EXAMPLES:
 
 CRITICAL RULES:
 ✓ CORRECT spelling errors, punctuation, and abbreviations in title/artist
+✓ Don't correct the artist IF original has less then 50% matching character sequence compared to correction
 ✓ ALWAYS provide key and BPM for well-known songs
 ✓ For key: Use Camelot notation (e.g., "8A", "11B") preferred by DJs
 ✓ For BPM: Provide the tempo in beats per minute as a whole number
