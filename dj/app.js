@@ -578,6 +578,10 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
     if (container.id === 'requestsList' && !originalCardOrder.length) {
       originalCardOrder = Array.from(container.querySelectorAll('.request-card')).map(c => c.dataset.id);
     }
+
+    if (container.id === 'requestsList') {          // always run for active list
+      originalCardOrder = Array.from(container.children, c => c.dataset.id);
+    }
     
     // Add to container
     container.appendChild(requestCard);
@@ -1131,27 +1135,26 @@ function applyQuickFilter(filterType) {
 }
 
 function clearFiltering() {
-  console.log('Clearing all filters');
-
-  /* 1️⃣  restore DOM to original order (instant) */
   const container = document.getElementById('requestsList');
+  /* 1️⃣  ensure we have a snapshot – if not, build it now */
+  if (!originalCardOrder.length && container) {
+    originalCardOrder = Array.from(container.children, c => c.dataset.id);
+  }
+
+  /* 2️⃣  reorder by snapshot (same code as before) */
   if (container && originalCardOrder.length) {
     const cardMap = new Map(
-      Array.from(container.querySelectorAll('.request-card'))
-           .map(c => [c.dataset.id, c])
+      Array.from(container.children).map(c => [c.dataset.id, c])
     );
-    // append in snapshot order
     originalCardOrder.forEach(id => {
       const card = cardMap.get(id);
       if (card) container.appendChild(card);
     });
   }
 
-  /* 2️⃣  wipe filter state */
+  /* 3️⃣  rest of your existing wipe-state code … */
   document.body.classList.remove('filtering-active');
   window.activeFilter = null;
-
-  /* 3️⃣  clean card styles */
   document.querySelectorAll('.request-card').forEach(c => {
     c.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility', 'source-card');
     c.style.order = '';
@@ -1159,16 +1162,12 @@ function clearFiltering() {
     c.style.transform = '';
     c.style.boxShadow = '';
   });
-
-  /* 4️⃣  hide UI controls */
   const clearBtn = document.getElementById('clearFilterButton');
   if (clearBtn) clearBtn.style.display = 'none';
   ['includeUnknownToggle', 'bpmRangeControl'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.remove();
   });
-
-  /* 5️⃣  scroll back */
   if (scrollPositionBeforeFilter > 0) {
     window.scrollTo({top: scrollPositionBeforeFilter, behavior: 'smooth'});
     scrollPositionBeforeFilter = 0;
