@@ -1133,23 +1133,24 @@ function applyQuickFilter(filterType) {
 function clearFiltering() {
   const container = document.getElementById('requestsList');
 
-  /* 1️⃣  ALWAYS make sure we have the original order */
+  /* 1️⃣  ALWAYS have the original order – build it NOW if necessary */
   if (!originalCardOrder.length && container) {
     originalCardOrder = Array.from(container.children, c => c.dataset.id);
   }
 
-  /* 2️⃣  reorder by snapshot (the rest of your code stays identical) */
+  /* 2️⃣  restore DOM to that order */
   if (container && originalCardOrder.length) {
     const cardMap = new Map(
       Array.from(container.children).map(c => [c.dataset.id, c])
     );
+    // append in snapshot order → browser paints instantly
     originalCardOrder.forEach(id => {
       const card = cardMap.get(id);
       if (card) container.appendChild(card);
     });
   }
 
-  /* 3️⃣  wipe filter state (your existing code …) */
+  /* 3️⃣  wipe filter state (rest of your existing code) */
   document.body.classList.remove('filtering-active');
   window.activeFilter = null;
   document.querySelectorAll('.request-card').forEach(c => {
