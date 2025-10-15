@@ -1688,7 +1688,7 @@ body.filtering-active .request-card.high-compatibility {
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
   gap: 15px !important;
-  grid-auto-flow: dense !important;
+  grid-auto-flow: dense;
 }
 
 /* Request cards must be grid items for order to work */
@@ -1760,40 +1760,14 @@ body.filtering-active .request-card.high-compatibility {
   z-index: 10 !important;
 }
 
-#requestsList.filtering-active {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
-  gap: 15px !important;
-  grid-auto-flow: dense !important;
+body.filtering-active #requestsList {
+  display: grid !important;       /* override any previous flex rule */
 }
 
-/* Ensure smooth transitions for filtered cards */
-#requestsList.filtering-active .request-card {
-  transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
-  will-change: transform, opacity;
-}
-
-/* Make source card highlight more prominent */
 .request-card.source-card {
-  border-left: 3px solid var(--primary-color) !important;
-  box-shadow: 0 0 15px rgba(138, 43, 226, 0.5) !important;
-  transform: translateY(-2px) scale(1.02) !important;
-  z-index: 10 !important;
-  position: relative;
+  order: -20000 !important;       /* lowest number → first in grid */
 }
 
-/* Compatibility level styling */
-.request-card.high-compatibility {
-  border-left: 3px solid #9c27b0 !important;
-  box-shadow: 0 0 12px rgba(156, 39, 176, 0.5) !important;
-}
-
-.request-card.medium-compatibility {
-  border-left: 3px solid #2196f3 !important;
-  box-shadow: 0 0 8px rgba(33, 150, 243, 0.3) !important;
-}
-
-.request-card.low-compatibility {
-  border-left: 3px solid #ff9800 !important;
-  box-shadow: 0 0 5px rgba(255, 152, 0, 0.2) !important;
-}
+.request-card.high-compatibility   { order: -10000; }
+.request-card.medium-compatibility { order: -7000;  }
+.request-card.low-compatibility    { order: -4000;  }
