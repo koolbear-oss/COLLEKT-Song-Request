@@ -1948,6 +1948,7 @@ function applyKeyFilter() {
   }
 
   forceGridRefresh();
+  physicallyReorderCards();
   
   console.log('Key filter applied to all cards');
 }
@@ -2119,6 +2120,7 @@ function applyBpmFilter(selectedBpm, percentageRange) {
     }
 
     forceGridRefresh();
+    physicallyReorderCards();
   });
   
   // Use CSS grid's order property for sorting (more efficient than DOM manipulation)
@@ -2359,4 +2361,26 @@ function forceGridRefresh() {
   container.style.gridAutoFlow = 'dense';
   
   console.log("Forced grid refresh");
+}
+
+function physicallyReorderCards() {
+  const container = document.getElementById('requestsList');
+  if (!container) return;
+  
+  // Get all cards
+  const cards = Array.from(container.querySelectorAll('.request-card'));
+  
+  // Sort by their order value (lowest first)
+  cards.sort((a, b) => {
+    const orderA = parseFloat(a.style.order) || 0;
+    const orderB = parseFloat(b.style.order) || 0;
+    return orderA - orderB;
+  });
+  
+  // Actually move the DOM elements in order
+  cards.forEach(card => {
+    container.appendChild(card);
+  });
+  
+  console.log("Cards physically reordered in DOM");
 }
