@@ -1937,20 +1937,10 @@ function applyKeyFilter() {
     }
   });
   
-  // Use CSS grid's order property for sorting (more efficient than DOM manipulation)
-  // But ensure the grid layout is maintained by updating styles
-  const container = document.getElementById('requestsList');
-  if (container) {
-    container.style.display = 'grid';
-    container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
-    container.style.gap = '15px';
-    container.style.gridAutoFlow = 'dense';
-  }
-
-  forceGridRefresh();
+  // Use physical reordering instead of relying on CSS grid order
   physicallyReorderCards();
   
-  console.log('Key filter applied to all cards');
+  console.log('Key filter applied to all cards with physical reordering');
 }
 
 function filterByBpm(selectedBpm, percentageRange = 6, referenceKey = null, sourceCardId = null) {
@@ -2118,19 +2108,12 @@ function applyBpmFilter(selectedBpm, percentageRange) {
       card.style.transform = 'scale(1)';
       card.style.order = '1000';
     }
-
-    forceGridRefresh();
-    physicallyReorderCards();
   });
   
-  // Use CSS grid's order property for sorting (more efficient than DOM manipulation)
-  const container = document.getElementById('requestsList');
-  if (container) {
-    container.style.display = 'grid';
-    container.style.gridAutoFlow = 'dense';
-  }
+  // Use physical reordering instead of relying on CSS grid order
+  physicallyReorderCards();
   
-  console.log('BPM filter applied to all cards');
+  console.log('BPM filter applied to all cards with physical reordering');
 }
 
 // Helper function for combined filtering
@@ -2252,8 +2235,12 @@ function clearFiltering() {
   const container = document.getElementById('requestsList');
   if (container) {
     container.classList.remove('filtering-active');
-    // Reset any inline grid styles that might have been set
-    container.style.gridAutoFlow = '';
+    // Reset any inline styles that might have been set
+    container.style.display = 'grid';
+    container.style.flexDirection = '';
+    container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+    container.style.gap = '15px';
+    container.style.gridAutoFlow = 'dense';
   }
   
   window.activeFilter = null;
@@ -2367,28 +2354,40 @@ function physicallyReorderCards() {
   const container = document.getElementById('requestsList');
   if (!container) return;
   
-  // Get all cards and sort by their order value
+  // Get all cards
   const cards = Array.from(container.querySelectorAll('.request-card'));
+  
+  // Sort by their order value (lowest first)
   cards.sort((a, b) => {
     const orderA = parseFloat(a.style.order) || 0;
     const orderB = parseFloat(b.style.order) || 0;
     return orderA - orderB;
   });
   
-  // CHANGE: Switch to flex layout during filtering
+  // Temporarily switch to flex to allow proper reordering
   container.style.display = 'flex';
-  container.style.flexWrap = 'wrap';
+  container.style.flexDirection = 'column';
   container.style.gap = '15px';
   
-  // Physically reorder cards
+  // Clear container
+  container.innerHTML = '';
+  
+  // Append cards in sorted order
   cards.forEach(card => {
-    // Set explicit width to match grid appearance
-    card.style.width = 'calc(33.333% - 15px)';
-    card.style.maxWidth = '300px';
-    card.style.minWidth = '280px';
-    card.style.flexGrow = '1';
     container.appendChild(card);
   });
   
-  console.log("Cards physically reordered in DOM with flex layout");
+  // Force a reflow
+  void container.offsetHeight;
+  
+  // Return to grid layout after a brief delay to ensure rendering
+  setTimeout(() => {
+    container.style.display = 'grid';
+    container.style.flexDirection = '';
+    container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+    container.style.gap = '15px';
+    container.style.gridAutoFlow = 'dense';
+  }, 50);
+  
+  console.log("Cards physically reordered in DOM with proper sequencing");
 }
