@@ -1132,12 +1132,13 @@ function applyQuickFilter(filterType) {
 
 function clearFiltering() {
   const container = document.getElementById('requestsList');
-  /* 1️⃣  ensure we have a snapshot – if not, build it now */
+
+  /* 1️⃣  ALWAYS make sure we have the original order */
   if (!originalCardOrder.length && container) {
     originalCardOrder = Array.from(container.children, c => c.dataset.id);
   }
 
-  /* 2️⃣  reorder by snapshot (same code as before) */
+  /* 2️⃣  reorder by snapshot (the rest of your code stays identical) */
   if (container && originalCardOrder.length) {
     const cardMap = new Map(
       Array.from(container.children).map(c => [c.dataset.id, c])
@@ -1148,7 +1149,7 @@ function clearFiltering() {
     });
   }
 
-  /* 3️⃣  rest of your existing wipe-state code … */
+  /* 3️⃣  wipe filter state (your existing code …) */
   document.body.classList.remove('filtering-active');
   window.activeFilter = null;
   document.querySelectorAll('.request-card').forEach(c => {
