@@ -1131,26 +1131,7 @@ function applyQuickFilter(filterType) {
 }
 
 function clearFiltering() {
-  const container = document.getElementById('requestsList');
-
-  /* 1️⃣  ALWAYS have the original order – build it NOW if necessary */
-  if (!originalCardOrder.length && container) {
-    originalCardOrder = Array.from(container.children, c => c.dataset.id);
-  }
-
-  /* 2️⃣  restore DOM to that order */
-  if (container && originalCardOrder.length) {
-    const cardMap = new Map(
-      Array.from(container.children).map(c => [c.dataset.id, c])
-    );
-    // append in snapshot order → browser paints instantly
-    originalCardOrder.forEach(id => {
-      const card = cardMap.get(id);
-      if (card) container.appendChild(card);
-    });
-  }
-
-  /* 3️⃣  wipe filter state (rest of your existing code) */
+  /* 1️⃣  wipe UI state */
   document.body.classList.remove('filtering-active');
   window.activeFilter = null;
   document.querySelectorAll('.request-card').forEach(c => {
@@ -1160,12 +1141,19 @@ function clearFiltering() {
     c.style.transform = '';
     c.style.boxShadow = '';
   });
+
+  /* 2️⃣  hide controls */
   const clearBtn = document.getElementById('clearFilterButton');
   if (clearBtn) clearBtn.style.display = 'none';
   ['includeUnknownToggle', 'bpmRangeControl'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.remove();
   });
+
+  /* 3️⃣  ONE fresh fetch → server returns original order */
+  fetchRequests(false);   // false = do NOT reset starred items, just repaint
+
+  /* 4️⃣  scroll back */
   if (scrollPositionBeforeFilter > 0) {
     window.scrollTo({top: scrollPositionBeforeFilter, behavior: 'smooth'});
     scrollPositionBeforeFilter = 0;
