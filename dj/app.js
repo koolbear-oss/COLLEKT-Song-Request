@@ -1834,44 +1834,55 @@ function applyFilterEffect(card, compatibilityScore, bpmProximity = null) {
   
   // For all other cards, apply compatibility-based ordering
   const bpmTiebreaker = bpmProximity !== null ? bpmProximity * 1000 : 0;
+  
+  // Add a unique value based on card position to ensure all cards have different order values
+  // This ensures cards with same compatibility will be ordered consistently
+  const uniquePosition = parseInt(card.dataset.position || 0) % 100;
+  
   let orderValue;
+  let compatibilityClass = '';
   
   if (compatibilityScore === 1.0) {
-    card.classList.add('high-compatibility');
+    compatibilityClass = 'high-compatibility';
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
-    orderValue = -10000 - bpmTiebreaker;
+    orderValue = -10000 - bpmTiebreaker - uniquePosition;
     
   } else if (compatibilityScore >= 0.9) {
-    card.classList.add('high-compatibility');
+    compatibilityClass = 'high-compatibility';
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
-    orderValue = -9000 - bpmTiebreaker;
+    orderValue = -9000 - bpmTiebreaker - uniquePosition;
     
   } else if (compatibilityScore >= 0.7) {
+    compatibilityClass = 'medium-compatibility';
     card.style.opacity = Math.max(0.8, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
-    orderValue = -7000 - bpmTiebreaker;
+    orderValue = -7000 - bpmTiebreaker - uniquePosition;
     
   } else if (compatibilityScore >= 0.4) {
+    compatibilityClass = 'low-compatibility';
     card.style.opacity = Math.max(0.6, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
-    orderValue = -4000 - bpmTiebreaker;
+    orderValue = -4000 - bpmTiebreaker - uniquePosition;
     
   } else {
     card.style.opacity = Math.max(0.4, compatibilityScore).toString();
     card.style.transform = 'scale(1)';
-    orderValue = -1000 - bpmTiebreaker;
+    orderValue = -1000 - bpmTiebreaker - uniquePosition;
+  }
+  
+  // Add compatibility class if defined
+  if (compatibilityClass) {
+    card.classList.add(compatibilityClass);
   }
   
   // Store as NUMBER not string for the ordering
   card.style.order = orderValue.toString();
   
-  // DEBUG: Log key cards
+  // DEBUG: Log all cards with detailed ordering information
   const cardTitle = card.querySelector('.song-title')?.textContent || 'Unknown';
-  if (parseInt(card.style.order) < -7000) {
-    console.log(`${cardTitle}: score=${compatibilityScore.toFixed(2)}, bpm=${bpmTiebreaker.toFixed(2)}, order=${orderValue}`);
-  }
+  console.log(`${cardTitle}: score=${compatibilityScore.toFixed(2)}, position=${uniquePosition}, order=${orderValue}`);
 }
 
 function applyKeyFilter() {
