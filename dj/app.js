@@ -1765,8 +1765,13 @@ function filterByKey(selectedKey, referenceBpm = null, sourceCardId = null) {
   if (!document.body.classList.contains('filtering-active')) {
     scrollPositionBeforeFilter = window.scrollY || window.pageYOffset;
   }
-
   
+  // Add filtering-active class to both body AND container
+  document.body.classList.add('filtering-active');
+  const container = document.getElementById('requestsList');
+  if (container) {
+    container.classList.add('filtering-active');
+  }
   
   // Check if this is a secondary filter
   const isSecondaryFilter = window.activeFilter && window.activeFilter.type === 'bpm';
@@ -1778,15 +1783,14 @@ function filterByKey(selectedKey, referenceBpm = null, sourceCardId = null) {
       bpm: window.activeFilter.value,
       bpmRange: window.activeFilter.bpmRange || 6,
       referenceBpm: referenceBpm,
-      sourceCardId: sourceCardId  // Store source card ID
+      sourceCardId: sourceCardId
     };
   } else {
-    document.body.classList.add('filtering-active');
     window.activeFilter = { 
       type: 'key', 
       value: selectedKey,
       referenceBpm: referenceBpm,
-      sourceCardId: sourceCardId  // Store source card ID
+      sourceCardId: sourceCardId
     };
   }
   
@@ -1927,6 +1931,8 @@ function applyKeyFilter() {
   const container = document.getElementById('requestsList');
   if (container) {
     container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+    container.style.gap = '15px';
     container.style.gridAutoFlow = 'dense';
   }
 
@@ -2228,13 +2234,23 @@ function keyBadgeClickHandler(e) {
 function clearFiltering() {
   console.log("Clearing all filters");
   
-  // Remove filtering state
+  // Remove filtering state from both body and container
   document.body.classList.remove('filtering-active');
+  const container = document.getElementById('requestsList');
+  if (container) {
+    container.classList.remove('filtering-active');
+    // Reset any inline grid styles that might have been set
+    container.style.gridAutoFlow = '';
+  }
+  
   window.activeFilter = null;
   
-  // Reset all cards
+  // Reset all cards with more thorough class and style cleanup
   document.querySelectorAll('.request-card').forEach(card => {
-    card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility');
+    // Remove ALL filter-related classes
+    card.classList.remove('high-compatibility', 'medium-compatibility', 'low-compatibility', 'source-card');
+    
+    // Reset all inline styles that might have been set
     card.style.opacity = '1';
     card.style.transform = 'scale(1)';
     card.style.boxShadow = '';
