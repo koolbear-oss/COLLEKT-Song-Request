@@ -2275,3 +2275,28 @@ function checkFilterState() {
   console.log("- Cards with low-compatibility:", document.querySelectorAll('.low-compatibility').length);
 }
 
+// Call this at key points
+// Add to the end of filterByKey, filterByBpm, clearFiltering, and fetchRequests
+checkFilterState();
+
+function forceGridRefresh() {
+  // Force layout recalculation to make order property take effect immediately
+  const container = document.getElementById('requestsList');
+  if (!container) return;
+  
+  // Force a reflow by temporarily changing a layout property
+  const currentDisplay = container.style.display;
+  container.style.display = 'none';
+  // Trigger reflow
+  void container.offsetHeight;
+  // Restore display
+  container.style.display = 'grid';
+  
+  // Make sure grid settings are explicitly set
+  container.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+  container.style.gap = '15px';
+  container.style.gridAutoFlow = 'dense';
+  
+  console.log("Forced grid refresh");
+}
+
