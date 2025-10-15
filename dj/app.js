@@ -575,10 +575,6 @@ function displayRequests(container, requests, isPlayed = false, newRequestIds = 
       }
     }
 
-    if (container.id === 'requestsList' && !originalCardOrder.length) {
-      originalCardOrder = Array.from(container.querySelectorAll('.request-card')).map(c => c.dataset.id);
-    }
-
     if (container.id === 'requestsList') {          // always run for active list
       originalCardOrder = Array.from(container.children, c => c.dataset.id);
     }
